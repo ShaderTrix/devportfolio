@@ -5,45 +5,51 @@ const hasEducation = siteConfig.education && siteConfig.education.length > 0;
 
 {
   hasEducation && (
-    <section id="education" class="p-8 sm:p-12 md:p-16 lg:p-24">
-      <div>
+    <section id="education" class="py-20 px-8 sm:px-12 md:px-16 lg:px-24" style={{ backgroundColor: '#090d16', borderTop: '1px solid rgba(255,255,255,0.05)' }}>
+      <div class="max-w-7xl mx-auto">
         <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-16 items-start">
           <div class="lg:col-span-4">
-            <h2 class="text-3xl sm:text-4xl md:text-5xl xl:text-7xl font-bold text-gray-900">
+            <h2 class="text-3xl sm:text-4xl font-bold tracking-tight text-white">
               Education
             </h2>
             <div
-              class="w-[75px] h-[5px] mt-2 rounded-full"
+              class="w-[40px] h-[4px] mt-3 rounded-full"
               style={`background-color: ${siteConfig.accentColor}`}
             />
           </div>
 
           <div class="lg:col-span-8">
-            <div class="space-y-8">
+            <div class="space-y-6">
               {siteConfig.education.map((edu) => (
-                <div class="bg-white rounded-lg shadow-sm border border-gray-100 p-4 sm:p-5 md:p-6 hover:shadow-md transition-shadow duration-300">
+                <div 
+                  class="rounded-xl border p-6 sm:p-8 transition-all duration-300"
+                  style={{ backgroundColor: '#131a26', borderColor: 'rgba(255,255,255,0.06)' }}
+                >
                   <div class="flex flex-col sm:flex-row sm:items-start sm:justify-between mb-4">
                     <div>
-                      <h3 class="text-lg sm:text-xl font-semibold text-gray-900">
+                      <h3 class="text-xl font-bold text-white">
                         {edu.degree}
                       </h3>
                       <p
-                        class="text-base sm:text-lg"
+                        class="text-base font-mono mt-1"
                         style={`color: ${siteConfig.accentColor}`}
                       >
                         {edu.school}
                       </p>
                     </div>
-                    <span class="text-xs sm:text-sm text-gray-500 mt-2 sm:mt-0">
-                      {edu.dateRange}
+                    <span class="text-xs sm:text-sm text-gray-500 font-mono mt-2 sm:mt-0">
+                      // {edu.dateRange}
                     </span>
                   </div>
 
-                  <ul class="space-y-2">
+                  <ul class="space-y-3">
                     {edu.achievements.map((achievement) => (
                       <li class="flex items-start">
-                        <span class="inline-block w-1.5 h-1.5 rounded-full bg-gray-400 mt-2 mr-3 flex-shrink-0" />
-                        <span class="text-sm sm:text-base text-gray-600">
+                        <span 
+                          class="inline-block w-1.5 h-1.5 rounded-full mt-2 mr-3 flex-shrink-0" 
+                          style={`background-color: ${siteConfig.accentColor}`}
+                        />
+                        <span class="text-sm sm:text-base text-gray-300 leading-relaxed">
                           {achievement}
                         </span>
                       </li>

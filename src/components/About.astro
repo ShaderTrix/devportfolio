@@ -2,32 +2,33 @@
 import { siteConfig } from "../config";
 ---
 
-<section id="about" class="p-8 sm:p-12 md:p-16 lg:p-24">
-  <div>
+<section id="about" class="py-24 px-8 sm:px-12 md:px-16 lg:px-24 bg-[#090d16] border-t border-white/5">
+  <div class="max-w-7xl mx-auto">
     <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-16 items-start">
       <div class="lg:col-span-4">
-        <h2
-          class="text-3xl sm:text-4xl md:text-5xl xl:text-7xl font-bold text-gray-900"
-        >
+        <h2 class="text-3xl sm:text-4xl md:text-5xl font-bold tracking-tight text-white">
           About Me
         </h2>
         <div
-          class="w-[75px] h-[5px] mt-2 rounded-full"
+          class="w-[50px] h-[4px] mt-3 rounded-full"
           style={`background-color: ${siteConfig.accentColor}`}
         >
         </div>
       </div>
 
       <div class="lg:col-span-8 space-y-8">
-        <p class="text-lg sm:text-xl md:text-2xl leading-relaxed text-gray-600">
+        <p class="text-base sm:text-lg md:text-xl leading-relaxed text-gray-300 font-sans">
           {siteConfig.aboutMe}
         </p>
 
         <div class="pt-4">
-          <div class="flex flex-wrap gap-3">
+          <div class="flex flex-wrap gap-2">
             {
               siteConfig.skills.map((skill) => (
-                <span class="px-3 sm:px-4 py-1.5 sm:py-2 bg-gray-100 text-gray-800 rounded-full text-sm sm:text-base md:text-lg font-medium hover:bg-gray-200 transition-colors duration-200">
+                <span 
+                  class="px-3 py-1.5 rounded-md text-xs sm:text-sm font-mono bg-[#131a26] text-gray-200 border border-white/[0.06] hover:border-[var(--skill-accent)] transition-colors duration-200"
+                  style={`--skill-accent: ${siteConfig.accentColor}`}
+                >
                   {skill}
                 </span>
               ))

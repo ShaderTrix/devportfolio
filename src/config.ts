@@ -1,91 +1,96 @@
 export const siteConfig = {
-  name: "Ryan Fitzgerald",
-  title: "Senior Software Engineer",
-  description: "Portfolio website of Ryan Fitzgerald",
-  accentColor: "#1d4ed8",
+  name: "Shivanshu Chauhan",
+  title: "Technical Artist | UI Technical Artist | Graphics Programmer",
+  description:
+    "Unity UI Systems, Rendering, Shaders, GPU-driven Systems and Tool Development",
+
+  accentColor: "#00ffb3",
+
   social: {
-    email: "your-email@example.com",
-    linkedin: "https://linkedin.com/in/yourprofile",
-    twitter: "https://x.com/rfitzio",
-    github: "https://github.com/RyanFitzgerald",
+    email: "shivanshuchauhan1998@gmail.com",
+    linkedin: "https://www.linkedin.com/in/shivanshu-chauhan-89095b186",
+    github: "https://github.com/ShaderTrix",
+    artstation: "https://www.artstation.com/shivanshuchauhan/albums/6216110"
   },
+
   aboutMe:
-    "Lorem ipsum dolor sit amet, consectetur adipisicing elit. Rem quos asperiores nihil consequatur tempore cupiditate architecto natus commodi corrupti quas quasi facere est, dignissimos odit nam veniam sapiente ut, vitae eligendi ipsum dolor, nostrum ullam impedit! Corrupti ratione mollitia temporibus necessitatibus, consectetur reiciendis recusandae id, dolorum quaerat, vero pariatur. Ratione!",
-  skills: ["Javascript", "React", "Node.js", "Python", "AWS", "Docker"],
+    "Technical Artist with production experience developing Unity UI systems, rendering features, tools, and GPU-driven workflows for large-scale mobile games. I work at the intersection of art and engineering, building performant solutions for artists, designers, and players. My current interests include shader development, rendering systems, compute shaders, flow-field simulation, and graphics optimization.",
+
+  skills: [
+    "Unity",
+    "C#",
+    "HLSL",
+    "Compute Shaders",
+    "Rendering",
+    "Technical Art",
+    "UI Systems",
+    "Performance Optimization",
+    "GPU Profiling",
+    "Flow Field Simulation",
+    "C++",
+    "Unreal Engine"
+  ],
+
   projects: [
     {
-      name: "AI Dev Roundup Newsletter",
+      name: "GPU Pixelizer System",
       description:
-        "One concise email. Five minutes. Every Tuesday. Essential AI news & trends, production-ready libraries, powerful AI tools, and real-world code examples",
-      link: "https://aidevroundup.com/?ref=devportfolio",
-      skills: ["React", "Node.js", "AWS"],
+        "GPU-driven voxel disintegration effect using MRT capture and compute-shader-based voxel accumulation. Designed for high visual fidelity while eliminating CPU-side bottlenecks.",
+      link: "https://github.com/ShaderTrix/Unity_URPShaders",
+      skills: ["Unity", "Compute Shaders", "HLSL", "Rendering"],
     },
+
     {
-      name: "Chrome Extension Mastery: Build Full-Stack Extensions with React & Node.js",
+      name: "Flow Field Agent Movement System",
       description:
-        "Master the art of building production-ready, full-stack Chrome Extensions using modern web technologies and best practices",
-      link: "https://fullstackextensions.com/?ref=devportfolio",
-      skills: ["React", "Node.js", "AWS"],
+        "Large-scale agent steering system using flow fields and spatial partitioning. Includes debug visualization tools and scalable update strategies for real-time applications.",
+      link: "https://github.com/ShaderTrix/Unity_SRPShaders",
+      skills: ["Unity", "C#", "AI Systems", "Optimization"],
     },
+
     {
-      name: "ExtensionKit",
+      name: "Shader & Rendering Experiments",
       description:
-        "Kit to jump-start your Chrome extension projects with a variety of battle-tested starter templates & examples",
-      link: "https://extensionkit.io/?ref=devportfolio",
-      skills: ["React", "Node.js", "AWS"],
+        "Collection of shader experiments including signed distance fields, procedural rendering techniques, custom effects, and rendering research.",
+      link: "https://github.com/ShaderTrix",
+      skills: ["HLSL", "Rendering", "Shaders"],
     },
   ],
+
   experience: [
     {
-      company: "Tech Company",
-      title: "Senior Software Engineer",
-      dateRange: "Jan 2022 - Present",
+      company: "Gameberry Labs",
+      title: "Technical Artist II",
+      dateRange: "Jul 2024 - Present",
       bullets: [
-        "Led development of microservices architecture serving 1M+ users",
-        "Reduced API response times by 40% through optimization",
-        "Mentored team of 5 junior developers",
+        "Developed gameplay systems and technical solutions supporting products with over 6 million daily active users.",
+        "Optimized CPU-GPU workloads to maintain stable frame times on low-end mobile devices.",
+        "Bridged communication between engineering and art teams through tooling and technical workflows.",
+        "Worked on rendering, performance optimization, UI systems, and gameplay features.",
       ],
     },
+
     {
-      company: "Startup Inc",
-      title: "Full Stack Developer",
-      dateRange: "Jun 2020 - Dec 2021",
+      company: "Dirtcube Interactive",
+      title: "Technical Artist",
+      dateRange: "Mar 2021 - Jul 2024",
       bullets: [
-        "Built and launched MVP product from scratch using React and Node.js",
-        "Implemented CI/CD pipeline reducing deployment time by 60%",
-        "Collaborated with product team to define technical requirements",
-      ],
-    },
-    {
-      company: "Digital Agency",
-      title: "Frontend Developer",
-      dateRange: "Aug 2018 - May 2020",
-      bullets: [
-        "Developed responsive web applications for 20+ clients",
-        "Improved site performance scores by 35% on average",
-        "Introduced modern JavaScript frameworks to legacy codebases",
+        "Created and optimized assets for real-time environments.",
+        "Implemented lighting and rendering workflows in Unity.",
+        "Built shaders, visual effects, and technical art pipelines.",
+        "Worked with Blender, Substance, Photoshop, and Unity to deliver production-ready content.",
       ],
     },
   ],
+
   education: [
     {
-      school: "University Name",
+      school: "KJ Somaiya College of Science and Commerce",
       degree: "Bachelor of Science in Computer Science",
-      dateRange: "2014 - 2018",
+      dateRange: "2020",
       achievements: [
-        "Graduated Magna Cum Laude with 3.8 GPA",
-        "Dean's List all semesters",
-        "President of Computer Science Club",
-      ],
-    },
-    {
-      school: "Online Platform",
-      degree: "Full Stack Development Certificate",
-      dateRange: "2019",
-      achievements: [
-        "Completed 500+ hours of coursework",
-        "Built 10+ portfolio projects",
-        "Specialized in React and Node.js",
+        "Computer Science Graduate",
+        "Specialized interest in graphics programming and real-time rendering",
       ],
     },
   ],

@@ -8,16 +8,16 @@ const hasEducation = siteConfig.education && siteConfig.education.length > 0;
 
 <header
   id="header"
-  class="fixed top-0 left-0 right-0 z-50 hidden md:block transition-all duration-300"
+  class="fixed top-0 left-0 right-0 z-50 hidden md:block bg-[#090d16]/40 backdrop-blur-sm border-b border-white/5 transition-all duration-300"
 >
   <nav class="max-w-7xl mx-auto px-8 py-4">
     <ul class="flex items-center gap-8 justify-center">
       <li>
         <a
           href="#about"
-          class="text-gray-700 hover:text-black transition-colors font-medium"
+          class="text-gray-400 hover:text-white transition-colors font-mono text-sm font-medium"
         >
-          About
+          // About
         </a>
       </li>
       {
@@ -25,9 +25,9 @@ const hasEducation = siteConfig.education && siteConfig.education.length > 0;
           <li>
             <a
               href="#projects"
-              class="text-gray-700 hover:text-black transition-colors font-medium"
+              class="text-gray-400 hover:text-white transition-colors font-mono text-sm font-medium"
             >
-              Projects
+              // Projects
             </a>
           </li>
         )
@@ -37,9 +37,9 @@ const hasEducation = siteConfig.education && siteConfig.education.length > 0;
           <li>
             <a
               href="#experience"
-              class="text-gray-700 hover:text-black transition-colors font-medium"
+              class="text-gray-400 hover:text-white transition-colors font-mono text-sm font-medium"
             >
-              Experience
+              // Experience
             </a>
           </li>
         )
@@ -49,9 +49,9 @@ const hasEducation = siteConfig.education && siteConfig.education.length > 0;
           <li>
             <a
               href="#education"
-              class="text-gray-700 hover:text-black transition-colors font-medium"
+              class="text-gray-400 hover:text-white transition-colors font-mono text-sm font-medium"
             >
-              Education
+              // Education
             </a>
           </li>
         )
@@ -64,9 +64,11 @@ const hasEducation = siteConfig.education && siteConfig.education.length > 0;
   window.addEventListener("scroll", () => {
     const header = document.getElementById("header");
     if (window.scrollY > 100) {
-      header?.classList.add("bg-white/80", "backdrop-blur-sm");
+      header?.classList.add("bg-[#090d16]/90", "backdrop-blur-md", "shadow-xl");
+      header?.classList.remove("bg-[#090d16]/40", "backdrop-blur-sm");
     } else {
-      header?.classList.remove("bg-white/80", "backdrop-blur-sm");
+      header?.classList.add("bg-[#090d16]/40", "backdrop-blur-sm");
+      header?.classList.remove("bg-[#090d16]/90", "backdrop-blur-md", "shadow-xl");
     }
   });
 </script>
