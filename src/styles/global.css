@@ -1,5 +1,73 @@
 @import "tailwindcss";
 
+/* ---------------------------------------------------------------------------
+   Color theme — adapted from codesavory.dev
+   Warm near-black background, cream text, sage-green accent + terracotta warm.
+--------------------------------------------------------------------------- */
+:root {
+  --bg: #0e0d0b;
+  --bg-secondary: #161410;
+  --surface: #1c1a17;
+
+  --text-primary: #f0ebe3;
+  --text-secondary: #9a9080;
+  --text-subtle: #4a4540;
+
+  --border: rgba(245, 240, 227, 0.07);
+
+  /* Sage-green accent */
+  --accent: #8ab870;
+  --accent-dim: #8ab8701f;
+  --accent-hover: #a0ce80;
+  --border-accent: #8ab87040;
+
+  /* Terracotta warm accent */
+  --accent-warm: #d88a68;
+  --accent-warm-hover: #ea9e7d;
+
+  --card-shadow-rest: 0 2px 8px #00000059;
+  --card-shadow-lift: 0 12px 32px #0000008c;
+}
+
+html,
 body {
-  font-family: 'IBM Plex Mono', monospace;
+  color: var(--text-primary);
+  font-family: "IBM Plex Mono", monospace;
+  min-height: 100%;
+
+  background-image:
+    linear-gradient(
+      rgba(14, 13, 11, 0.75),
+      rgba(14, 13, 11, 0.75)
+    ),
+    url("/bg.png");
+
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  background-attachment: fixed;
+}
+
+/* ---------------------------------------------------------------------------
+   Hover outlines — codesavory.dev signature.
+   Interactive cards/links lift slightly and gain a sage-green border on hover.
+--------------------------------------------------------------------------- */
+a.group {
+  transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1),
+    border-color 0.3s ease, box-shadow 0.3s ease;
+  box-shadow: var(--card-shadow-rest);
+}
+
+a.group:hover {
+  border-color: var(--accent) !important;
+  box-shadow: var(--card-shadow-lift);
+}
+
+/* Accent glow focus ring for keyboard users */
+:focus-visible {
+  box-shadow: 0 0 0 2px var(--bg), 0 0 0 4px var(--accent),
+    0 0 16px var(--accent-dim);
+  border-radius: 6px;
+  outline: none;
+  transition: box-shadow 0.18s;
 }

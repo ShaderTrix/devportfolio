@@ -1,12 +1,8 @@
 ---
 import { siteConfig } from "../config";
-
-const hasProjects = siteConfig.projects && siteConfig.projects.length > 0;
-const hasExperience = siteConfig.experience && siteConfig.experience.length > 0;
-const hasEducation = siteConfig.education && siteConfig.education.length > 0;
 ---
 
-<footer class="relative" style={{ backgroundColor: '#090d16', borderTop: '1px solid rgba(255,255,255,0.05)' }}>
+<footer class="relative" style={{ backgroundColor: '#0e0d0b', borderTop: '1px solid rgba(245,240,227,0.05)' }}>
   <div class="mx-auto max-w-6xl px-6 py-12 lg:px-8">
     <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-8">
       
@@ -50,11 +46,12 @@ const hasEducation = siteConfig.education && siteConfig.education.length > 0;
       </div>
 
       <div class="hidden md:flex flex-col md:items-end gap-3">
-        <nav class="flex gap-x-6 font-mono text-xs">
-          <a href="#about" class="text-gray-400 hover:text-white transition-colors">About</a>
-          {hasProjects && <a href="#projects" class="text-gray-400 hover:text-white transition-colors">Projects</a>}
-          {hasExperience && <a href="#experience" class="text-gray-400 hover:text-white transition-colors">Experience</a>}
-          {hasEducation && <a href="#education" class="text-gray-400 hover:text-white transition-colors">Education</a>}
+        <nav class="flex flex-wrap justify-end gap-x-6 gap-y-2 font-mono text-xs">
+          <a href="/professional" class="text-gray-400 hover:text-white transition-colors">Professional</a>
+          <a href="/personal" class="text-gray-400 hover:text-white transition-colors">Personal</a>
+          <a href="/random" class="text-gray-400 hover:text-white transition-colors">Random</a>
+          <a href="/" class="text-gray-400 hover:text-white transition-colors">About Me</a>
+          <a href="/contact" class="text-gray-400 hover:text-white transition-colors">Contact</a>
         </nav>
         <p class="text-xs font-mono text-gray-600">
           &copy; {new Date().getFullYear()} {siteConfig.name}. Built clean.

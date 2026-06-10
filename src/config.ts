@@ -4,7 +4,7 @@ export const siteConfig = {
   description:
     "Unity UI Systems, Rendering, Shaders, GPU-driven Systems and Tool Development",
 
-  accentColor: "#00ffb3",
+  accentColor: "#8ab870",
 
   social: {
     email: "shivanshuchauhan1998@gmail.com",
@@ -29,32 +29,6 @@ export const siteConfig = {
     "Flow Field Simulation",
     "C++",
     "Unreal Engine"
-  ],
-
-  projects: [
-    {
-      name: "GPU Pixelizer System",
-      description:
-        "GPU-driven voxel disintegration effect using MRT capture and compute-shader-based voxel accumulation. Designed for high visual fidelity while eliminating CPU-side bottlenecks.",
-      link: "https://github.com/ShaderTrix/Unity_URPShaders",
-      skills: ["Unity", "Compute Shaders", "HLSL", "Rendering"],
-    },
-
-    {
-      name: "Flow Field Agent Movement System",
-      description:
-        "Large-scale agent steering system using flow fields and spatial partitioning. Includes debug visualization tools and scalable update strategies for real-time applications.",
-      link: "https://github.com/ShaderTrix/Unity_SRPShaders",
-      skills: ["Unity", "C#", "AI Systems", "Optimization"],
-    },
-
-    {
-      name: "Shader & Rendering Experiments",
-      description:
-        "Collection of shader experiments including signed distance fields, procedural rendering techniques, custom effects, and rendering research.",
-      link: "https://github.com/ShaderTrix",
-      skills: ["HLSL", "Rendering", "Shaders"],
-    },
   ],
 
   experience: [
@@ -94,4 +68,171 @@ export const siteConfig = {
       ],
     },
   ],
+
+  // ---------------------------------------------------------------------------
+  // PROJECT CATEGORIES
+  // Three "work" pages, each backed by one category below.
+  // Every project gets a unique `slug` -> its own detail page at /projects/<slug>.
+  // `longDescription` is an array of paragraphs shown on the detail page.
+  // `highlights` is an optional bullet list shown on the detail page.
+  //
+  // IMAGES / GIFS (optional):
+  //   `image`       -> background of the tile + banner on the detail page.
+  //   `detailImage` -> override just the detail-page banner (falls back to `image`).
+  //   Put files in /public (e.g. public/projects/foo.gif) and reference them
+  //   from the site root, e.g. image: "/projects/foo.gif". Leave "" for the
+  //   default gradient/solid look. Both .jpg/.png/.webp and .gif work.
+  // ---------------------------------------------------------------------------
+  projectCategories: {
+    professional: {
+      label: "Professional Projects",
+      blurb:
+        "Shipped, production work from studios — systems built for large-scale mobile games and real teams.",
+      projects: [
+        {
+          slug: "gameberry-ui-systems",
+          name: "Live-Ops UI Systems",
+          tagline: "Unity UI architecture for 6M+ DAU titles",
+          image: "", // e.g. "/projects/ui-systems.gif"
+          detailImage: "",
+          description:
+            "Scalable UI systems and tooling supporting live products with millions of daily active users.",
+          link: "",
+          skills: ["Unity", "UI Systems", "C#", "Performance"],
+          longDescription: [
+            "Designed and maintained Unity UI systems for live mobile titles serving over 6 million daily active users, balancing rich visuals against strict performance budgets on low-end devices.",
+            "Built reusable UI components and editor tooling that let designers iterate without engineering bottlenecks, and profiled CPU/GPU workloads to keep frame times stable across the device matrix.",
+          ],
+          highlights: [
+            "Authored shared UI component library used across multiple features",
+            "Reduced UI-driven draw calls and layout rebuild costs on low-end hardware",
+            "Bridged art and engineering through custom editor workflows",
+          ],
+        },
+        {
+          slug: "rendering-optimization",
+          name: "Rendering & Performance Optimization",
+          tagline: "Stable frame times on low-end mobile",
+          image: "",
+          detailImage: "",
+          description:
+            "Rendering features and CPU-GPU optimization work to hold target frame rates across a wide device range.",
+          link: "",
+          skills: ["Rendering", "GPU Profiling", "Optimization"],
+          longDescription: [
+            "Profiled and optimized rendering pipelines for mobile titles, targeting consistent frame pacing on the lowest-supported hardware.",
+            "Worked across shaders, batching, and overdraw to cut GPU cost while preserving the intended art direction.",
+          ],
+          highlights: [
+            "Identified and resolved GPU bottlenecks via frame captures",
+            "Tuned shaders and material setups for mobile GPUs",
+          ],
+        },
+      ],
+    },
+
+    personal: {
+      label: "Personal Projects",
+      blurb:
+        "Self-directed graphics and rendering work — shaders, GPU systems, and tools built to learn and experiment.",
+      projects: [
+        {
+          slug: "gpu-pixelizer",
+          name: "GPU Pixelizer System",
+          tagline: "Compute-driven voxel disintegration",
+          image: "",
+          detailImage: "",
+          description:
+            "GPU-driven voxel disintegration effect using MRT capture and compute-shader-based voxel accumulation.",
+          link: "https://github.com/ShaderTrix/Unity_URPShaders",
+          skills: ["Unity", "Compute Shaders", "HLSL", "Rendering"],
+          longDescription: [
+            "A GPU-driven voxel disintegration effect built around multiple-render-target capture and compute-shader voxel accumulation, designed for high visual fidelity while eliminating CPU-side bottlenecks.",
+            "The system keeps the entire simulation on the GPU, making the effect scale to dense meshes without stalling the main thread.",
+          ],
+          highlights: [
+            "MRT capture feeding a compute-shader voxel accumulator",
+            "Zero CPU-side per-frame work once initialized",
+          ],
+        },
+        {
+          slug: "flow-field-agents",
+          name: "Flow Field Agent Movement System",
+          tagline: "Large-scale steering with flow fields",
+          image: "",
+          detailImage: "",
+          description:
+            "Large-scale agent steering using flow fields and spatial partitioning, with debug visualization tools.",
+          link: "https://github.com/ShaderTrix/Unity_SRPShaders",
+          skills: ["Unity", "C#", "AI Systems", "Optimization"],
+          longDescription: [
+            "A large-scale agent steering system using flow fields and spatial partitioning, supporting many agents updating in real time.",
+            "Includes debug visualization tools and scalable update strategies suitable for real-time applications.",
+          ],
+          highlights: [
+            "Flow-field navigation with spatial partitioning",
+            "Built-in debug visualization for field and agents",
+          ],
+        },
+        {
+          slug: "shader-experiments",
+          name: "Shader & Rendering Experiments",
+          tagline: "SDFs, procedural rendering, research",
+          image: "",
+          detailImage: "",
+          description:
+            "Collection of shader experiments including signed distance fields, procedural rendering, and custom effects.",
+          link: "https://github.com/ShaderTrix",
+          skills: ["HLSL", "Rendering", "Shaders"],
+          longDescription: [
+            "An ongoing collection of shader experiments spanning signed distance fields, procedural rendering techniques, custom effects, and general rendering research.",
+            "Used as a sandbox for trying out ideas before folding the useful ones into larger systems.",
+          ],
+          highlights: [
+            "Signed distance field experiments",
+            "Procedural and custom rendering effects",
+          ],
+        },
+      ],
+    },
+
+    random: {
+      label: "Random Projects",
+      blurb:
+        "Odds and ends — small experiments, prototypes, and one-off ideas that don't fit anywhere else.",
+      projects: [
+        {
+          slug: "weekend-prototype",
+          name: "Weekend Prototype",
+          tagline: "A small idea, built fast",
+          image: "",
+          detailImage: "",
+          description:
+            "A placeholder for a quick experiment. Replace this with one of your own one-off builds.",
+          link: "",
+          skills: ["Prototype"],
+          longDescription: [
+            "This is a template entry for a random / one-off project. Edit it in src/config.ts under projectCategories.random.projects.",
+            "Add as many entries as you like — each one automatically gets a tile here and its own detail page.",
+          ],
+          highlights: [
+            "Edit me in src/config.ts",
+          ],
+        },
+      ],
+    },
+  },
 };
+
+// Convenience: every project flattened, tagged with its category key/label.
+export type ProjectCategoryKey = keyof typeof siteConfig.projectCategories;
+
+export const allProjects = (
+  Object.keys(siteConfig.projectCategories) as ProjectCategoryKey[]
+).flatMap((key) =>
+  siteConfig.projectCategories[key].projects.map((project) => ({
+    ...project,
+    categoryKey: key,
+    categoryLabel: siteConfig.projectCategories[key].label,
+  }))
+);
