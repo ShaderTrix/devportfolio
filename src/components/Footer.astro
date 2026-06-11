@@ -1,12 +1,10 @@
 ---
-// Footer.astro
 import { siteConfig } from "../config";
 ---
 
 <footer class="border-t border-white/5 py-12 px-6 sm:px-8 bg-[#0e0d0b]">
   <div class="max-w-7xl mx-auto flex flex-col md:flex-row items-start md:items-center justify-between gap-6">
     
-    <!-- Left Side: Identity Matrix -->
     <div>
       <h2 class="font-mono text-sm font-bold text-white tracking-tight">
         {siteConfig.name}
@@ -15,7 +13,6 @@ import { siteConfig } from "../config";
         // Technical Artist | UI Technical Artist | Graphics Programmer
       </p>
       
-      <!-- Socials Matrix Icons (Email, LinkedIn, GitHub) -->
       <div class="flex items-center gap-4 mt-4 text-gray-400">
         <a href="mailto:your-email@example.com" class="hover:text-white transition-colors" aria-label="Email">
           <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -35,16 +32,12 @@ import { siteConfig } from "../config";
       </div>
     </div>
 
-    <!-- Right Side: Navigation & Copyright Alignment -->
     <div class="flex flex-col items-start md:items-end gap-3 font-mono text-xs">
       <nav class="flex flex-wrap items-center gap-x-4 gap-y-2 text-gray-400">
         <a href="/professional" class="hover:text-white transition-colors">Professional</a>
         <a href="/personal" class="hover:text-white transition-colors">Personal</a>
-        <a href="/random" class="hover:text-white transition-colors">Random</a>
-        
-        <!-- NEW TAB LINK INSERTED HERE -->
-        <a href="/pro-games" class="hover:text-white transition-colors text-white" style={`color: ${siteConfig.accentColor}`}>Games</a>
-        
+        <a href="/art" class="hover:text-white transition-colors">3D Art</a>
+        <a href="/pro-games" class="hover:text-white transition-colors">Games</a>
         <a href="/" class="hover:text-white transition-colors">About Me</a>
         <a href="/contact" class="hover:text-white transition-colors">Contact</a>
       </nav>

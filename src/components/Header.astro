@@ -4,8 +4,8 @@ import { siteConfig } from "../config";
 const links = [
   { href: "/professional", label: "// Professional" },
   { href: "/personal", label: "// Personal" },
-  { href: "/random", label: "// Random" },
-  /* LINK UPDATED TO GAMES */
+  /* CHANGED FROM RANDOM TO 3D ART */
+  { href: "/art", label: "// 3D Art" },
   { href: "/pro-games", label: "//Games" },
   { href: "/", label: "// About Me" },
   { href: "/contact", label: "// Contact" },
@@ -33,7 +33,6 @@ const isActive = (href: string) => {
         {siteConfig.name}
       </a>
 
-      <!-- Desktop nav -->
       <ul class="hidden md:flex items-center gap-6 lg:gap-8">
         {
           links.map((link) => (
@@ -54,7 +53,6 @@ const isActive = (href: string) => {
         }
       </ul>
 
-      <!-- Mobile menu button -->
       <button
         id="mobile-menu-button"
         class="md:hidden text-gray-300 hover:text-white"
@@ -66,7 +64,6 @@ const isActive = (href: string) => {
       </button>
     </div>
 
-    <!-- Mobile nav -->
     <ul id="mobile-menu" class="hidden md:hidden flex-col gap-3 pt-4 pb-2">
       {
         links.map((link) => (

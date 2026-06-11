@@ -22,7 +22,6 @@ const accent = siteConfig.accentColor;
 
 <section class="py-20 sm:py-24 px-6 sm:px-12 lg:px-16" style={{ backgroundColor: "#0e0d0b" }}>
   <div class="max-w-7xl mx-auto">
-    <!-- Page heading -->
     <div class="max-w-2xl">
       <h1 class="text-3xl sm:text-4xl md:text-5xl font-bold tracking-tight text-white">
         {title}
@@ -33,7 +32,6 @@ const accent = siteConfig.accentColor;
       )}
     </div>
 
-    <!-- Tile grid -->
     {projects.length > 0 ? (
       <div class="mt-12 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
         {projects.map((project, index) => {
@@ -47,23 +45,12 @@ const accent = siteConfig.accentColor;
               class="group relative flex flex-col h-[420px] rounded-xl border overflow-hidden transition-all duration-300 hover:-translate-y-1"
               style={{ backgroundColor: "#1c1a17", borderColor: "rgba(245,240,227,0.06)" }}
             >
-              <!-- TOP 70% SECTION: MEDIA PREVIEW BLOCK -->
               <div class="h-[70%] w-full relative overflow-hidden bg-black/40 border-b border-white/[0.04]">
-                <!-- Arrow Icon overlayed over media -->
-                <div
-                  class="absolute top-4 right-4 w-8 h-8 z-20 flex items-center justify-center rounded-full bg-gray-950/60 text-gray-400 group-hover:text-white group-hover:scale-105 transition-all"
-                >
-                  <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 17L17 7M17 7H7M17 7V17" />
-                  </svg>
-                </div>
-
-                <!-- Number tag indicator -->
+                
                 <span class="absolute top-4 left-4 z-20 px-2 py-0.5 rounded bg-gray-950/60 text-[10px] font-mono tracking-widest" style={{ color: accent }}>
                   // 0{index + 1}
                 </span>
 
-                <!-- Render GIF if it is the GPU Pixelizer item -->
                 {isGpuPixelizer ? (
                   <div
                     class="absolute inset-0 z-0 bg-cover bg-center transition-transform duration-500 group-hover:scale-105"
@@ -83,7 +70,6 @@ const accent = siteConfig.accentColor;
                 <div class="absolute inset-0 z-10 bg-gradient-to-t from-gray-950/40 via-transparent to-transparent pointer-events-none" />
               </div>
 
-              <!-- BOTTOM 30% SECTION: INFORMATION PANEL -->
               <div class="h-[30%] p-4 flex flex-col justify-between bg-[#1c1a17]">
                 <div>
                   <div class="flex items-baseline justify-between gap-2">
@@ -103,16 +89,27 @@ const accent = siteConfig.accentColor;
                   )}
                 </div>
 
-                <!-- Technical Skills Matrix -->
-                {project.skills && project.skills.length > 0 && (
-                  <div class="flex flex-wrap gap-1.5 overflow-hidden max-h-[22px]">
-                    {project.skills.slice(0, 4).map((skill) => (
-                      <span class="px-1.5 py-0.5 rounded text-[10px] font-mono text-gray-400 bg-gray-950/30 border border-white/[0.05] whitespace-nowrap">
-                        {skill}
-                      </span>
-                    ))}
+                <div class="flex items-end justify-between gap-4">
+                  {project.skills && project.skills.length > 0 && (
+                    <div class="flex flex-wrap gap-1.5 overflow-hidden max-h-[22px] flex-grow">
+                      {project.skills.slice(0, 4).map((skill) => (
+                        <span class="px-1.5 py-0.5 rounded text-[10px] font-mono text-gray-400 bg-gray-950/30 border border-white/[0.05] whitespace-nowrap">
+                          {skill}
+                        </span>
+                      ))}
+                    </div>
+                  )}
+
+                  <div 
+                    class="flex-shrink-0 transform transition-transform group-hover:translate-x-0.5 pb-0.5"
+                    style={`color: ${accent}`}
+                  >
+                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 5l7 7-7 7" />
+                    </svg>
                   </div>
-                )}
+                </div>
+
               </div>
             </a>
           );

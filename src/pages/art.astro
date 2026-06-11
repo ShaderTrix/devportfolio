@@ -1,0 +1,93 @@
+---
+// src/pages/art.astro
+import Layout from "../layouts/Layout.astro";
+import { siteConfig } from "../config";
+
+const accent = siteConfig.accentColor;
+
+// Your 3D Art projects array dataset
+const artProjects = [
+  {
+    title: "Sci-Fi Weapon Hardsurface Model",
+    tags: ["Blender", "Substance Painter", "Hard Surface"],
+    image: "/pixelizer_preview.gif", 
+    artstationLink: "https://www.artstation.com"
+  },
+  {
+    title: "Voxel Mech Trooper",
+    tags: ["MagicaVoxel", "Rigging", "Shaders"],
+    image: "/pixelizer_preview.gif",
+    artstationLink: "https://www.artstation.com"
+  }
+];
+---
+
+<Layout title="3D Art Portfolio">
+  <section class="py-20 sm:py-24 px-6 sm:px-12 lg:px-16" style={{ backgroundColor: "#0e0d0b" }}>
+    <div class="max-w-7xl mx-auto">
+      
+      <div class="max-w-2xl mb-12">
+        <h1 class="text-3xl sm:text-4xl md:text-5xl font-bold tracking-tight text-white">
+          3D Art
+        </h1>
+        <div class="w-[40px] h-[4px] mt-4 rounded-full" style={`background-color: ${accent}`}></div>
+        <p class="mt-6 text-base sm:text-lg text-gray-400 leading-relaxed">
+          Digital modeling, hardsurface weapon design, and procedural asset creation. Click on any card to view high-resolution geometry wireframes and full presentation turntables on ArtStation.
+        </p>
+      </div>
+
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+        {artProjects.map((art, index) => (
+          <a
+            href={art.artstationLink}
+            target="_blank"
+            rel="noopener noreferrer"
+            class="group relative flex flex-col h-[480px] rounded-xl border overflow-hidden transition-all duration-300 hover:-translate-y-1.5"
+            style={{ backgroundColor: "#1c1a17", borderColor: "rgba(245,240,227,0.06)" }}
+          >
+            <div class="h-[80%] w-full relative overflow-hidden bg-black/40 border-b border-white/[0.04]">
+              
+              <div
+                class="absolute top-4 right-4 w-8 h-8 z-20 flex items-center justify-center rounded-full bg-[#1e1c19] text-gray-400 group-hover:text-white transition-all border border-white/5"
+              >
+                <svg class="w-3.5 h-3.5 transform transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 17L17 7M17 7H7M17 7V17" />
+                </svg>
+              </div>
+
+              <span class="absolute top-4 left-4 z-20 px-2 py-0.5 rounded bg-gray-950/70 text-[10px] font-mono tracking-widest" style={{ color: accent }}>
+                // ART-{index + 1}
+              </span>
+
+              <div
+                class="absolute inset-0 z-0 bg-cover bg-center transition-transform duration-700 ease-out group-hover:scale-[1.03]"
+                style={`background-image: url('${art.image}');`}
+              />
+              
+              <div class="absolute inset-0 z-10 bg-gradient-to-t from-gray-950/60 via-transparent to-transparent pointer-events-none" />
+            </div>
+
+            <div class="h-[20%] px-5 py-4 flex items-center justify-between gap-4 bg-[#1c1a17]">
+              <div class="truncate flex flex-col justify-center h-full w-full">
+                <h2 class="text-base font-bold text-white tracking-tight truncate group-hover:text-white transition-colors">
+                  {art.title}
+                </h2>
+                
+                <div class="flex flex-wrap gap-1.5 mt-2 overflow-hidden max-h-[22px]">
+                  {art.tags.map((tag) => (
+                    <span class="px-2.5 py-0.5 rounded text-[10px] font-mono text-gray-400 bg-gray-900/40 border border-gray-800 whitespace-nowrap">
+                      {tag}
+                    </span>
+                  ))}
+                </div>
+              </div>
+              
+              </div>
+
+          </a>
+        ))}
+      </div>
+
+    </div>
+  </section>
+</Layout>

@@ -35,7 +35,11 @@ body {
   color: var(--text-primary);
   font-family: "JetBrains Mono", monospace;
   min-height: 100%;
+
+  /* --- FONT SIZE REDUCTION ADDED HERE --- */
+  font-size: 14px; /* Default browser text is 16px. Dropping to 14px perfectly contracts all text layouts. */
 }
+
 font-mono, .font-mono, span.font-mono {
   font-family: "JetBrains Mono", monospace !important;
 }
