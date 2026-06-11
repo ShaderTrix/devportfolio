@@ -31,21 +31,10 @@
 
 html,
 body {
+  background: var(--bg);
   color: var(--text-primary);
   font-family: "IBM Plex Mono", monospace;
   min-height: 100%;
-
-  background-image:
-    linear-gradient(
-      rgba(14, 13, 11, 0.75),
-      rgba(14, 13, 11, 0.75)
-    ),
-    url("/bg.png");
-
-  background-size: cover;
-  background-position: center;
-  background-repeat: no-repeat;
-  background-attachment: fixed;
 }
 
 /* ---------------------------------------------------------------------------
