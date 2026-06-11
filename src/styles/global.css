@@ -33,10 +33,12 @@ html,
 body {
   background: var(--bg);
   color: var(--text-primary);
-  font-family: "IBM Plex Mono", monospace;
+  font-family: "JetBrains Mono", monospace;
   min-height: 100%;
 }
-
+font-mono, .font-mono, span.font-mono {
+  font-family: "JetBrains Mono", monospace !important;
+}
 /* ---------------------------------------------------------------------------
    Hover outlines — codesavory.dev signature.
    Interactive cards/links lift slightly and gain a sage-green border on hover.

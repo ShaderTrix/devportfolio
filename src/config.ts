@@ -144,7 +144,7 @@ export const siteConfig = {
           detailImage: "",
           description:
             "GPU-driven voxel disintegration effect using MRT capture and compute-shader-based voxel accumulation.",
-          link: "https://github.com/ShaderTrix/Unity_URPShaders",
+          link: "https://github.com/ShaderTrix/Unity_URPShaders/tree/main/Assets/Compute%20Shader/PixelizerGun",
           skills: ["Unity", "Compute Shaders", "HLSL", "Rendering"],
           longDescription: [
             "A GPU-driven voxel disintegration effect built around multiple-render-target capture and compute-shader voxel accumulation, designed for high visual fidelity while eliminating CPU-side bottlenecks.",
@@ -220,7 +220,12 @@ export const siteConfig = {
           ],
         },
       ],
-    },
+    },    
+    proGames: {
+      label: "Professional Games",
+      blurb: "Production-ready game titles developed across studios, detailing systems engineering, mechanics, and core architectural contributions.",
+      projects: [] // You can leave this empty for now and fill it with your data later!
+    }
   },
 };
 
