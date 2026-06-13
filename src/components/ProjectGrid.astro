@@ -8,16 +8,18 @@ interface Project {
   description: string;
   skills?: string[];
   image?: string;
+  categoryKey?: string;
 }
 
 interface Props {
   title: string;
-  blurb?: string;
+  blurb?: string | string[];
   projects: Project[];
 }
 
 const { title, blurb, projects } = Astro.props;
 const accent = siteConfig.accentColor;
+const blurbParagraphs = Array.isArray(blurb) ? blurb : blurb ? [blurb] : [];
 ---
 
 <section class="py-20 sm:py-24 px-6 sm:px-12 lg:px-16" style={{ backgroundColor: "#0e0d0b" }}>
@@ -27,9 +29,9 @@ const accent = siteConfig.accentColor;
         {title}
       </h1>
       <div class="w-[40px] h-[4px] mt-4 rounded-full" style={`background-color: ${accent}`}></div>
-      {blurb && (
-        <p class="mt-6 text-base sm:text-lg text-gray-400 leading-relaxed">{blurb}</p>
-      )}
+      {blurbParagraphs.map((paragraph) => (
+        <p class="mt-6 text-base sm:text-lg text-gray-400 leading-relaxed">{paragraph}</p>
+      ))}
     </div>
 
     {projects.length > 0 ? (
@@ -50,6 +52,15 @@ const accent = siteConfig.accentColor;
                 <span class="absolute top-4 left-4 z-20 px-2 py-0.5 rounded bg-gray-950/60 text-[10px] font-mono tracking-widest" style={{ color: accent }}>
                   // 0{index + 1}
                 </span>
+
+                {project.categoryKey === "professional" && (
+                  <span
+                    class="absolute top-4 right-4 z-20 px-2 py-0.5 rounded bg-gray-950/60 text-[10px] font-mono tracking-widest border"
+                    style={{ color: accent, borderColor: accent }}
+                  >
+                    Live · Production Tested
+                  </span>
+                )}
 
                 {isGpuPixelizer ? (
                   <div

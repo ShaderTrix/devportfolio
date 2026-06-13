@@ -138,21 +138,30 @@ export const siteConfig = {
       projects: [
         {
           slug: "gpu-pixelizer",
-          name: "GPU Pixelizer System",
-          tagline: "Compute-driven voxel disintegration",
+          name: "Screen-Space Character Voxelisation",
+          tagline:
+            "Custom URP render passes, compute shader reconstruction, and GPU-driven destruction.",
           image: "",
           detailImage: "",
           description:
-            "GPU-driven voxel disintegration effect using MRT capture and compute-shader-based voxel accumulation.",
+            "A GPU-driven approach to reconstructing animated characters as dynamic voxel representations in Unity URP, using custom MRT render passes and compute shaders.",
           link: "https://github.com/ShaderTrix/Unity_URPShaders/tree/main/Assets/Compute%20Shader/PixelizerGun",
           skills: ["Unity", "Compute Shaders", "HLSL", "Rendering"],
           longDescription: [
-            "A GPU-driven voxel disintegration effect built around multiple-render-target capture and compute-shader voxel accumulation, designed for high visual fidelity while eliminating CPU-side bottlenecks.",
-            "The system keeps the entire simulation on the GPU, making the effect scale to dense meshes without stalling the main thread.",
+            "This project explores a GPU-driven approach to reconstructing animated characters as dynamic voxel representations in Unity URP. Rather than voxelizing meshes directly, the system captures character data through custom multi-render-target render passes and rebuilds the visible surface from screen-space information using compute shaders.",
+            "World position, color, depth, and object identification data are written into dedicated render targets and processed entirely on the GPU. Screen pixels are grouped into configurable blocks, accumulated through compute shaders, and converted into instanced cube data that is rendered using indirect drawing. Because reconstruction occurs in screen space, the number of generated cubes naturally scales with the character's on-screen size, providing an automatic level-of-detail effect.",
+            "The project also includes a destruction phase where reconstructed cubes transition from reconstruction to simulation. Once an enemy is defeated, the system stops sampling the source character and instead drives the cubes through a GPU-based physics pass, creating a stylized disintegration effect while remaining fully GPU rendered.",
+            "This project was built as an exploration of custom rendering pipelines, compute shader data processing, multi-render-target workflows, and indirect GPU rendering within Unity's Universal Render Pipeline.",
           ],
           highlights: [
-            "MRT capture feeding a compute-shader voxel accumulator",
-            "Zero CPU-side per-frame work once initialized",
+            "Custom URP Scriptable Renderer Features and Render Passes",
+            "Multi-render-target capture of world position, color, depth, and object IDs",
+            "Compute-shader aggregation using GPU atomic operations",
+            "Screen-space reconstruction of animated characters into voxel representations",
+            "GPU-generated instance buffers rendered through DrawMeshInstancedIndirect",
+            "Automatic detail scaling based on screen-space coverage",
+            "Selective enemy reconstruction using ID tagging and blast-radius filtering",
+            "GPU-driven destruction simulation with gravity and collision against the environment",
           ],
         },
         {

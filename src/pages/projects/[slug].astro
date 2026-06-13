@@ -16,11 +16,14 @@ const accent = siteConfig.accentColor;
 const bannerImage = project.detailImage || project.image || "";
 
 const categoryHref =
-  project.categoryKey === "professional"
-    ? "/professional"
-    : project.categoryKey === "personal"
-      ? "/personal"
-      : "/random";
+  project.categoryKey === "professional" || project.categoryKey === "personal"
+    ? "/tech-art"
+    : "/random";
+
+const categoryBackLabel =
+  project.categoryKey === "professional" || project.categoryKey === "personal"
+    ? "Techart"
+    : project.categoryLabel;
 ---
 
 <Layout title={project.name}>
@@ -48,14 +51,24 @@ const categoryHref =
         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
         </svg>
-        Back to {project.categoryLabel}
+        Back to {categoryBackLabel}
       </a>
 
       <!-- Title -->
       <header class="mt-8">
-        <span class="text-xs font-mono tracking-widest uppercase" style={{ color: accent }}>
-          // {project.categoryLabel}
-        </span>
+        <div class="flex items-center justify-between gap-4">
+          <span class="text-xs font-mono tracking-widest uppercase" style={{ color: accent }}>
+            // {project.categoryLabel}
+          </span>
+          {project.categoryKey === "professional" && (
+            <span
+              class="px-2 py-0.5 rounded bg-gray-950/60 text-[10px] font-mono tracking-widest border"
+              style={{ color: accent, borderColor: accent }}
+            >
+              Live · Production Tested
+            </span>
+          )}
+        </div>
         <h1 class="text-3xl sm:text-4xl md:text-5xl font-bold tracking-tight text-white mt-2">
           {project.name}
         </h1>
