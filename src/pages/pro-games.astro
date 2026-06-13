@@ -5,58 +5,56 @@ import { siteConfig } from "../config";
 
 const accent = siteConfig.accentColor;
 
-// Placeholder studio data structure for professional games 
-const professionalGames = [
+const games = [
   {
-    name: "AAA Mobile Strike Force",
-    company: "Studio Name / Publisher",
-    role: "Senior Graphics Programmer",
+    name: "Sorry! World",
+    company: "Gameberry Labs",
+    publisher: "Hasbro",
+    role: "Senior Technical Artist",
     timeline: "2024 - Present",
-    description: "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Architectural mechanics and pipeline rendering optimization for global production release targeting next-gen chipsets.",
-    contributions: ["Optimized URP rendering pipelines for high-end mobile devices.", "Developed custom vertex animation shaders for environment VFX.", "Reduced memory overhead by 15% through smart texture streaming arrays."],
-    image: "/pixelizer_preview.gif", // You can use a gif or image here!
-    appStoreLink: "https://apps.apple.com"
+    description:
+      "I work on Sorry! World, the mobile take on the classic Hasbro board game, helping shape mechanics that keep players coming back — tuning and retesting based on real player feedback bumped retention by about 15%. Day to day I sit between art and engineering, making sure ideas from design and art actually run well in the game, and spend a good chunk of time digging into CPU/GPU performance so the game stays smooth even on older, low-end phones.",
+    contributions: [
+      "Tuned gameplay mechanics that lifted player retention by ~15%",
+      "Bridged art and engineering in a fast-paced live-ops environment",
+      "Optimized CPU-GPU workloads to keep frame times stable on low-end devices",
+    ],
+    image: "/games/sorry.jpg",
+    androidLink:
+      "https://play.google.com/store/apps/details?id=com.gameberry.sorry.card.board.game&hl=en_IN",
+    iosLink:
+      "https://apps.apple.com/in/app/sorry-world-board-game/id6749000283?l=hi&platform=ipad",
   },
-  {
-    name: "Cyber Warfare: Tactics",
-    company: "Indie Game Studio",
-    role: "Technical Artist",
-    timeline: "2022 - 2024",
-    description: "Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Systems engineering layout focused on compute-shader simulation grids and asset optimization pipelines.",
-    contributions: ["Authored procedural grid placement matrix via compute structures.", "Implemented automated profiling verification scripts inside Unity Editor.", "Designed layered UI layout infrastructure with ultra-low draw call counts."],
-    image: "/bg.png", 
-    appStoreLink: "https://apps.apple.com"
-  }
 ];
 ---
 
-<Layout title="Professional Games">
+<Layout title="Games I've Worked On">
   <section class="py-20 sm:py-24 px-6 sm:px-12 lg:px-16" style={{ backgroundColor: "#0e0d0b" }}>
     <div class="max-w-5xl mx-auto">
-      
+
       <!-- Page Header Section matches About me style -->
       <div class="max-w-2xl mb-16">
         <h1 class="text-3xl sm:text-4xl md:text-5xl font-bold tracking-tight text-white">
-          Professional Games
+          Games I've Worked On
         </h1>
         <div class="w-[40px] h-[4px] mt-4 rounded-full" style={`background-color: ${accent}`}></div>
         <p class="mt-6 text-base sm:text-lg text-gray-400 leading-relaxed">
-          Production-ready mobile titles developed globally across gaming studios. Here is an overview of the technical systems, shader tools, and performance features I contributed.
+          A few shipped, real-world titles with my fingerprints on them — millions of players, occasional fires to put out, and a lot of "why is the frame rate doing that" moments along the way.
         </p>
       </div>
 
       <!-- Vertical Stacked List Container -->
       <div class="space-y-8">
-        {professionalGames.map((game) => (
-          <div 
+        {games.map((game) => (
+          <div
             class="relative flex flex-col md:flex-row rounded-xl border overflow-hidden transition-all duration-300 shadow-xl"
             style={{ backgroundColor: "#1c1a17", borderColor: "rgba(245,240,227,0.06)" }}
           >
-            
+
             <!-- LEFT SIDE: 40% Media Area Block -->
             <div class="w-full md:w-[40%] min-h-[240px] md:min-h-full relative overflow-hidden bg-black/30 border-b md:border-b-0 md:border-r border-white/[0.04]">
-              <div 
-                class="absolute inset-0 bg-cover bg-center" 
+              <div
+                class="absolute inset-0 bg-cover bg-center"
                 style={`background-image: url('${game.image}')`}
               />
               <div class="absolute inset-0 bg-gradient-to-t from-gray-950/40 via-transparent to-transparent pointer-events-none" />
@@ -67,7 +65,7 @@ const professionalGames = [
               <div>
                 <!-- Metadata Subheading Row -->
                 <div class="flex flex-wrap items-center justify-between gap-2 text-xs font-mono tracking-wider">
-                  <span style={{ color: accent }}>// {game.company}</span>
+                  <span style={{ color: accent }}>// {game.company} · Licensed by {game.publisher}</span>
                   <span class="text-gray-500">{game.timeline}</span>
                 </div>
 
@@ -96,19 +94,27 @@ const professionalGames = [
                 </div>
               </div>
 
-              <!-- Interactive Action Link: Arrow to AppStore Page -->
-              <div class="mt-6 pt-4 border-t border-white/[0.04] flex justify-end">
+              <!-- Interactive Action Links: Store pages -->
+              <div class="mt-6 pt-4 border-t border-white/[0.04] flex justify-end gap-3">
                 <a
-                  href={game.appStoreLink}
+                  href={game.androidLink}
                   target="_blank"
                   rel="noopener noreferrer"
                   class="inline-flex items-center gap-2 px-4 py-2 rounded-lg font-mono text-xs font-medium text-black transition-all hover:scale-[1.02]"
                   style={{ backgroundColor: accent }}
                 >
-                  App Store / iOS
-                  <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 17L17 7M17 7H7M17 7V17" />
-                  </svg>
+                  <img src="/icons/google-play.svg" alt="" class="w-3.5 h-3.5" />
+                  Google Play
+                </a>
+                <a
+                  href={game.iosLink}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  class="inline-flex items-center gap-2 px-4 py-2 rounded-lg font-mono text-xs font-medium text-black transition-all hover:scale-[1.02]"
+                  style={{ backgroundColor: accent }}
+                >
+                  <img src="/icons/app-store.svg" alt="" class="w-3.5 h-3.5" />
+                  App Store
                 </a>
               </div>
 
