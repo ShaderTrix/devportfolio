@@ -66,3 +66,18 @@ a.group:hover {
   outline: none;
   transition: box-shadow 0.18s;
 }
+
+/* ---------------------------------------------------------------------------
+   Fade-in-up entrance animation — used for hero/page header content.
+--------------------------------------------------------------------------- */
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+.animate-fade-in {
+  animation: fadeIn 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  opacity: 0;
+}
+.animation-delay-200 { animation-delay: 0.15s; }
+.animation-delay-400 { animation-delay: 0.3s; }
+.animation-delay-600 { animation-delay: 0.45s; }
