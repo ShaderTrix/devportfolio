@@ -109,26 +109,6 @@ export const siteConfig = {
         "Shipped, production work from studios — systems built for large-scale mobile games and real teams.",
       projects: [
         {
-          slug: "gameberry-ui-systems",
-          name: "Live-Ops UI Systems",
-          tagline: "Unity UI architecture for 6M+ DAU titles",
-          image: "", // e.g. "/projects/ui-systems.gif"
-          detailImage: "",
-          description:
-            "Scalable UI systems and tooling supporting live products with millions of daily active users.",
-          link: "",
-          skills: ["Unity", "UI Systems", "C#", "Performance"],
-          longDescription: [
-            "Designed and maintained Unity UI systems for live mobile titles serving over 6 million daily active users, balancing rich visuals against strict performance budgets on low-end devices.",
-            "Built reusable UI components and editor tooling that let designers iterate without engineering bottlenecks, and profiled CPU/GPU workloads to keep frame times stable across the device matrix.",
-          ],
-          highlights: [
-            "Authored shared UI component library used across multiple features",
-            "Reduced UI-driven draw calls and layout rebuild costs on low-end hardware",
-            "Bridged art and engineering through custom editor workflows",
-          ],
-        },
-        {
           slug: "rendering-optimization",
           name: "UI Occlusion Culling System",
           tagline: "Stop drawing the UI you can't see",
@@ -160,6 +140,407 @@ export const siteConfig = {
             "The system is live in production on Sorry! World by Hasbro, running hundreds of text instances on screen at once with no measurable performance loss.",
           ],
           inlineImage: "/projects/tmp-instanced-02.png",
+          code: `for (int i = 0; i < vertexCount; i++)
+{
+    UV1[i] = new Vector4(m_OffsetX, m_OffsetY, m_OutlineThickness, m_FaceDilate);
+
+    outlineUV[i] = (Vector4)ApplyGreyScale(m_OutlineColor, m_greyscale);
+
+    underlayUV[i] = new Vector4(
+        ApplyGreyScale(m_UnderlayColor, m_greyscale).r,
+        ApplyGreyScale(m_UnderlayColor, m_greyscale).g,
+        ApplyGreyScale(m_UnderlayColor, m_greyscale).b,
+        m_UnderlayDilate);
+}
+
+subMesh.SetUVs(1, UV1);
+subMesh.SetUVs(2, outlineUV);
+subMesh.SetUVs(3, underlayUV);`,
+        },
+        {
+          slug: "ui-tiled-image",
+          name: "UI Tiled Image",
+          tagline: "One big image, sliced into atlas-friendly pieces, drawn as one quad",
+          image: "/projects/tiled-image.png",
+          detailImage: "",
+          hideDetailBanner: true,
+          description:
+            "A custom UI Graphic + shader that lets a big image live in the sprite atlas as a grid of small, atlas-friendly pieces, while still rendering on screen as a single seamless image in one draw call.",
+          link: "",
+          skills: ["Unity UI", "Shaders", "Sprite Atlas", "C#", "Performance"],
+          longDescription: [
+            "Big UI images are annoying for sprite atlases — they either hog a huge chunk of atlas space or get rejected entirely if they don't fit. The fix here is to slice the source image into a grid of smaller sprites (Sprite Mode: Multiple), which pack into the atlas way more efficiently alongside everything else. The component reads that slice data straight off the sprite — grid size, cell size, and each tile's atlas UV region — with zero manual setup beyond hitting 'Force Resync Chunks'.",
+            "On screen, it draws a single quad, not a grid of quads. A small custom shader does the trick: for every pixel it figures out which grid cell that point falls into, looks up that cell's atlas region, and remaps the UV to sample the right tile. End result: the image looks whole and seamless, but it's actually built from a bunch of small, atlas-friendly pieces — one material, one draw call.",
+            "Live in production on Sorry! World by Hasbro, used to fit large UI art into the sprite atlas without blowing the budget or splitting it into multiple draw calls.",
+          ],
+          inlineImage: "/projects/tiled-image.png",
+          codeBlocks: [
+            {
+              label: "C# (Component + Editor)",
+              code: `[RequireComponent(typeof(CanvasRenderer))]
+public class UI_TiledImage : MaskableGraphic, ILayoutElement
+{
+    public Sprite sprite;
+    public bool preserveAspect = false;
+
+    [System.Serializable]
+    public struct SpriteChunk
+    {
+        public Sprite sprite;
+        public int col;
+        public int row;
+        public Vector4 uvRegion; // (offsetX, offsetY, sizeX, sizeY) in atlas UV space
+    }
+
+    [SerializeField] private List<SpriteChunk> _chunks = new List<SpriteChunk>();
+
+    [SerializeField] private int _columns = 1;
+    [SerializeField] private int _rows = 1;
+    [SerializeField] private Vector2 _cellSize = Vector2.one; // pixel size of one slice
+    [SerializeField] private Shader _tiledShader;
+    private Vector4[] _regions;
+    private const string TiledShaderName = "Unlit/UI_TiledImage";
+    static readonly int ID_Regions = Shader.PropertyToID("_ChunkRegions");
+    static readonly int ID_Columns = Shader.PropertyToID("_GridColumns");
+    static readonly int ID_Rows = Shader.PropertyToID("_GridRows");
+    static readonly int ID_Count = Shader.PropertyToID("_ChunkCount");
+
+    private Material _matInstance;
+
+    public override Texture mainTexture => sprite != null ? sprite.texture : s_WhiteTexture;
+
+    protected override void OnEnable()
+    {
+        base.OnEnable();
+        ResolveShader();
+        UnityEngine.U2D.SpriteAtlasManager.atlasRegistered += OnAtlasRegistered;
+        BuildRegionArray();
+        SetMaterialDirty();
+        SetVerticesDirty();
+    }
+
+    protected override void OnDisable()
+    {
+        UnityEngine.U2D.SpriteAtlasManager.atlasRegistered -= OnAtlasRegistered;
+        base.OnDisable();
+        if (_matInstance != null)
+        {
+            if (Application.isPlaying) Destroy(_matInstance); else DestroyImmediate(_matInstance);
+            _matInstance = null;
+        }
+    }
+
+    private void OnAtlasRegistered(UnityEngine.U2D.SpriteAtlas atlas)
+    {
+        BuildRegionArray();
+        SetMaterialDirty();
+    }
+
+    public override Material GetModifiedMaterial(Material baseMaterial)
+    {
+        Material baseMat = base.GetModifiedMaterial(baseMaterial);
+        if (baseMat == null) return null;
+
+        Shader shader = ResolveShader();
+        if (shader == null) return baseMat;
+
+        if (_matInstance == null)
+            _matInstance = new Material(shader) { name = "UI_TiledImage (Instance)" };
+        else if (_matInstance.shader != shader)
+            _matInstance.shader = shader;
+
+        CopyStencilState(baseMat, _matInstance);
+        ApplyToMaterial(_matInstance);
+        return _matInstance;
+    }
+
+    private void ApplyToMaterial(Material m)
+    {
+        if (m == null || _regions == null || _regions.Length == 0) return;
+        m.SetVectorArray(ID_Regions, _regions);
+        m.SetInteger(ID_Columns, _columns);
+        m.SetInteger(ID_Rows, _rows);
+        m.SetInteger(ID_Count, _chunks.Count);
+    }
+
+    // Draws a single full-rect quad — the shader does the per-cell tiling
+    protected override void OnPopulateMesh(VertexHelper vh)
+    {
+        vh.Clear();
+        if (sprite == null || _chunks == null || _chunks.Count == 0) return;
+
+        Rect r = GetDrawingRect(preserveAspect);
+        if (r.width <= 0 || r.height <= 0) return;
+
+        Color32 c = color;
+        vh.AddVert(new Vector3(r.xMin, r.yMin), c, new Vector2(0f, 0f));
+        vh.AddVert(new Vector3(r.xMin, r.yMax), c, new Vector2(0f, 1f));
+        vh.AddVert(new Vector3(r.xMax, r.yMax), c, new Vector2(1f, 1f));
+        vh.AddVert(new Vector3(r.xMax, r.yMin), c, new Vector2(1f, 0f));
+
+        vh.AddTriangle(0, 1, 2);
+        vh.AddTriangle(2, 3, 0);
+    }
+
+    // Reads the per-cell atlas UV regions straight off the sliced sprite
+    private void BuildRegionArray()
+    {
+        if (_chunks == null || _chunks.Count == 0) { _regions = null; return; }
+
+        int len = Mathf.Max(_columns * _rows, _chunks.Count);
+        _regions = new Vector4[len];
+        for (int i = 0; i < _chunks.Count; i++)
+        {
+            var ch = _chunks[i];
+
+            Vector4 region = ch.uvRegion;
+            if (ch.sprite != null)
+            {
+                Vector4 outer = UnityEngine.Sprites.DataUtility.GetOuterUV(ch.sprite);
+                region = new Vector4(outer.x, outer.y, outer.z - outer.x, outer.w - outer.y);
+            }
+
+            int idx = ch.row * _columns + ch.col;
+            if (idx >= 0 && idx < _regions.Length)
+                _regions[idx] = region;
+        }
+    }
+
+    // Re-derives grid size, cell size and chunk list from the sprite's slice data
+    public void UpdateChunks()
+    {
+        if (sprite == null) { _chunks.Clear(); _regions = null; return; }
+#if UNITY_EDITOR
+        string path = AssetDatabase.GetAssetPath(sprite.texture);
+        Object[] allAssets = AssetDatabase.LoadAllAssetsAtPath(path);
+        if (allAssets == null || allAssets.Length <= 1) return;
+
+        var sprites = allAssets.OfType<Sprite>().ToList();
+        if (sprites.Count == 0) return;
+
+        float texW = sprite.texture.width;
+        float texH = sprite.texture.height;
+
+        _cellSize = new Vector2(
+            sprites.Min(s => s.rect.width),
+            sprites.Min(s => s.rect.height));
+
+        const float tol = 1f; // pixels
+        _columns = CountDistinct(sprites.Select(s => s.rect.x), tol);
+        _rows = CountDistinct(sprites.Select(s => s.rect.y), tol);
+
+        _chunks.Clear();
+        foreach (var s in sprites)
+        {
+            int col = Mathf.RoundToInt(s.rect.x / _cellSize.x);
+            // Unity Y is bottom-up; grid rows are top-down so we flip.
+            int row = Mathf.RoundToInt((texH - s.rect.y - s.rect.height) / _cellSize.y);
+
+            Vector4 outer = UnityEngine.Sprites.DataUtility.GetOuterUV(s);
+            Vector4 uvRegion = new Vector4(
+                outer.x, outer.y,
+                outer.z - outer.x, outer.w - outer.y);
+
+            _chunks.Add(new SpriteChunk { sprite = s, col = col, row = row, uvRegion = uvRegion });
+        }
+
+        BuildRegionArray();
+        EditorUtility.SetDirty(this);
+#endif
+    }
+
+    public override void SetNativeSize()
+    {
+        if (sprite == null) return;
+        rectTransform.sizeDelta = new Vector2(_cellSize.x * _columns, _cellSize.y * _rows);
+        SetAllDirty();
+    }
+}
+
+// --- Custom Editor ---
+[CustomEditor(typeof(UI_TiledImage), true)]
+[CanEditMultipleObjects]
+public class UI_TiledImageEditor : GraphicEditor
+{
+    SerializedProperty _sprite, _preserveAspect, _maskable, _tiledShader;
+    SerializedProperty _columns, _rows, _cellSize;
+
+    protected override void OnEnable()
+    {
+        base.OnEnable();
+        _sprite         = serializedObject.FindProperty("sprite");
+        _preserveAspect = serializedObject.FindProperty("preserveAspect");
+        _maskable       = serializedObject.FindProperty("m_Maskable");
+        _tiledShader    = serializedObject.FindProperty("_tiledShader");
+
+        _columns  = serializedObject.FindProperty("_columns");
+        _rows     = serializedObject.FindProperty("_rows");
+        _cellSize = serializedObject.FindProperty("_cellSize");
+    }
+
+    public override void OnInspectorGUI()
+    {
+        serializedObject.Update();
+
+        EditorGUI.BeginChangeCheck();
+        EditorGUILayout.PropertyField(_sprite);
+        bool spriteChanged = EditorGUI.EndChangeCheck();
+
+        AppearanceControlsGUI();
+        RaycastControlsGUI();
+        EditorGUILayout.PropertyField(_maskable);
+        EditorGUILayout.PropertyField(_preserveAspect);
+        EditorGUILayout.PropertyField(_tiledShader, new GUIContent("Tiled Shader"));
+
+        // Read-only, auto-derived grid/cell info for quick sanity checks
+        using (new EditorGUI.DisabledScope(true))
+        {
+            EditorGUILayout.LabelField("Grid",
+                $"{_columns.intValue} x {_rows.intValue}  ({_columns.intValue * _rows.intValue} cells)");
+            EditorGUILayout.LabelField("Cell Size",
+                $"{_cellSize.vector2Value.x} x {_cellSize.vector2Value.y} px");
+        }
+
+        serializedObject.ApplyModifiedProperties();
+
+        // Re-derive immediately when the sprite is swapped in the inspector
+        if (spriteChanged)
+        {
+            foreach (var t in targets)
+            {
+                var ci = (UI_TiledImage)t;
+                ci.UpdateChunks();
+                ci.SetAllDirty();
+            }
+            serializedObject.Update();
+        }
+
+        if (GUILayout.Button("Force Resync Chunks"))
+        {
+            AssetDatabase.Refresh();
+            foreach (var t in targets)
+            {
+                var ci = (UI_TiledImage)t;
+                ci.UpdateChunks();
+                ci.SetAllDirty();
+                EditorUtility.SetDirty(ci);
+            }
+            AssetDatabase.SaveAssets();
+        }
+
+        if (GUILayout.Button("Set Native Size"))
+        {
+            foreach (var t in targets) ((UI_TiledImage)t).SetNativeSize();
+        }
+    }
+}`,
+            },
+            {
+              label: "Shader",
+              code: `Shader "Unlit/UI_TiledImage"
+{
+    Properties
+    {
+        [PerRendererData]_MainTex ("Texture", 2D) = "white" {}
+
+        _StencilComp ("Stencil Comparison", Float) = 8
+        _Stencil ("Stencil ID", Float) = 0
+        _StencilOp ("Stencil Operation", Float) = 0
+        _StencilWriteMask ("Stencil Write Mask", Float) = 255
+        _StencilReadMask ("Stencil Read Mask", Float) = 255
+        _ColorMask ("Color Mask", Float) = 15
+        [Toggle(UNITY_UI_ALPHACLIP)] _UseUIAlphaClip ("Use Alpha Clip", Float) = 0
+    }
+    SubShader
+    {
+        Tags{"RenderType" = "Transparent" "Queue" = "Transparent"}
+        Stencil
+        {
+            Ref [_Stencil]
+            Comp [_StencilComp]
+            Pass [_StencilOp]
+            ReadMask [_StencilReadMask]
+            WriteMask [_StencilWriteMask]
+        }
+        ColorMask [_ColorMask]
+        Cull Off ZWrite Off Blend SrcAlpha OneMinusSrcAlpha
+        Pass
+        {
+            CGPROGRAM
+            #pragma vertex vert
+            #pragma fragment frag
+
+            #pragma multi_compile DUMMY PIXELSNAP_ON
+            #pragma multi_compile __ UNITY_UI_CLIP_RECT
+            #pragma multi_compile __ UNITY_UI_ALPHACLIP
+
+            #include "UnityUI.cginc"
+            #include "UnityCG.cginc"
+
+            float4 _ClipRect;
+
+            struct appdata
+            {
+                float4 vertex : POSITION;
+                float2 uv : TEXCOORD0;
+                float4 color : COLOR;
+            };
+
+            struct v2f
+            {
+                float4 vertex : SV_POSITION;
+                float2 uv : TEXCOORD0;
+                float4 worldPosition : TEXCOORD1;
+                float4 color : COLOR;
+            };
+
+            sampler2D _MainTex;
+            float4 _MainTex_ST;
+            float4 _ChunkRegions[512];   // (offsetX, offsetY, sizeX, sizeY)
+            int _GridColumns, _GridRows, _ChunkCount;
+
+            v2f vert (appdata v)
+            {
+                v2f o;
+                o.vertex = UnityObjectToClipPos(v.vertex);
+                o.uv = v.uv;
+                o.worldPosition = v.vertex;
+                o.color = v.color;
+                return o;
+            }
+
+            fixed4 frag (v2f i) : SV_Target
+            {
+                // Which grid cell does this pixel fall into?
+                int cellX = (int)floor(i.uv.x * _GridColumns);
+                int cellY = (int)floor((1.0 - i.uv.y) * _GridRows);
+
+                cellX = clamp(cellX, 0, _GridColumns - 1);
+                cellY = clamp(cellY, 0, _GridRows - 1);
+
+                int cellOffset = cellY * _GridColumns + cellX;
+                float4 region = _ChunkRegions[cellOffset]; // (offsetX, offsetY, sizeX, sizeY)
+
+                // Remap this cell's local UV into that chunk's atlas region
+                float2 localUV = frac(float2(i.uv.x * _GridColumns, i.uv.y * _GridRows));
+                float2 atlasUV = region.xy + localUV * region.zw;
+
+                float4 col = tex2D(_MainTex, atlasUV) * i.color;
+
+                #ifdef UNITY_UI_CLIP_RECT
+                    col.a *= UnityGet2DClipping(i.worldPosition.xy, _ClipRect);
+                #endif
+                #ifdef UNITY_UI_ALPHACLIP
+                    clip (col.a - 0.001);
+                #endif
+                return col;
+            }
+            ENDCG
+        }
+    }
+}`,
+            },
+          ],
         },
       ],
     },
