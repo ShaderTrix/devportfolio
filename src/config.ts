@@ -1,6 +1,6 @@
 export const siteConfig = {
-  name: "Shivanshu Chauhan",
-  title: "Technical Artist | UI Technical Artist | Graphics Programmer",
+  name: "ShaderTrix",
+  title: "Technical Artist | 3D Artist | Graphics Programmer",
   description:
     "Unity UI Systems, Rendering, Shaders, GPU-driven Systems and Tool Development",
 
@@ -10,25 +10,30 @@ export const siteConfig = {
     email: "shivanshuchauhan1998@gmail.com",
     linkedin: "https://www.linkedin.com/in/shivanshu-chauhan-89095b186",
     github: "https://github.com/ShaderTrix",
-    artstation: "https://www.artstation.com/shivanshuchauhan/albums/6216110"
+    artstation: "https://www.artstation.com/shivanshuchauhan/albums/6216110",
+    youtube: "https://www.youtube.com/@shivanshuchauhan3032"
   },
 
   aboutMe:
-    "Technical Artist with production experience developing Unity UI systems, rendering features, tools, and GPU-driven workflows for large-scale mobile games. I work at the intersection of art and engineering, building performant solutions for artists, designers, and players. My current interests include shader development, rendering systems, compute shaders, flow-field simulation, and graphics optimization.",
+    "Hey, I'm ShaderTrix — a Technical Artist who lives somewhere between art and engineering. I spend most of my time building shaders, rendering features, and tools that help artists and designers bring their ideas to life without fighting the engine to do it. I care a lot about making things look good while still running smoothly, especially on mobile, where every bit of performance counts. Outside of production work I'm usually sculpting, texturing, or tinkering with rendering tricks just for fun.",
 
   skills: [
-    "Unity",
-    "C#",
-    "HLSL",
-    "Compute Shaders",
-    "Rendering",
-    "Technical Art",
-    "UI Systems",
+    "Unity (Built-in / URP / HDRP)",
+    "Unreal Engine",
+    "Shader Development",
+    "Realtime Rendering",
+    "Lighting & Rendering Setups",
     "Performance Optimization",
-    "GPU Profiling",
-    "Flow Field Simulation",
+    "Rigging & Animation",
+    "Editor Tooling",
+    "C#",
     "C++",
-    "Unreal Engine"
+    "HLSL",
+    "Maya",
+    "ZBrush",
+    "Substance Painter",
+    "Blender",
+    "Photoshop",
   ],
 
   experience: [
@@ -36,23 +41,25 @@ export const siteConfig = {
       company: "Gameberry Labs",
       title: "Technical Artist II",
       dateRange: "Jul 2024 - Present",
-      bullets: [
-        "Developed gameplay systems and technical solutions supporting products with over 6 million daily active users.",
-        "Optimized CPU-GPU workloads to maintain stable frame times on low-end mobile devices.",
-        "Bridged communication between engineering and art teams through tooling and technical workflows.",
-        "Worked on rendering, performance optimization, UI systems, and gameplay features.",
+      description:
+        "I work on Sorry! World by Hasbro, helping shape the mechanics, visuals, and systems that keep the game feeling good to play.",
+      highlights: [
+        "Helped tune game mechanics that lifted player retention by ~15%, working closely with data and player feedback",
+        "Bridged the gap between art and engineering in a fast-paced live-ops environment",
+        "Optimized rendering and gameplay performance to keep frame times stable on low-end devices",
       ],
     },
 
     {
       company: "Dirtcube Interactive",
-      title: "Technical Artist",
+      title: "3D Artist",
       dateRange: "Mar 2021 - Jul 2024",
-      bullets: [
-        "Created and optimized assets for real-time environments.",
-        "Implemented lighting and rendering workflows in Unity.",
-        "Built shaders, visual effects, and technical art pipelines.",
-        "Worked with Blender, Substance, Photoshop, and Unity to deliver production-ready content.",
+      description:
+        "I worked on Gamestarz, modeling and texturing 3D environments while picking up lighting, rigging, and rendering work in Unity along the way.",
+      highlights: [
+        "Modeled, textured, rigged, and animated 3D assets and characters using Maya, ZBrush, Blender, and Substance",
+        "Set up real-time lighting and rendering in Unity with performance in mind",
+        "Created and optimized assets for real-time environments",
       ],
     },
   ],

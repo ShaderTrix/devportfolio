@@ -19,11 +19,44 @@ const games = [
       "Bridged art and engineering in a fast-paced live-ops environment",
       "Optimized CPU-GPU workloads to keep frame times stable on low-end devices",
     ],
-    image: "/games/sorry.jpg",
+    image: "/games/sorry.webp",
     androidLink:
       "https://play.google.com/store/apps/details?id=com.gameberry.sorry.card.board.game&hl=en_IN",
     iosLink:
       "https://apps.apple.com/in/app/sorry-world-board-game/id6749000283?l=hi&platform=ipad",
+  },
+  {
+    name: "Backgammon Friends Online",
+    company: "Gameberry Labs",
+    publisher: "",
+    role: "Associate Technical Artist",
+    timeline: "3-4 months",
+    description:
+      "I helped out with techart on Backgammon Friends Online for a few months as an associate on the team, picking up smaller tasks and supporting the rest of the techart work wherever it was needed.",
+    contributions: [
+      "Helped with techart tasks and support across the project",
+    ],
+    image: "/games/backgammon.webp",
+    androidLink:
+      "https://play.google.com/store/apps/details?id=com.gameberrylabs.backgammonfriends&hl=en",
+    iosLink: "https://apps.apple.com/us/app/backgammon-friends-online/id6446756885",
+  },
+  {
+    name: "GameStarz",
+    company: "Dirtcube Interactive LLP",
+    publisher: "",
+    role: "3D Artist",
+    timeline: "Mar 2021 - Jul 2024",
+    description:
+      "On GameStarz I created the 3D models, textures, and environments that filled out the game's world, working across Blender, Substance, Photoshop, and Unity. I also rigged and animated characters to bring them to life, and set up real-time lighting and rendering in Unity that looked good without tanking performance. A lot of the job was just making sure everything I built ran cleanly in the actual game, not just in a render.",
+    contributions: [
+      "Modeled and textured 3D environments and props for the game's world",
+      "Rigged and animated characters to bring them to life",
+      "Set up real-time lighting and rendering in Unity with performance in mind",
+    ],
+    image: "/games/gamestarz.webp",
+    androidLink: "https://play.google.com/store/apps/details?id=com.dirtcube.gamestarz&hl=en_IN",
+    iosLink: "https://apps.apple.com/in/app/gamestarz-metaverse-of-games/id1617812520?l=hi",
   },
 ];
 ---
@@ -65,7 +98,9 @@ const games = [
               <div>
                 <!-- Metadata Subheading Row -->
                 <div class="flex flex-wrap items-center justify-between gap-2 text-xs font-mono tracking-wider">
-                  <span style={{ color: accent }}>// {game.company} · Licensed by {game.publisher}</span>
+                  <span style={{ color: accent }}>
+                    // {game.company}{game.publisher && ` · Licensed by ${game.publisher}`}
+                  </span>
                   <span class="text-gray-500">{game.timeline}</span>
                 </div>
 
