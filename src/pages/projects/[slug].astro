@@ -13,7 +13,7 @@ const { project } = Astro.props;
 const accent = siteConfig.accentColor;
 
 // Detail-page banner: prefer `detailImage`, fall back to the tile `image`.
-const bannerImage = project.detailImage || project.image || "";
+const bannerImage = project.hideDetailBanner ? "" : (project.detailImage || project.image || "");
 
 const categoryHref =
   project.categoryKey === "professional" || project.categoryKey === "personal"
@@ -95,6 +95,13 @@ const categoryBackLabel =
           <p class="text-base text-gray-300 leading-relaxed">{paragraph}</p>
         ))}
       </div>
+
+      <!-- Inline preview image -->
+      {project.inlineImage && (
+        <div class="mt-8 rounded-xl overflow-hidden border" style={{ borderColor: "rgba(245,240,227,0.06)" }}>
+          <img src={project.inlineImage} alt={project.name} class="w-full h-auto" />
+        </div>
+      )}
 
       <!-- External link -->
       {project.link && (

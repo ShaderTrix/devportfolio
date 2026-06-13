@@ -104,7 +104,7 @@ export const siteConfig = {
   // ---------------------------------------------------------------------------
   projectCategories: {
     professional: {
-      label: "Professional Projects",
+      label: "Professional Project",
       blurb:
         "Shipped, production work from studios — systems built for large-scale mobile games and real teams.",
       projects: [
@@ -130,22 +130,36 @@ export const siteConfig = {
         },
         {
           slug: "rendering-optimization",
-          name: "Rendering & Performance Optimization",
-          tagline: "Stable frame times on low-end mobile",
-          image: "",
+          name: "UI Occlusion Culling System",
+          tagline: "Stop drawing the UI you can't see",
+          image: "/projects/ui-occlusion-culling.gif",
           detailImage: "",
           description:
-            "Rendering features and CPU-GPU optimization work to hold target frame rates across a wide device range.",
+            "Your UI has layers upon layers of fullscreen panels stacked on top of each other, and the bottom ones are still rendering for absolutely no reason. This system catches them red-handed and shuts them off.",
           link: "",
-          skills: ["Rendering", "GPU Profiling", "Optimization"],
+          skills: ["Unity UI", "Jobs/Burst", "Spatial Partitioning", "C#", "Performance"],
           longDescription: [
-            "Profiled and optimized rendering pipelines for mobile titles, targeting consistent frame pacing on the lowest-supported hardware.",
-            "Worked across shaders, batching, and overdraw to cut GPU cost while preserving the intended art direction.",
+            "Every frame, every visible UI image on the canvas gets dropped into a native quadtree — basically a lazy filing system that groups nearby things together so you don't have to compare everything against everything else. Then a Burst-compiled job goes through each element and asks one nosy little question: 'is something fully opaque sitting directly on top of you, completely blocking you from view?' If the answer is yes, that element gets told to stop rendering. No mesh, no draw call, nothing — it's basically put in time-out until it's needed again.",
+            "Of course, not everything gets to play this game. Semi-transparent UI, masks, and anything wearing the 'IgnoreUICulling' tag get a free pass — they always render, no questions asked, because guessing wrong on those looks really bad really fast. The quadtree is also lazy in a good way: it only rebuilds when the UI hierarchy actually changes, so most frames it's just doing quick lookups instead of redoing all the work.",
+            "Production tested on Sorry! World — and on real devices, this thing claws back a genuinely surprising 15-20 FPS on UI-heavy screens, depending on how stacked the screen is and what hardware it's running on. Turns out 'just stop drawing things nobody can see' is a pretty good optimization.",
           ],
-          highlights: [
-            "Identified and resolved GPU bottlenecks via frame captures",
-            "Tuned shaders and material setups for mobile GPUs",
+        },
+        {
+          slug: "tmp-instancing",
+          name: "UI TextMeshPro Instancing System",
+          tagline: "Hundreds of uniquely styled UI texts, one draw call",
+          image: "/projects/tmp-instanced.png",
+          detailImage: "",
+          hideDetailBanner: true,
+          description:
+            "A custom TextMeshPro component and SDF shader that lets hundreds of on-screen texts each have their own color, outline, and underlay — without breaking batching.",
+          link: "",
+          skills: ["Unity UI", "TextMeshPro", "Shaders", "C#", "Performance"],
+          longDescription: [
+            "Normally, every unique combination of text color, outline, underlay, or dilate on TextMeshPro means another material — and every extra material is another draw call. This component sidesteps that entirely: per-instance properties like greyscale, face dilate, outline color/thickness, and underlay color/dilate get baked straight into each character's mesh UVs and vertex colors at runtime, then read back out by a custom SDF shader. The result is dozens of differently styled texts sharing one material and batching into a single draw call.",
+            "The system is live in production on Sorry! World by Hasbro, running hundreds of text instances on screen at once with no measurable performance loss.",
           ],
+          inlineImage: "/projects/tmp-instanced-02.png",
         },
       ],
     },
@@ -173,21 +187,17 @@ export const siteConfig = {
         },
         {
           slug: "flow-field-agents",
-          name: "Flow Field Agent Movement System",
-          tagline: "Large-scale steering with flow fields",
-          image: "",
+          name: "GPU Flow-Field Crowd Pathfinding",
+          tagline: "Thousands of agents, one flow field, zero per-agent pathfinding.",
+          image: "/projects/flow-field.gif",
           detailImage: "",
           description:
-            "Large-scale agent steering using flow fields and spatial partitioning, with debug visualization tools.",
-          link: "https://github.com/ShaderTrix/Unity_SRPShaders",
-          skills: ["Unity", "C#", "AI Systems", "Optimization"],
+            "A GPU-driven crowd system in Unity where thousands of agents follow a CPU-baked flow field and resolve their own collisions against a GPU-side BVH of the level.",
+          link: "https://github.com/ShaderTrix/Unity_URPShaders/tree/main/Assets/Compute%20Shader/FlowFieldPathfinding",
+          skills: ["Unity", "Compute Shaders", "HLSL", "Pathfinding", "GPU-Driven Rendering"],
           longDescription: [
-            "A large-scale agent steering system using flow fields and spatial partitioning, supporting many agents updating in real time.",
-            "Includes debug visualization tools and scalable update strategies suitable for real-time applications.",
-          ],
-          highlights: [
-            "Flow-field navigation with spatial partitioning",
-            "Built-in debug visualization for field and agents",
+            "Instead of A* per agent, the CPU walks the grid once toward the goal and bakes out a flow field — a direction to move in from every cell. Thousands of agents on the GPU just follow it, with a bit of flocking-style separation so they don't pile on top of each other. Throw in a couple of fun toys too: repel zones agents swerve away from, and spiral vortices that suck them in and fling them around.",
+            "The fun part is collision: every agent raycasts against a GPU-side BVH of the level mesh to slide along walls, fall off ledges, and land on the ground — all inside the compute shader, no Rigidbodies involved. Rendering is GPU-driven as well, using instanced draws with vertex-animation textures for movement poses, LODs, and a Hi-Z occlusion pass so only the agents actually on screen get drawn.",
           ],
         },
         {
