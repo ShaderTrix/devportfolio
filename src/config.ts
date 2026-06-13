@@ -71,7 +71,19 @@ export const siteConfig = {
       dateRange: "2020",
       achievements: [
         "Computer Science Graduate",
-        "Specialized interest in graphics programming and real-time rendering",
+        "Focused on app development, game development, and web development",
+        "Worked with languages and tools like Java, Python, C, C++, and Android Studio",
+      ],
+    },
+    {
+      school: "MAAC (Maya Academy of Advanced Cinematics)",
+      degree: "Game Art and Development Course",
+      dateRange: "2018 - 2020",
+      achievements: [
+        "Focused on 3D game art and animation",
+        "Picked up 2D pipeline tools for texture creation",
+        "Worked with Unity & Unreal Engine",
+        "Used software like Maya, 3ds Max, Substance Painter, Substance Designer, Blender, ZBrush, and Mudbox",
       ],
     },
   ],
@@ -139,7 +151,7 @@ export const siteConfig = {
     },
 
     personal: {
-      label: "Personal Projects",
+      label: "Personal Project",
       blurb:
         "Self-directed graphics and rendering work — shaders, GPU systems, and tools built to learn and experiment.",
       projects: [
