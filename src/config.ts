@@ -160,7 +160,7 @@ export const siteConfig = {
           name: "Screen-Space Character Voxelisation",
           tagline:
             "Custom URP render passes, compute shader reconstruction, and GPU-driven destruction.",
-          image: "",
+          image: "/projects/pixelizer_preview.gif",
           detailImage: "",
           description:
             "A GPU-driven approach to reconstructing animated characters as dynamic voxel representations in Unity URP, using custom MRT render passes and compute shaders.",

@@ -37,10 +37,6 @@ const blurbParagraphs = Array.isArray(blurb) ? blurb : blurb ? [blurb] : [];
     {projects.length > 0 ? (
       <div class="mt-12 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
         {projects.map((project, index) => {
-          const projectSlug = (project.slug || "").toLowerCase();
-          const projectName = (project.name || "").toLowerCase();
-          const isGpuPixelizer = projectSlug.includes("pixelizer") || projectName.includes("pixelizer");
-          
           return (
             <a
               href={`/projects/${project.slug}`}
@@ -62,19 +58,11 @@ const blurbParagraphs = Array.isArray(blurb) ? blurb : blurb ? [blurb] : [];
                   </span>
                 )}
 
-                {isGpuPixelizer ? (
+                {project.image && (
                   <div
                     class="absolute inset-0 z-0 bg-cover bg-center transition-transform duration-500 group-hover:scale-105"
-                    style="background-image: url('/pixelizer_preview.gif');"
+                    style={`background-image: url('${project.image}')`}
                   />
-                ) : (
-                  /* Otherwise render standard card background images if provided */
-                  project.image && (
-                    <div
-                      class="absolute inset-0 z-0 bg-cover bg-center transition-transform duration-500 group-hover:scale-105"
-                      style={`background-image: url('${project.image}')`}
-                    />
-                  )
                 )}
                 
                 {/* Subtle dark gradient overlay onto media for uniform card depth */}
