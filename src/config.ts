@@ -116,7 +116,7 @@ export const siteConfig = {
           detailImage: "",
           description:
             "Your UI has layers upon layers of fullscreen panels stacked on top of each other, and the bottom ones are still rendering for absolutely no reason. This system catches them red-handed and shuts them off.",
-          link: "",
+          link: "https://github.com/ShaderTrix/Unity_ShaderTrix_Public/tree/main/Assets/Scripts/UIOcclusionCullingOrtho",
           skills: ["Unity UI", "Jobs/Burst", "Spatial Partitioning", "C#", "Performance"],
           longDescription: [
             "Every frame, every visible UI image on the canvas gets dropped into a native quadtree — basically a lazy filing system that groups nearby things together so you don't have to compare everything against everything else. Then a Burst-compiled job goes through each element and asks one nosy little question: 'is something fully opaque sitting directly on top of you, completely blocking you from view?' If the answer is yes, that element gets told to stop rendering. No mesh, no draw call, nothing — it's basically put in time-out until it's needed again.",
@@ -1189,7 +1189,7 @@ public class UI_TiledImageEditor : GraphicEditor
           detailImage: "",
           description:
             "A GPU-driven approach to reconstructing animated characters as dynamic voxel representations in Unity URP, using custom MRT render passes and compute shaders.",
-          link: "https://github.com/ShaderTrix/Unity_URPShaders/tree/main/Assets/Compute%20Shader/PixelizerGun",
+          link: "https://github.com/ShaderTrix/Unity_ShaderTrix_Public/tree/main/Assets/Compute%20Shader/PixelizerGun",
           skills: ["Unity", "Compute Shaders", "HLSL", "Rendering"],
           longDescription: [
             "Basically: turn characters into cubes, on the GPU, in real time. Instead of voxelizing meshes the slow way, this captures the character on screen and rebuilds it as a grid of instanced cubes using compute shaders — so the cube count just scales with how big the character looks on screen. Free LOD, nice.",
@@ -1204,7 +1204,7 @@ public class UI_TiledImageEditor : GraphicEditor
           detailImage: "",
           description:
             "A GPU-driven crowd system in Unity where thousands of agents follow a CPU-baked flow field and resolve their own collisions against a GPU-side BVH of the level.",
-          link: "https://github.com/ShaderTrix/Unity_URPShaders/tree/main/Assets/Compute%20Shader/FlowFieldPathfinding",
+          link: "https://github.com/ShaderTrix/Unity_ShaderTrix_Public/tree/main/Assets/Compute%20Shader/FlowFieldPathfinding",
           skills: ["Unity", "Compute Shaders", "HLSL", "Pathfinding", "GPU-Driven Rendering"],
           longDescription: [
             "Instead of A* per agent, the CPU walks the grid once toward the goal and bakes out a flow field — a direction to move in from every cell. Thousands of agents on the GPU just follow it, with a bit of flocking-style separation so they don't pile on top of each other. Throw in a couple of fun toys too: repel zones agents swerve away from, and spiral vortices that suck them in and fling them around.",
