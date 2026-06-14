@@ -28,18 +28,70 @@ const categoryBackLabel =
 
 <Layout title={project.name}>
   {bannerImage && (
-    <div class="relative w-full h-56 sm:h-72 md:h-96 overflow-hidden" style={{ backgroundColor: "#1c1a17" }}>
+    <div id="preview-banner" class="relative w-full h-56 sm:h-72 md:h-96 overflow-hidden" style={{ backgroundColor: "#1c1a17" }}>
       <div
+        id="preview-image"
         class="absolute inset-0 bg-cover bg-center"
         style={`background-image: url('${bannerImage}')`}
       ></div>
       <!-- Fade into the page background at the bottom -->
       <div
+        id="preview-fade"
         class="absolute inset-0"
         style="background: linear-gradient(to bottom, rgba(14,13,11,0.25) 0%, rgba(14,13,11,0.6) 60%, #0e0d0b 100%)"
       ></div>
+
+      <button
+        id="preview-toggle"
+        type="button"
+        aria-label="Toggle full preview"
+        class="absolute bottom-4 right-4 z-20 flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-gray-950/70 border border-white/10 text-xs font-mono text-gray-200 hover:text-white hover:border-white/30 transition-colors backdrop-blur-sm"
+      >
+        <svg id="preview-toggle-icon" class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+        </svg>
+        <span id="preview-toggle-label">Expand preview</span>
+      </button>
     </div>
   )}
+
+  <style>
+    #preview-banner {
+      transition: height 0.4s ease;
+    }
+    #preview-banner.preview-expanded {
+      height: 85vh;
+    }
+    #preview-image {
+      transition: background-size 0.3s ease;
+    }
+    #preview-banner.preview-expanded #preview-image {
+      background-size: contain;
+    }
+    #preview-fade {
+      transition: opacity 0.3s ease;
+    }
+    #preview-banner.preview-expanded #preview-fade {
+      opacity: 0;
+    }
+    #preview-toggle-icon {
+      transition: transform 0.3s ease;
+    }
+    #preview-banner.preview-expanded #preview-toggle-icon {
+      transform: rotate(180deg);
+    }
+  </style>
+
+  <script>
+    const banner = document.getElementById("preview-banner");
+    const toggle = document.getElementById("preview-toggle");
+    const label = document.getElementById("preview-toggle-label");
+
+    toggle?.addEventListener("click", () => {
+      const expanded = banner?.classList.toggle("preview-expanded");
+      if (label) label.textContent = expanded ? "Collapse preview" : "Expand preview";
+    });
+  </script>
 
   <article class="py-20 sm:py-24 px-6 sm:px-12 lg:px-16" style={{ backgroundColor: "#0e0d0b" }}>
     <div class="max-w-3xl mx-auto">
