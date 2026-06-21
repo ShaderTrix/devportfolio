@@ -26,13 +26,19 @@ const pageTitle = title
     <!-- Loading Geist Sans for Headings and Geist Mono for code tags -->
   <link href="[https://fonts.googleapis.com/css2?family=JetBrains+Mono:ital,wght@0,100..800;1,100..800&display=swap](https://fonts.googleapis.com/css2?family=JetBrains+Mono:ital,wght@0,100..800;1,100..800&display=swap)">
     <title>{pageTitle}</title>
+    <script is:inline>
+      (function(){
+        var t = localStorage.getItem("theme") || "dark";
+        document.documentElement.setAttribute("data-theme", t);
+      })();
+    </script>
   </head>
-  <body style={{ backgroundColor: "#0e0d0b" }}>
+  <body style={{ backgroundColor: "var(--bg)" }}>
     <div class="fixed inset-0 -z-10">
       <img
         src="/bg.png"
         alt=""
-        class="w-full h-full object-cover"
+        class="fixed-bg-image w-full h-full object-cover transition-opacity duration-500"
       />
     </div>
 

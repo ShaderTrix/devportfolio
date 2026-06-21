@@ -28,7 +28,7 @@ const categoryBackLabel =
 
 <Layout title={project.name}>
   {bannerImage && (
-    <div id="preview-banner" class="relative w-full h-56 sm:h-72 md:h-96 overflow-hidden" style={{ backgroundColor: "#1c1a17" }}>
+    <div id="preview-banner" class="relative w-full h-56 sm:h-72 md:h-96 overflow-hidden" style={{ backgroundColor: "var(--surface)" }}>
       <div
         id="preview-image"
         class="absolute inset-0 bg-cover bg-center"
@@ -38,7 +38,7 @@ const categoryBackLabel =
       <div
         id="preview-fade"
         class="absolute inset-0"
-        style="background: linear-gradient(to bottom, rgba(14,13,11,0.25) 0%, rgba(14,13,11,0.6) 60%, #0e0d0b 100%)"
+        style="background: linear-gradient(to bottom, color-mix(in srgb, var(--bg) 25%, transparent) 0%, color-mix(in srgb, var(--bg) 60%, transparent) 60%, var(--bg) 100%)"
       ></div>
 
       <button
@@ -93,7 +93,7 @@ const categoryBackLabel =
     });
   </script>
 
-  <article class="py-20 sm:py-24 px-6 sm:px-12 lg:px-16" style={{ backgroundColor: "#0e0d0b" }}>
+  <article class="py-20 sm:py-24 px-6 sm:px-12 lg:px-16" style={{ backgroundColor: "var(--bg)" }}>
     <div class="max-w-3xl mx-auto">
       <!-- Back link -->
       <a
@@ -150,14 +150,14 @@ const categoryBackLabel =
 
       <!-- Inline preview image -->
       {project.inlineImage && (
-        <div class="mt-8 rounded-xl overflow-hidden border" style={{ borderColor: "rgba(245,240,227,0.06)" }}>
+        <div class="mt-8 rounded-xl overflow-hidden border" style={{ borderColor: "var(--border)" }}>
           <img src={project.inlineImage} alt={project.name} class="w-full h-auto" />
         </div>
       )}
 
       <!-- How to use -->
       {project.usageNotes && (
-        <div class="mt-8 rounded-xl border-2 p-6 sm:p-8" style={{ backgroundColor: "#1c1a17", borderColor: accent }}>
+        <div class="mt-8 rounded-xl border-2 p-6 sm:p-8" style={{ backgroundColor: "var(--surface)", borderColor: accent }}>
           <div class="flex items-center gap-2.5">
             <span class="text-xl">🛠️</span>
             <h2 class="text-sm font-mono uppercase tracking-widest font-bold" style={{ color: accent }}>
@@ -169,7 +169,7 @@ const categoryBackLabel =
               <li class="flex gap-3 sm:gap-4">
                 <span
                   class="flex-shrink-0 flex items-center justify-center w-6 h-6 rounded-full text-xs font-mono font-bold"
-                  style={{ backgroundColor: accent, color: "#0e0d0b" }}
+                  style={{ backgroundColor: accent, color: "var(--bg)" }}
                 >
                   {index + 1}
                 </span>
@@ -205,14 +205,14 @@ const categoryBackLabel =
       {project.codeBlocks ? (
         <div class="mt-12 space-y-6">
           {project.codeBlocks.map((block) => (
-            <div class="rounded-xl border p-6 sm:p-8" style={{ backgroundColor: "#1c1a17", borderColor: "rgba(245,240,227,0.06)" }}>
+            <div class="rounded-xl border p-6 sm:p-8" style={{ backgroundColor: "var(--surface)", borderColor: "var(--border)" }}>
               <h2 class="text-sm font-mono uppercase tracking-widest text-gray-500">// {block.label}</h2>
               <pre class="mt-3 text-xs sm:text-sm text-gray-300 leading-relaxed overflow-x-auto"><code>{block.code}</code></pre>
             </div>
           ))}
         </div>
       ) : (
-        <div class="mt-12 rounded-xl border p-6 sm:p-8" style={{ backgroundColor: "#1c1a17", borderColor: "rgba(245,240,227,0.06)" }}>
+        <div class="mt-12 rounded-xl border p-6 sm:p-8" style={{ backgroundColor: "var(--surface)", borderColor: "var(--border)" }}>
           {project.code ? (
             <>
               <h2 class="text-sm font-mono uppercase tracking-widest text-gray-500">// Code</h2>

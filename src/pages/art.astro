@@ -47,7 +47,7 @@ const artProjects = [
 ---
 
 <Layout title="Art Portfolio">
-  <section class="py-20 sm:py-24 px-6 sm:px-12 lg:px-16" style={{ backgroundColor: "#0e0d0b" }}>
+  <section class="py-20 sm:py-24 px-6 sm:px-12 lg:px-16" style={{ backgroundColor: "var(--bg)" }}>
     <div class="max-w-7xl mx-auto">
 
       <div class="max-w-2xl mb-12">
@@ -67,12 +67,12 @@ const artProjects = [
             target="_blank"
             rel="noopener noreferrer"
             class="group relative flex flex-col h-[420px] rounded-xl border overflow-hidden transition-all duration-300 hover:-translate-y-1"
-            style={{ backgroundColor: "#1c1a17", borderColor: "rgba(245,240,227,0.06)" }}
+            style={{ backgroundColor: "var(--surface)", borderColor: "var(--border)" }}
           >
             <div class="h-[70%] w-full relative overflow-hidden bg-black/40 border-b border-white/[0.04]">
 
               <div
-                class="absolute top-4 right-4 w-8 h-8 z-20 flex items-center justify-center rounded-full bg-[#1e1c19] text-gray-400 group-hover:text-white transition-all border border-white/5"
+                class="absolute top-4 right-4 w-8 h-8 z-20 flex items-center justify-center rounded-full text-gray-400 group-hover:text-white transition-all border border-white/5" style={{ backgroundColor: "var(--surface)" }}
               >
                 <svg class="w-3.5 h-3.5 transform transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 17L17 7M17 7H7M17 7V17" />
@@ -91,7 +91,7 @@ const artProjects = [
               <div class="absolute inset-0 z-10 bg-gradient-to-t from-gray-950/60 via-transparent to-transparent pointer-events-none" />
             </div>
 
-            <div class="h-[30%] px-5 py-4 flex items-center justify-between gap-4 bg-[#1c1a17]">
+            <div class="h-[30%] px-5 py-4 flex items-center justify-between gap-4" style={{ backgroundColor: "var(--surface)" }}>
               <div class="truncate flex flex-col justify-center h-full w-full">
                 <h2 class="text-base font-bold text-white tracking-tight truncate group-hover:text-white transition-colors">
                   {art.title}

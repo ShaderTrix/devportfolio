@@ -22,7 +22,7 @@ const accent = siteConfig.accentColor;
 const blurbParagraphs = Array.isArray(blurb) ? blurb : blurb ? [blurb] : [];
 ---
 
-<section class="py-20 sm:py-24 px-6 sm:px-12 lg:px-16" style={{ backgroundColor: "#0e0d0b" }}>
+<section class="py-20 sm:py-24 px-6 sm:px-12 lg:px-16" style={{ backgroundColor: "var(--bg)" }}>
   <div class="max-w-7xl mx-auto">
     <div class="max-w-2xl">
       <h1 class="text-3xl sm:text-4xl md:text-5xl font-bold tracking-tight text-white animate-fade-in">
@@ -41,7 +41,7 @@ const blurbParagraphs = Array.isArray(blurb) ? blurb : blurb ? [blurb] : [];
             <a
               href={`/projects/${project.slug}`}
               class="group relative flex flex-col h-[420px] rounded-xl border overflow-hidden transition-all duration-300 hover:-translate-y-1"
-              style={{ backgroundColor: "#1c1a17", borderColor: "rgba(245,240,227,0.06)" }}
+              style={{ backgroundColor: "var(--surface)", borderColor: "var(--border)" }}
             >
               <div class="h-[70%] w-full relative overflow-hidden bg-black/40 border-b border-white/[0.04]">
                 
@@ -69,7 +69,7 @@ const blurbParagraphs = Array.isArray(blurb) ? blurb : blurb ? [blurb] : [];
                 <div class="absolute inset-0 z-10 bg-gradient-to-t from-gray-950/40 via-transparent to-transparent pointer-events-none" />
               </div>
 
-              <div class="h-[30%] p-4 flex flex-col justify-between bg-[#1c1a17]">
+              <div class="h-[30%] p-4 flex flex-col justify-between" style={{ backgroundColor: "var(--surface)" }}>
                 <div>
                   <div class="flex items-baseline justify-between gap-2">
                     <h2 class="text-base font-bold text-white tracking-tight line-clamp-1">
