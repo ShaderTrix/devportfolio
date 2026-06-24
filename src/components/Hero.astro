@@ -26,13 +26,14 @@ import { siteConfig } from "../config";
   <div class="w-full mx-auto p-8 sm:p-12 md:p-24 max-w-7xl">
     <div class="max-w-3xl">
       <h2 class="text-xl sm:text-2xl font-mono tracking-wider uppercase mb-3 animate-fade-in" style={{ color: siteConfig.accentColor }}>
-        // Hello World 👋
+        // Hi there <span class="wave inline-block">👋</span>
       </h2>
       <h1 class="text-4xl sm:text-5xl md:text-6xl lg:text-8xl font-black tracking-tight text-white animate-fade-in animation-delay-200">
         I'm <span style={{ color: 'var(--text-primary)', textShadow: `0 0 20px ${siteConfig.accentColor}33` }}>{siteConfig.name}</span>
       </h1>
-      <p class="mt-6 text-base sm:text-lg md:text-xl text-gray-400 font-mono max-w-xl leading-relaxed animate-fade-in animation-delay-400">
-        > {siteConfig.title}
+      <p class="mt-6 text-base sm:text-lg md:text-2xl font-mono max-w-xl leading-relaxed animate-fade-in animation-delay-400 text-gray-400">
+        <span class="text-gray-500">&gt;</span>
+        <span id="role-text" style={{ color: siteConfig.accentColor }} data-roles={JSON.stringify(siteConfig.roles)}></span><span id="role-cursor" class="role-cursor" style={{ backgroundColor: siteConfig.accentColor }}></span>
       </p>
     </div>
   </div>
@@ -64,6 +65,19 @@ import { siteConfig } from "../config";
         <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" viewBox="0 0 24 24" fill="currentColor"><path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/></svg>
       </a>
     )}
+    {siteConfig.resumeUrl && (
+      <a
+        href={siteConfig.resumeUrl}
+        download
+        class="inline-flex items-center gap-2 ml-2 px-4 h-11 rounded-lg font-mono text-sm font-medium text-black transition-transform hover:-translate-y-0.5"
+        style={{ backgroundColor: siteConfig.accentColor }}
+      >
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a2 2 0 002 2h12a2 2 0 002-2v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+        </svg>
+        Download CV
+      </a>
+    )}
   </div>
 </div>
 
@@ -80,4 +94,74 @@ import { siteConfig } from "../config";
     color: var(--accent);
     border-color: var(--accent);
   }
+
+  /* Waving hand */
+  @keyframes wave {
+    0% { transform: rotate(0deg); }
+    10% { transform: rotate(14deg); }
+    20% { transform: rotate(-8deg); }
+    30% { transform: rotate(14deg); }
+    40% { transform: rotate(-4deg); }
+    50% { transform: rotate(10deg); }
+    60% { transform: rotate(0deg); }
+    100% { transform: rotate(0deg); }
+  }
+  .wave {
+    transform-origin: 70% 70%;
+    animation: wave 2.2s ease-in-out infinite;
+  }
+
+  /* Typewriter blinking cursor */
+  .role-cursor {
+    display: inline-block;
+    width: 3px;
+    height: 1em;
+    margin-left: 2px;
+    vertical-align: text-bottom;
+    animation: blink 1s step-end infinite;
+  }
+  @keyframes blink {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0; }
+  }
 </style>
+
+<script>
+  const el = document.getElementById("role-text");
+  if (el) {
+    const roles: string[] = JSON.parse(el.getAttribute("data-roles") || "[]");
+    let roleIndex = 0;
+    let charIndex = 0;
+    let deleting = false;
+
+    const TYPE_SPEED = 70;
+    const DELETE_SPEED = 35;
+    const HOLD_FULL = 1500;
+    const HOLD_EMPTY = 300;
+
+    function tick() {
+      const current = roles[roleIndex] || "";
+      if (!deleting) {
+        charIndex++;
+        el.textContent = current.slice(0, charIndex);
+        if (charIndex >= current.length) {
+          deleting = true;
+          setTimeout(tick, HOLD_FULL);
+          return;
+        }
+        setTimeout(tick, TYPE_SPEED);
+      } else {
+        charIndex--;
+        el.textContent = current.slice(0, charIndex);
+        if (charIndex <= 0) {
+          deleting = false;
+          roleIndex = (roleIndex + 1) % roles.length;
+          setTimeout(tick, HOLD_EMPTY);
+          return;
+        }
+        setTimeout(tick, DELETE_SPEED);
+      }
+    }
+    if (roles.length) tick();
+  }
+</script>

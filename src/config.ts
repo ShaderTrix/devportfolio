@@ -1,10 +1,23 @@
 export const siteConfig = {
-  name: "ShaderTrix",
+  name: "Shivanshu Chauhan",
   title: "Technical Artist | 3D Artist | Graphics Programmer",
   description:
     "Unity UI Systems, Rendering, Shaders, GPU-driven Systems and Tool Development",
 
   accentColor: "#8ab870",
+
+  // Rotating roles shown under the hero name (animated typewriter)
+  roles: [
+    "Full-time creative thinker",
+    "Always a team player",
+    "Professional Technical Artist",
+    "Part-time gamer",
+    "Aspiring Graphics Technical Artist",
+    "Shader Artist",
+  ],
+
+  // CV / resume file (lives in /public)
+  resumeUrl: "/Shivanshu_Chauhan_CV.pdf",
 
   social: {
     email: "shivanshuchauhan1998@gmail.com",
@@ -15,7 +28,7 @@ export const siteConfig = {
   },
 
   aboutMe:
-    "Hey, I'm ShaderTrix — a Technical Artist who lives somewhere between art and engineering. I spend most of my time building shaders, rendering features, and tools that help artists and designers bring their ideas to life without fighting the engine to do it. I care a lot about making things look good while still running smoothly, especially on mobile, where every bit of performance counts. Outside of production work I'm usually sculpting, texturing, or tinkering with rendering tricks just for fun.",
+    "Hey, I'm Shivanshu Chauhan — a Technical Artist who lives somewhere between art and engineering. I spend most of my time building shaders, rendering features, and tools that help artists and designers bring their ideas to life without fighting the engine to do it. I care a lot about making things look good while still running smoothly, especially on mobile, where every bit of performance counts. Outside of production work I'm usually sculpting, texturing, or tinkering with rendering tricks just for fun.",
 
   skills: [
     "Unity (Built-in / URP / HDRP)",
@@ -34,6 +47,42 @@ export const siteConfig = {
     "Substance Painter",
     "Blender",
     "Photoshop",
+  ],
+
+  // Categorised tool / skill stack shown on the About page.
+  // `icon` is a Simple Icons slug rendered as a logo; items without one
+  // fall back to a clean text "monogram" card.
+  toolStack: [
+    {
+      category: "Languages & Engines",
+      items: [
+        { name: "Unity", icon: "unity" },
+        { name: "Unreal Engine", icon: "unrealengine" },
+        { name: "C#", icon: "csharp" },
+        { name: "C++", icon: "cplusplus" },
+        { name: "Python", icon: "python" },
+        { name: "HLSL" },
+        { name: "GLSL" },
+        { name: "MEL" },
+      ],
+    },
+    {
+      category: "Software I use",
+      items: [
+        { name: "Blender", icon: "blender" },
+        { name: "Maya", icon: "autodeskmaya" },
+        { name: "3ds Max", icon: "autodesk" },
+        { name: "ZBrush" },
+        { name: "Mudbox" },
+        { name: "Substance" },
+        { name: "Photoshop", icon: "adobephotoshop" },
+        { name: "Marmoset" },
+        { name: "V-Ray" },
+        { name: "Arnold" },
+        { name: "Spine2D", icon: "spine" },
+        { name: "GitHub", icon: "github" },
+      ],
+    },
   ],
 
   experience: [
