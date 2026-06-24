@@ -7,12 +7,65 @@ const projects = allProjects.filter(
   (project) => project.categoryKey === "professional" || project.categoryKey === "personal"
 );
 
-const blurb = [
-  "Hey, I'm Shivanshu Chauhan and this is my techart stuff — a mix of systems I've shipped on production mobile games and personal projects I built just to learn and mess around with. Some of these were built for real teams with millions of players, others were weekend experiments that got a bit out of hand. If anything here interests you or you want to chat about how something works, feel free to reach out.",
-  "Some of these also come with write-ups or tutorials breaking down how they work, others don't yet — I'm slowly adding them as I find the time, so check back if something looks interesting but is missing the deep-dive.",
-];
+const accent = siteConfig.accentColor;
 ---
 
 <Layout title="Techart">
-  <ProjectGrid title="My Techart Stuff" blurb={blurb} projects={projects} />
+  <section class="py-20 sm:py-24 px-6 sm:px-12 lg:px-16" style={{ backgroundColor: "var(--bg)" }}>
+    <div class="max-w-7xl mx-auto">
+      <div class="max-w-2xl">
+        <h1 class="text-3xl sm:text-4xl md:text-5xl font-bold tracking-tight text-white animate-fade-in">
+          My Techart Stuff
+        </h1>
+        <div class="w-[40px] h-[4px] mt-4 rounded-full animate-fade-in animation-delay-200" style={`background-color: ${accent}`}></div>
+        <div class="mt-6 text-base sm:text-lg text-gray-300 leading-relaxed animate-fade-in animation-delay-400 space-y-4">
+          <p>
+            Hey, I'm Shivanshu Chauhan and this is my techart stuff — a <span style={{ color: accent, fontStyle: 'italic' }}>mix of systems I've shipped on production mobile games</span> and <span style={{ color: accent, fontStyle: 'italic' }}>personal projects I built just to learn and mess around with</span>.
+          </p>
+          <p>
+            Some of these were built for <span style={{ color: accent, fontStyle: 'italic' }}>real teams with millions of players</span>, others were <span style={{ color: accent, fontStyle: 'italic' }}>weekend experiments that got a bit out of hand</span>.
+          </p>
+          <p>
+            If anything here interests you or you want to chat about how something works, feel free to reach out.
+          </p>
+          <p>
+            Some of these also come with <span style={{ color: accent, fontStyle: 'italic' }}>write-ups or tutorials breaking down how they work</span>, others don't yet — I'm <span style={{ color: accent, fontStyle: 'italic' }}>slowly adding them as I find the time</span>, so check back if something looks interesting but is missing the deep-dive.
+          </p>
+        </div>
+      </div>
+
+      {projects.length > 0 ? (
+        <div class="mt-12 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+          {projects.map((project, index) => {
+            return (
+              <a
+                href={`/projects/${project.slug}`}
+                class="group relative flex flex-col h-[420px] rounded-xl border overflow-hidden transition-all duration-300 hover:-translate-y-1"
+                style={{ backgroundColor: "var(--surface)", borderColor: "var(--border)" }}
+              >
+                <div class="h-[70%] w-full relative overflow-hidden bg-black/40 border-b border-white/[0.04]">
+                  <span class="absolute top-4 left-4 z-20 px-2 py-0.5 rounded bg-gray-950/60 text-[10px] font-mono tracking-widest" style={{ color: accent }}>
+                    // 0{index + 1}
+                  </span>
+                  <div
+                    class="absolute inset-0 z-0 bg-cover bg-center transition-transform duration-700 ease-out group-hover:scale-[1.03]"
+                    style={`background-image: url('${project.image || ''}')`}
+                  />
+                  <div class="absolute inset-0 z-10 bg-gradient-to-t from-gray-950/80 via-transparent to-transparent pointer-events-none" />
+                </div>
+                <div class="h-[30%] px-5 py-4 flex flex-col justify-center" style={{ backgroundColor: "var(--surface)" }}>
+                  <h2 class="text-base font-bold text-white tracking-tight truncate">{project.name}</h2>
+                  {project.tagline && (
+                    <p class="text-xs text-gray-400 mt-1 line-clamp-2">{project.tagline}</p>
+                  )}
+                </div>
+              </a>
+            );
+          })}
+        </div>
+      ) : (
+        <div class="mt-12 text-center text-gray-400">No projects yet.</div>
+      )}
+    </div>
+  </section>
 </Layout>

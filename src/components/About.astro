@@ -23,24 +23,29 @@ const ICONS: Record<string, string> = {
 
   {siteConfig.toolStack && siteConfig.toolStack.length > 0 && (
     <div class="px-8 sm:px-12 md:px-16 lg:px-24 pt-24 pb-16 border-b border-white/5">
-      <div class="max-w-7xl mx-auto flex flex-wrap justify-center gap-4 sm:gap-5">
-        {siteConfig.toolStack.flatMap((group) => group.items).map((item) => (
-          <div
-            class="tool-card flex flex-col items-center justify-center gap-3 w-28 h-28 sm:w-32 sm:h-32 rounded-2xl border border-white/[0.06] transition-all duration-200 hover:-translate-y-1"
-            style="background-color: var(--surface);"
-          >
-            {item.icon && ICONS[item.icon] ? (
-              <svg class="tool-icon w-12 h-12 sm:w-14 sm:h-14" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
-                <path d={ICONS[item.icon]} />
-              </svg>
-            ) : (
-              <span class="tool-icon flex items-center justify-center w-12 h-12 sm:w-14 sm:h-14 text-xl font-bold font-mono">
-                {item.name.slice(0, 2)}
-              </span>
-            )}
-            <span class="text-xs font-mono text-gray-400 text-center leading-tight px-1">{item.name}</span>
-          </div>
-        ))}
+      <div class="max-w-7xl mx-auto">
+        <h2 class="text-3xl sm:text-4xl md:text-5xl font-bold tracking-tight text-white text-center mb-12">
+          Toolstack
+        </h2>
+        <div class="flex flex-wrap justify-center gap-4 sm:gap-5">
+          {siteConfig.toolStack.flatMap((group) => group.items).map((item) => (
+            <div
+              class="tool-card flex flex-col items-center justify-center gap-3 w-28 h-28 sm:w-32 sm:h-32 rounded-2xl border border-white/[0.06] transition-all duration-200 hover:-translate-y-1"
+              style="background-color: var(--surface);"
+            >
+              {item.icon && ICONS[item.icon] ? (
+                <svg class="tool-icon w-12 h-12 sm:w-14 sm:h-14" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+                  <path d={ICONS[item.icon]} />
+                </svg>
+              ) : (
+                <span class="tool-icon flex items-center justify-center w-12 h-12 sm:w-14 sm:h-14 text-xl font-bold font-mono">
+                  {item.name.slice(0, 2)}
+                </span>
+              )}
+              <span class="text-xs font-mono text-gray-400 text-center leading-tight px-1">{item.name}</span>
+            </div>
+          ))}
+        </div>
       </div>
     </div>
   )}
@@ -60,9 +65,20 @@ const ICONS: Record<string, string> = {
       </div>
 
       <div class="lg:col-span-8 space-y-8">
-        <p class="text-base sm:text-lg md:text-xl leading-relaxed text-gray-300 font-sans">
-          {siteConfig.aboutMe}
-        </p>
+        <div class="text-base sm:text-lg md:text-xl leading-relaxed text-gray-300 font-sans space-y-4">
+          <p>
+            Hey, I'm Shivanshu Chauhan — a Technical Artist specializing in <span style={{ color: siteConfig.accentColor, fontStyle: 'italic' }}>UI systems</span> who lives somewhere between art and engineering. I spend most of my time building <span style={{ color: siteConfig.accentColor, fontStyle: 'italic' }}>shaders, rendering features, and tools</span> that help artists and designers bring their ideas to life without fighting the engine to do it.
+          </p>
+          <p>
+            Currently, I'm focused on creating <span style={{ color: siteConfig.accentColor, fontStyle: 'italic' }}>high-performance UI solutions</span> for production mobile games, optimizing canvas performance and reducing draw calls to maintain smooth frame rates on low-end devices.
+          </p>
+          <p>
+            I care a lot about making things look <span style={{ color: siteConfig.accentColor, fontStyle: 'italic' }}>good while still running smoothly</span>, especially on mobile, where every bit of performance counts.
+          </p>
+          <p>
+            Outside of production work I'm usually <span style={{ color: siteConfig.accentColor, fontStyle: 'italic' }}>sculpting, texturing, or tinkering with rendering tricks</span> just for fun.
+          </p>
+        </div>
 
         <div class="pt-4">
           <div class="flex flex-wrap gap-2">

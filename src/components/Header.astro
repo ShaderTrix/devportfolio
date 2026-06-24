@@ -2,13 +2,21 @@
 import { siteConfig } from "../config";
 
 const links = [
-  { href: "/tech-art", label: "// Techart" },
-  /* CHANGED FROM RANDOM TO 3D ART */
-  { href: "/art", label: "// Art" },
-  { href: "/pro-games", label: "//Games" },
-  { href: "/", label: "// About Me" },
-  { href: "/contact", label: "// Contact" },
+  { href: "/tech-art", label: "Techart", icon: "code" },
+  { href: "/art", label: "Art", icon: "art" },
+  { href: "/pro-games", label: "Games", icon: "game" },
+  { href: "/", label: "About Me", icon: "user" },
+  { href: "/contact", label: "Contact", icon: "mail" },
 ];
+
+// Inline icon set (stroke = currentColor so it adapts to the tab text color)
+const ICONS: Record<string, string> = {
+  code: '<path d="M16 18l6-6-6-6"/><path d="M8 6l-6 6 6 6"/>',
+  art: '<path d="M12 20h9"/><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4z"/>',
+  game: '<rect x="2" y="6" width="20" height="12" rx="6"/><path d="M6 11h4"/><path d="M8 9v4"/><path d="M15.5 12h.01"/><path d="M18 10h.01"/>',
+  user: '<circle cx="12" cy="8" r="4"/><path d="M4 21v-1a6 6 0 0 1 6-6h4a6 6 0 0 1 6 6v1"/>',
+  mail: '<rect x="3" y="5" width="18" height="14" rx="2"/><path d="m3 7 9 6 9-6"/>',
+};
 
 // Normalize current path (strip trailing slash) for active-link matching.
 const current = Astro.url.pathname.replace(/\/+$/, "") || "/";
@@ -44,35 +52,34 @@ const isActive = (href: string) => {
     <rect fill="url(#header-grid-pattern)" width="100%" height="100%" stroke-width={0}></rect>
   </svg>
 
-  <nav class="max-w-7xl mx-auto px-6 sm:px-8 py-3.5">
+  <nav class="max-w-7xl mx-auto px-6 sm:px-8 py-5">
     <div class="flex items-center justify-between gap-4">
       <a
         href="/"
-        class="group flex items-center gap-2.5 font-mono text-sm font-bold text-white whitespace-nowrap transition-opacity hover:opacity-80"
+        class="group flex items-center gap-2.5 font-mono text-base sm:text-lg font-bold text-white whitespace-nowrap transition-opacity hover:opacity-80"
       >
         <span
-          class="inline-block w-2 h-2 rounded-full animate-pulse"
+          class="inline-block w-2.5 h-2.5 rounded-full animate-pulse"
           style={`background-color: ${siteConfig.accentColor}; box-shadow: 0 0 8px ${siteConfig.accentColor}`}
         ></span>
         <span class="text-gray-500 transition-colors group-hover:text-white">&gt;</span>
         {siteConfig.name}
       </a>
 
-      <div class="hidden md:flex items-center gap-2 lg:gap-3">
-        <ul class="flex items-center gap-2 lg:gap-3">
+      <div class="hidden md:flex items-center gap-6 lg:gap-8">
+        <ul class="flex items-center gap-6 lg:gap-8">
           {
             links.map((link) => (
               <li>
                 <a
                   href={link.href}
-                  class={`nav-link flex items-center px-3 py-1.5 rounded-lg border bg-gray-950/60 font-mono text-xs font-medium transition-all duration-300 hover:-translate-y-0.5 ${
-                    isActive(link.href)
-                      ? "nav-link-active"
-                      : "text-gray-400 border-white/5"
+                  class={`nav-link relative flex items-center gap-1.5 pb-1 font-mono text-sm font-medium transition-colors duration-300 ${
+                    isActive(link.href) ? "nav-link-active text-white" : "text-gray-400"
                   }`}
-                  style={isActive(link.href) ? { color: siteConfig.accentColor, borderColor: siteConfig.accentColor } : {}}
                 >
+                  <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" set:html={ICONS[link.icon]} />
                   {link.label}
+                  <span class="nav-underline" style={`background-color: ${siteConfig.accentColor}`}></span>
                 </a>
               </li>
             ))
@@ -120,14 +127,13 @@ const isActive = (href: string) => {
           <li>
             <a
               href={link.href}
-              class={`nav-link block px-3 py-1.5 rounded-lg border font-mono text-xs font-medium transition-all duration-300 ${
-                isActive(link.href)
-                  ? "nav-link-active"
-                  : "text-gray-400 border-white/5"
+              class={`nav-link relative inline-flex items-center gap-1.5 pb-1 font-mono text-sm font-medium transition-colors duration-300 ${
+                isActive(link.href) ? "nav-link-active text-white" : "text-gray-400"
               }`}
-              style={isActive(link.href) ? { color: siteConfig.accentColor, borderColor: siteConfig.accentColor } : {}}
             >
+              <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" set:html={ICONS[link.icon]} />
               {link.label}
+              <span class="nav-underline" style={`background-color: ${siteConfig.accentColor}`}></span>
             </a>
           </li>
         ))
@@ -159,9 +165,22 @@ const isActive = (href: string) => {
   html {
     scroll-behavior: smooth;
   }
+  .nav-underline {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: 2px;
+    transform: scaleX(0);
+    transform-origin: left;
+    transition: transform 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+  .nav-link:hover .nav-underline,
+  .nav-link-active .nav-underline {
+    transform: scaleX(1);
+  }
   .nav-link:hover {
     color: var(--accent);
-    border-color: var(--accent);
   }
 
   .theme-toggle {
