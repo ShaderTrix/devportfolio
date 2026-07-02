@@ -1261,6 +1261,34 @@ public class UI_TiledImageEditor : GraphicEditor
           ],
         },
         {
+          slug: "pcg-forest",
+          name: "PCG Data Asset Driven Forest",
+          tagline: "Decoupling forest data from the graph that plants it",
+          engine: "unreal",
+          image: "/projects/PCGForest01.png",
+          detailImage: "",
+          description:
+            "A procedural forest built with Unreal's PCG (Procedural Content Generation) framework, where every biome, density, and scatter rule lives in Data Assets instead of being hardcoded into the graph itself.",
+          link: "",
+          skills: ["Unreal Engine", "PCG Framework", "Data Assets", "Procedural Generation", "Blueprints"],
+          longDescription: [
+            "This one's about keeping procedural systems from turning into spaghetti. Unreal's PCG framework is great at generating content on a graph, but if every tweak to a forest's density, species mix, or scatter rules means digging back into the graph itself, that graph becomes a bottleneck fast — especially once designers want to iterate without touching nodes.",
+            "The fix: pull all the tunable data out of the graph and into Primary Data Assets. Things like tree species, spawn density curves, slope/altitude constraints, and biome-specific scatter weights all live in standalone assets that the PCG graph reads from at generation time. The graph itself stays generic and reusable — it just asks 'what data asset am I working with right now?' and adapts accordingly.",
+            "The payoff is that a designer can spin up a brand new biome — say, a denser pine forest versus a sparse dry scrubland — by duplicating a Data Asset and tweaking values in the editor, without opening the PCG graph at all. The graph doesn't care what forest it's building; it just executes the same procedural logic against whatever data it's handed. That separation is what makes the system scale past a single hand-tuned forest.",
+          ],
+          galleryImages: [
+            "/projects/PCGForest02.png",
+            "/projects/PCGForest03.png",
+            "/projects/PCGForest04.png",
+          ],
+          highlights: [
+            "Forest generation rules driven entirely by Data Assets, not hardcoded graph values",
+            "PCG graph stays generic and reusable across any number of biomes",
+            "New biomes/variants created by duplicating a Data Asset — zero graph edits needed",
+            "Keeps designer-facing tuning decoupled from the underlying procedural logic",
+          ],
+        },
+        {
           slug: "shader-experiments",
           name: "Shader & Rendering Experiments",
           tagline: "SDFs, procedural rendering, research",

@@ -5,6 +5,22 @@ import { siteConfig } from "../config";
 
 const accent = siteConfig.accentColor;
 
+// Brand-logo path data (24x24 viewBox), rendered with currentColor.
+// Tags without a known icon just show as plain text tags.
+const TOOL_ICONS: Record<string, string> = {
+  unity3d: "m12.9288 4.2939 3.7997 2.1929c.1366.077.1415.2905 0 .3675l-4.515 2.6076a.4192.4192 0 0 1-.4246 0L7.274 6.8543c-.139-.0745-.1415-.293 0-.3675l3.7972-2.193V0L1.3758 5.5977V16.793l3.7177-2.1456v-4.3858c-.0025-.1565.1813-.2682.318-.1838l4.5148 2.6076a.4252.4252 0 0 1 .2136.3676v5.2127c.0025.1565-.1813.2682-.3179.1838l-3.7996-2.1929-3.7178 2.1457L12 24l9.6954-5.5977-3.7178-2.1457-3.7996 2.1929c-.1341.082-.3229-.0248-.3179-.1838V13.053c0-.1565.087-.2956.2136-.3676l4.5149-2.6076c.134-.082.3228.0224.3179.1838v4.3858l3.7177 2.1456V5.5977L12.9288 0Z",
+  maya: "M4.348 0 .69 2.203v16.875l3.657-2.203h17.297V1.219c0-.67-.551-1.219-1.22-1.219H4.349zm18.297 3.75v14.125H4.627l-1.943 1.17v3.736c0 .67.55 1.219 1.218 1.219H23.31V3.75h-.664zm-14.471.025h2.937l1.885 7.508 1.977-7.48-.012-.028h2.857v9.354h-2.216v-6.04l-1.565 6.026v.014h-2.203l-1.656-6.28v6.28H8.174V3.775zm1.33 14.762h1.18l1.068 3.543h-.902l-.217-.773H9.568l-.197.773h-.88l1.013-3.543zm1.918 0h.932l.648 1.494.643-1.494h.894l-1.113 2.133v1.41h-.887v-1.406l-1.117-2.137zm3.826 0h1.18l1.068 3.543h-.9l-.217-.773h-1.065l-.197.773h-.88l1.011-3.543zm-5.156.582-.362 1.53h.73l-.368-1.53zm5.744 0-.36 1.53h.73l-.37-1.53z",
+  "3dsmax": "m.129 20.202 14.7-9.136h7.625c.235 0 .445.188.445.445 0 .21-.092.305-.21.375l-7.222 4.323c-.47.283-.633.845-.633 1.265l-.008 2.725H24V4.362a.561.561 0 0 0-.585-.562h-8.752L0 12.893V20.2h.129z",
+};
+
+function iconKeyFor(tag: string): string | undefined {
+  const key = tag.toLowerCase().replace(/[^a-z0-9]/g, "");
+  if (key.includes("unity")) return "unity3d";
+  if (key.includes("maya")) return "maya";
+  if (key.includes("3dsmax")) return "3dsmax";
+  return undefined;
+}
+
 // Your 3D Art projects array dataset
 const artProjects = [
   {
@@ -105,7 +121,16 @@ const artProjects = [
                   {art.title}
                 </h2>
 
-                <div class="flex flex-wrap gap-1.5 mt-2 overflow-hidden max-h-[22px]">
+                <div class="flex flex-wrap items-center gap-1.5 mt-2 overflow-hidden max-h-[26px]">
+                  {(() => {
+                    const primaryTag = art.tags.find((tag) => iconKeyFor(tag));
+                    const iconKey = primaryTag ? iconKeyFor(primaryTag) : undefined;
+                    return iconKey ? (
+                      <svg class="w-6 h-6 text-white flex-shrink-0" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+                        <path d={TOOL_ICONS[iconKey]} />
+                      </svg>
+                    ) : null;
+                  })()}
                   {art.tags.map((tag) => (
                     <span class="px-2.5 py-0.5 rounded text-[10px] font-mono text-gray-400 bg-gray-900/40 border border-gray-800 whitespace-nowrap">
                       {tag}
