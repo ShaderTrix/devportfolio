@@ -17,7 +17,20 @@ const ENGINE_ICONS: Record<string, string> = {
 ---
 
 <Layout title="Techart">
-  <section class="py-20 sm:py-24 px-6 sm:px-12 lg:px-16" style={{ backgroundColor: "var(--bg)" }}>
+  <section class="relative isolate overflow-hidden py-20 sm:py-24 px-6 sm:px-12 lg:px-16" style={{ backgroundColor: "var(--bg)" }}>
+    <div class="absolute inset-0 -z-10" style="background: radial-gradient(ellipse at top, var(--surface), var(--bg), var(--bg))"></div>
+    <svg
+      aria-hidden="true"
+      class="absolute inset-0 -z-10 size-full opacity-[0.35] [mask-image:radial-gradient(100%_100%_at_top_left,white,transparent)]"
+      style={{ stroke: "var(--grid-stroke)" }}
+    >
+      <defs>
+        <pattern x="50%" y={-1} id="techart-grid-pattern" width={40} height={40} patternUnits="userSpaceOnUse">
+          <path d="M.5 40V.5H40" fill="none"></path>
+        </pattern>
+      </defs>
+      <rect fill="url(#techart-grid-pattern)" width="100%" height="100%" stroke-width={0}></rect>
+    </svg>
     <div class="max-w-7xl mx-auto">
       <div class="max-w-2xl">
         <h1 class="text-3xl sm:text-4xl md:text-5xl font-bold tracking-tight text-white animate-fade-in">
@@ -26,16 +39,16 @@ const ENGINE_ICONS: Record<string, string> = {
         <div class="w-[40px] h-[4px] mt-4 rounded-full animate-fade-in animation-delay-200" style={`background-color: ${accent}`}></div>
         <div class="mt-6 text-base sm:text-lg text-gray-300 leading-relaxed animate-fade-in animation-delay-400 space-y-4">
           <p>
-            Hey, I'm Shivanshu Chauhan and this is my techart stuff — a <span style={{ color: accent, fontStyle: 'italic' }}>mix of systems I've shipped on production mobile games</span> and <span style={{ color: accent, fontStyle: 'italic' }}>personal projects I built just to learn and mess around with</span>.
+            A few of my techart stuff/projects — a mix of systems I've shipped on <span style={{ color: accent, fontStyle: 'italic' }}>production mobile games</span> and personal projects I built just to learn and mess around with.
           </p>
           <p>
-            Some of these were built for <span style={{ color: accent, fontStyle: 'italic' }}>real teams with millions of players</span>, others were <span style={{ color: accent, fontStyle: 'italic' }}>weekend experiments that got a bit out of hand</span>.
+            Some of these were built for real teams with millions of players, others were <span style={{ color: accent, fontStyle: 'italic' }}>weekend experiments</span> that got a bit out of hand.
           </p>
           <p>
             If anything here interests you or you want to chat about how something works, feel free to reach out.
           </p>
           <p>
-            Some of these also come with <span style={{ color: accent, fontStyle: 'italic' }}>write-ups or tutorials breaking down how they work</span>, others don't yet — I'm <span style={{ color: accent, fontStyle: 'italic' }}>slowly adding them as I find the time</span>, so check back if something looks interesting but is missing the deep-dive.
+            Some of these also come with <span style={{ color: accent, fontStyle: 'italic' }}>write-ups or tutorials</span> breaking down how they work, others don't yet — I'm slowly adding them as I find the time, so check back if something looks interesting but is missing the deep-dive.
           </p>
         </div>
       </div>

@@ -1290,13 +1290,13 @@ public class UI_TiledImageEditor : GraphicEditor
         },
         {
           slug: "shader-experiments",
-          name: "Shader & Rendering Experiments",
+          name: "Shader SDF experiments",
           tagline: "SDFs, procedural rendering, research",
-          image: "",
+          image: "/projects/shape01.png",
           detailImage: "",
           description:
             "Collection of shader experiments including signed distance fields, procedural rendering, and custom effects.",
-          link: "https://github.com/ShaderTrix",
+          link: "",
           skills: ["HLSL", "Rendering", "Shaders"],
           longDescription: [
             "An ongoing collection of shader experiments spanning signed distance fields, procedural rendering techniques, custom effects, and general rendering research.",

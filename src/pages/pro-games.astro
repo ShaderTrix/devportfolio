@@ -10,7 +10,7 @@ const games = [
     name: "Sorry! World",
     company: "Gameberry Labs",
     publisher: "Hasbro",
-    role: "Senior Technical Artist",
+    role: "Technical Artist II",
     timeline: "2024 - Present",
     description:
       "I work on Sorry! World, the mobile take on the classic Hasbro board game, helping shape mechanics that keep players coming back — tuning and retesting based on real player feedback bumped retention by about 15%. Day to day I sit between art and engineering, making sure ideas from design and art actually run well in the game, and spend a good chunk of time digging into CPU/GPU performance so the game stays smooth even on older, low-end phones.",
@@ -62,7 +62,20 @@ const games = [
 ---
 
 <Layout title="Games I've Worked On">
-  <section class="py-20 sm:py-24 px-6 sm:px-12 lg:px-16" style={{ backgroundColor: "var(--bg)" }}>
+  <section class="relative isolate overflow-hidden py-20 sm:py-24 px-6 sm:px-12 lg:px-16" style={{ backgroundColor: "var(--bg)" }}>
+    <div class="absolute inset-0 -z-10" style="background: radial-gradient(ellipse at top, var(--surface), var(--bg), var(--bg))"></div>
+    <svg
+      aria-hidden="true"
+      class="absolute inset-0 -z-10 size-full opacity-[0.35] [mask-image:radial-gradient(100%_100%_at_top_left,white,transparent)]"
+      style={{ stroke: "var(--grid-stroke)" }}
+    >
+      <defs>
+        <pattern x="50%" y={-1} id="games-grid-pattern" width={40} height={40} patternUnits="userSpaceOnUse">
+          <path d="M.5 40V.5H40" fill="none"></path>
+        </pattern>
+      </defs>
+      <rect fill="url(#games-grid-pattern)" width="100%" height="100%" stroke-width={0}></rect>
+    </svg>
     <div class="max-w-5xl mx-auto">
 
       <!-- Page Header Section matches About me style -->
