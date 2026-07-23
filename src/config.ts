@@ -1,6 +1,6 @@
 export const siteConfig = {
   name: "Shivanshu Chauhan",
-  title: "Technical Artist | 3D Artist | Graphics Programmer",
+  title: "Technical Artist II | UI Systems | Shaders | GPU Optimisation",
   description:
     "Unity UI Systems, Rendering, Shaders, GPU-driven Systems and Tool Development",
 
@@ -91,11 +91,12 @@ export const siteConfig = {
       title: "Technical Artist II",
       dateRange: "Jul 2024 - Present",
       description:
-        "I work on Sorry! World by Hasbro, helping shape the mechanics, visuals, and systems that keep the game feeling good to play.",
+        "I work on Sorry! World by Hasbro and Backgammon Friends Online, building the UI performance systems and GPU tooling that keep these titles running smoothly on low-end mobile hardware.",
       highlights: [
-        "Helped tune game mechanics that lifted player retention by ~15%, working closely with data and player feedback",
-        "Bridged the gap between art and engineering in a fast-paced live-ops environment",
-        "Optimized rendering and gameplay performance to keep frame times stable on low-end devices",
+        "Designed and shipped three production UI performance systems now live in Sorry! World by Hasbro — occlusion culling, TextMeshPro instancing, and tiled image rendering — reducing UI draw calls to a single batch and recovering significant FPS on UI-heavy screens",
+        "Owned the CPU-GPU performance budget across two live mobile titles, eliminating overdraw hotspots and redundant state changes to maintain stable 60fps on mid-range and low-end devices",
+        "Built GPU-driven VFX using compute shaders, removing CPU instancing bottlenecks for high-density particle and destruction effects",
+        "Developed custom Unity Editor tools — batch validators, atlas auditors, debug overlays, custom inspectors — to reduce iteration time between art and engineering",
       ],
     },
 
@@ -106,9 +107,10 @@ export const siteConfig = {
       description:
         "I worked on Gamestarz, modeling and texturing 3D environments while picking up lighting, rigging, and rendering work in Unity along the way.",
       highlights: [
-        "Modeled, textured, rigged, and animated 3D assets and characters using Maya, ZBrush, Blender, and Substance",
-        "Set up real-time lighting and rendering in Unity with performance in mind",
-        "Created and optimized assets for real-time environments",
+        "Created and optimised 3D models, textures, and materials for real-time Unity environments within strict polygon and texture budgets",
+        "Implemented PBR lighting and rendering setups balancing visual quality against performance on Android and iOS targets",
+        "Rigged and animated characters in Maya and Blender; managed 2D character pipelines using Spine2D",
+        "Collaborated with engineering to resolve rendering artefacts and ensure asset compatibility across target devices",
       ],
     },
   ],
