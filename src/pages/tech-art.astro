@@ -53,13 +53,32 @@ const ENGINE_ICONS: Record<string, string> = {
         </div>
       </div>
 
+      {projects.length > 0 && (
+        <div class="mt-8 flex justify-center">
+          <div id="engine-filter" class="inline-flex items-center gap-1 p-1 rounded-full border" style={{ borderColor: "var(--border)", backgroundColor: "var(--surface)" }}>
+            <button type="button" data-filter="all" class="filter-btn active flex items-center gap-1.5 px-4 py-1.5 rounded-full text-xs font-mono font-medium transition-colors duration-300">
+              All Projects
+            </button>
+            <button type="button" data-filter="unity" class="filter-btn flex items-center gap-1.5 px-4 py-1.5 rounded-full text-xs font-mono font-medium transition-colors duration-300">
+              <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d={ENGINE_ICONS.unity} /></svg>
+              Unity
+            </button>
+            <button type="button" data-filter="unreal" class="filter-btn flex items-center gap-1.5 px-4 py-1.5 rounded-full text-xs font-mono font-medium transition-colors duration-300">
+              <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d={ENGINE_ICONS.unreal} /></svg>
+              Unreal
+            </button>
+          </div>
+        </div>
+      )}
+
       {projects.length > 0 ? (
-        <div class="mt-12 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div class="mt-8 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
           {projects.map((project, index) => {
             return (
               <a
                 href={`/projects/${project.slug}`}
-                class="group relative flex flex-col h-[420px] rounded-xl border overflow-hidden transition-all duration-300 hover:-translate-y-1"
+                data-engine={project.engine === "unreal" ? "unreal" : "unity"}
+                class="project-card group relative flex flex-col h-[420px] rounded-xl border overflow-hidden transition-all duration-300 hover:-translate-y-1"
                 style={{ backgroundColor: "var(--surface)", borderColor: "var(--border)" }}
               >
                 <div class="h-[70%] w-full relative overflow-hidden bg-black/40 border-b border-white/[0.04]">
@@ -110,4 +129,58 @@ const ENGINE_ICONS: Record<string, string> = {
       )}
     </div>
   </section>
+
+  <style>
+    .filter-btn {
+      color: var(--text-secondary);
+      background-color: transparent;
+      border: none;
+      cursor: pointer;
+      white-space: nowrap;
+    }
+    .filter-btn:hover {
+      color: var(--text-primary);
+    }
+    .filter-btn.active {
+      background-color: var(--accent);
+      color: #0e0d0b;
+    }
+    .project-card {
+      transition: opacity 0.35s cubic-bezier(0.16, 1, 0.3, 1),
+                  transform 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    .project-card.card-hidden {
+      opacity: 0;
+      transform: scale(0.92);
+      pointer-events: none;
+    }
+  </style>
+
+  <script>
+    const buttons = document.querySelectorAll<HTMLButtonElement>(".filter-btn");
+    const cards = document.querySelectorAll<HTMLElement>(".project-card");
+
+    function applyFilter(filter: string) {
+      cards.forEach((card) => {
+        const matches = filter === "all" || card.dataset.engine === filter;
+        if (matches) {
+          card.style.display = "";
+          requestAnimationFrame(() => card.classList.remove("card-hidden"));
+        } else {
+          card.classList.add("card-hidden");
+          setTimeout(() => {
+            if (card.classList.contains("card-hidden")) card.style.display = "none";
+          }, 350);
+        }
+      });
+    }
+
+    buttons.forEach((btn) => {
+      btn.addEventListener("click", () => {
+        buttons.forEach((b) => b.classList.remove("active"));
+        btn.classList.add("active");
+        applyFilter(btn.dataset.filter || "all");
+      });
+    });
+  </script>
 </Layout>

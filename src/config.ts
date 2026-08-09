@@ -199,639 +199,7 @@ export const siteConfig = {
             "Got a new font? That's the only time you need a new material. One font = one material, forever, for every styled text using it.",
             "Go nuts changing color, outline, underlay, dilate — whatever you want, per text, per instance — and watch it all still melt into a single draw call. Enjoy!",
           ],
-          codeBlocks: [
-            {
-              label: "C# (Component + Editor)",
-              code: `[DisallowMultipleComponent]
-public class TMPInstancingUtil : BaseTextMeshProUGUI, ITextPreprocessor
-{
-    public string oldFontMaterialName; // Just for reference
-    [Range(0, 1)] public float m_greyscale = 0.0f;
-    [Range(-1, 1)] public float m_FaceDilate = 0.0f;
-    [ColorUsage(true, false)] public Color m_OutlineColor = Color.white;
-    [Range(0f, 1)] public float m_OutlineThickness = 0.0f;
-    [ColorUsage(true, false)] public Color m_UnderlayColor = Color.white;
-    [Range(-1, 1)] public float m_OffsetX = 0.0f;
-    [Range(-1, 1f)] public float m_OffsetY = 0.0f;
-    [Range(-1, 1)] public float m_UnderlayDilate = 0.0f;
-    [HideInInspector][Range(0, 1)] public float m_UnderlaySoftness = 0.0f;
-
-    private List<Vector2> originalUVs01 = new List<Vector2>();
-    private List<Vector4> UV1 = new List<Vector4>();
-    private List<Vector4> outlineUV = new List<Vector4>();
-    private List<Vector4> underlayUV = new List<Vector4>();
-    private Vector3 lastLossyScale;
-    private static Vector3 unity_ColorSpaceLuminance = new Vector3(0.2f, 0.707f, 0.071f);
-    private Color cachedColor;
-
-    protected override void Awake()
-    {
-        base.Awake();
-        cachedColor = color;
-    }
-
-    public override void Rebuild(CanvasUpdate update)
-    {
-        if (this == null) return;
-        if (mesh && !string.IsNullOrEmpty(text)) ForceMeshUpdate();
-        UpdateMaterial();
-        base.Rebuild(update);
-    }
-
-    private void LateUpdate()
-    {
-        if (transform.lossyScale != lastLossyScale)
-        {
-            lastLossyScale = transform.lossyScale;
-            if (mesh && !string.IsNullOrEmpty(text)) ForceMeshUpdate();
-        }
-    }
-
-    public override void ForceMeshUpdate(bool ignoreActiveState = false, bool forceTextReparsing = false)
-    {
-        base.ForceMeshUpdate(ignoreActiveState, forceTextReparsing);
-
-        if (mesh == null || string.IsNullOrEmpty(text))
-            return;
-
-        ApplyVertexColors(mesh);
-        ModifyUV(mesh);
-    }
-
-    private bool SubmeshHasVisibleChars(int materialIndex)
-    {
-        if (textInfo == null || textInfo.characterInfo == null) return false;
-
-        for (int i = 0; i < textInfo.characterCount; i++)
-        {
-            var charInfo = textInfo.characterInfo[i];
-            if (charInfo.isVisible && charInfo.materialReferenceIndex == materialIndex)
-                return true;
-        }
-
-        return false;
-    }
-
-    private void ApplyVertexColors(Mesh mesh)
-    {
-        if (textInfo == null || textInfo.characterCount == 0) return;
-
-        Color32[] vertexColors = mesh.colors32;
-        if (vertexColors == null || vertexColors.Length == 0) return;
-
-        for (int i = 0; i < textInfo.characterCount; i++)
-        {
-            var charInfo = textInfo.characterInfo[i];
-            if (!charInfo.isVisible) continue;
-
-            int materialIndex = charInfo.materialReferenceIndex;
-            int vertexIndex = charInfo.vertexIndex;
-
-            var colors = textInfo.meshInfo[materialIndex].colors32;
-            if (vertexIndex + 3 >= colors.Length) continue;
-
-            for (int j = 0; j < 4; j++)
-            {
-                Color32 original = colors[vertexIndex + j];
-                colors[vertexIndex + j] = ApplyGreyScale(original, m_greyscale);
-            }
-        }
-
-        UpdateVertexData(TMP_VertexDataUpdateFlags.Colors32);
-    }
-
-    // Bakes per-instance color/outline/underlay properties into UV1/UV2/UV3
-    private void ModifyUV(Mesh mesh)
-    {
-        if (string.IsNullOrEmpty(text) || textInfo == null || textInfo.meshInfo == null)
-            return;
-
-        int subMeshCount = textInfo.meshInfo.Length;
-
-        for (int sm = 0; sm < subMeshCount; sm++)
-        {
-            TMP_MeshInfo meshInfo = textInfo.meshInfo[sm];
-            int vertexCount = meshInfo.mesh.vertexCount;
-
-            if (!SubmeshHasVisibleChars(sm))
-            {
-                meshInfo.Clear();
-                UpdateGeometry(meshInfo.mesh, sm);
-                continue;
-            }
-
-            Mesh subMesh = meshInfo.mesh;
-            subMesh.GetUVs(1, originalUVs01);
-
-            EnsureListCapacity(originalUVs01, vertexCount);
-            EnsureListCapacity(UV1, vertexCount);
-            EnsureListCapacity(outlineUV, vertexCount);
-            EnsureListCapacity(underlayUV, vertexCount);
-
-            for (int i = 0; i < vertexCount; i++)
-            {
-                UV1[i] = new Vector4(m_OffsetX, m_OffsetY, m_OutlineThickness, m_FaceDilate);
-                outlineUV[i] = (Vector4)ApplyGreyScale(m_OutlineColor, m_greyscale);
-                underlayUV[i] = new Vector4(
-                    ApplyGreyScale(m_UnderlayColor, m_greyscale).r,
-                    ApplyGreyScale(m_UnderlayColor, m_greyscale).g,
-                    ApplyGreyScale(m_UnderlayColor, m_greyscale).b,
-                    m_UnderlayDilate);
-            }
-
-            subMesh.SetUVs(1, UV1);
-            subMesh.SetUVs(2, outlineUV);
-            subMesh.SetUVs(3, underlayUV);
-            subMesh.UploadMeshData(false);
-
-            UpdateGeometry(subMesh, sm);
-        }
-    }
-
-    private Color ApplyGreyScale(Color col, float t)
-    {
-        float grey = Vector3.Dot(new Vector3(col.r, col.g, col.b), unity_ColorSpaceLuminance);
-        return Color.Lerp(col, new Color(grey, grey, grey, col.a), t);
-    }
-
-    private void EnsureListCapacity<T>(List<T> list, int requiredCount)
-    {
-        while (list.Count < requiredCount)
-            list.Add(default);
-        if (list.Count > requiredCount)
-            list.RemoveRange(requiredCount, list.Count - requiredCount);
-    }
-}
-
-// --- Custom Editor ---
-#if UNITY_EDITOR
-[CustomEditor(typeof(TMPInstancingUtil), true), CanEditMultipleObjects]
-public class TMPInstancingEditor : TMP_EditorPanelUI
-{
-    private SerializedProperty greyscale;
-    private SerializedProperty faceDilate;
-    private SerializedProperty outlineColor;
-    private SerializedProperty outlineThickness;
-    private SerializedProperty underlayColor;
-    private SerializedProperty offsetX;
-    private SerializedProperty offsetY;
-    private SerializedProperty underlayDialate;
-
-    private SerializedProperty preserveNumbers;
-    private SerializedProperty farsi;
-    private SerializedProperty fixTags;
-    private SerializedProperty isArabic;
-
-    private GUIStyle propertiesTitle;
-    private bool rtlFoldout = true;
-
-    protected override void OnEnable()
-    {
-        base.OnEnable();
-
-        greyscale = serializedObject.FindProperty("m_greyscale");
-        faceDilate = serializedObject.FindProperty("m_FaceDilate");
-        outlineColor = serializedObject.FindProperty("m_OutlineColor");
-        outlineThickness = serializedObject.FindProperty("m_OutlineThickness");
-        underlayColor = serializedObject.FindProperty("m_UnderlayColor");
-        offsetX = serializedObject.FindProperty("m_OffsetX");
-        offsetY = serializedObject.FindProperty("m_OffsetY");
-        underlayDialate = serializedObject.FindProperty("m_UnderlayDilate");
-
-        preserveNumbers = serializedObject.FindProperty("preserveNumbers");
-        farsi = serializedObject.FindProperty("farsi");
-        fixTags = serializedObject.FindProperty("fixTags");
-        isArabic = serializedObject.FindProperty("isArabic");
-
-        propertiesTitle = new GUIStyle(EditorStyles.boldLabel);
-        propertiesTitle.alignment = TextAnchor.MiddleCenter;
-        propertiesTitle.normal.textColor = Color.cyan;
-    }
-
-    public override void OnInspectorGUI()
-    {
-        serializedObject.Update();
-
-        base.OnInspectorGUI();
-
-        EditorGUILayout.Space();
-
-        DrawInstancingBlock();
-        DrawRTLBlock();
-
-        serializedObject.ApplyModifiedProperties();
-    }
-
-    private void DrawInstancingBlock()
-    {
-        EditorGUILayout.BeginVertical(EditorStyles.helpBox);
-
-        EditorGUILayout.LabelField("Instanced Properties", propertiesTitle);
-        EditorGUILayout.Space(4);
-
-        EditorGUILayout.PropertyField(greyscale);
-        EditorGUILayout.PropertyField(faceDilate);
-        EditorGUILayout.PropertyField(outlineColor);
-        EditorGUILayout.PropertyField(outlineThickness);
-        EditorGUILayout.PropertyField(underlayColor);
-        EditorGUILayout.PropertyField(offsetX);
-        EditorGUILayout.PropertyField(offsetY);
-        EditorGUILayout.PropertyField(underlayDialate);
-
-        EditorGUILayout.EndVertical();
-        EditorGUILayout.Space(10);
-    }
-
-    private void DrawRTLBlock()
-    {
-        rtlFoldout = EditorGUILayout.Foldout(rtlFoldout, "RTL Settings", true);
-
-        if (!rtlFoldout) return;
-
-        EditorGUILayout.BeginVertical(EditorStyles.helpBox);
-
-        EditorGUI.BeginChangeCheck();
-
-        EditorGUILayout.PropertyField(farsi);
-        EditorGUILayout.PropertyField(isArabic);
-        EditorGUILayout.PropertyField(preserveNumbers);
-
-        var tmp = target as TMP_Text;
-        if (tmp != null && tmp.richText)
-        {
-            EditorGUILayout.PropertyField(fixTags);
-        }
-
-        if (GUILayout.Button("Re-Fix Text"))
-        {
-            ForceTextRefresh();
-        }
-
-        if (EditorGUI.EndChangeCheck())
-        {
-            ForceTextRefresh();
-        }
-
-        EditorGUILayout.EndVertical();
-    }
-
-    private void ForceTextRefresh()
-    {
-        foreach (var t in targets)
-        {
-            TMP_Text tmp = t as TMP_Text;
-            if (tmp == null) continue;
-
-            tmp.ForceMeshUpdate();
-            tmp.SetVerticesDirty();
-            tmp.SetLayoutDirty();
-
-            EditorUtility.SetDirty(tmp);
-        }
-    }
-}
-#endif`,
-            },
-            {
-              label: "Shader",
-              code: `Shader "TextMeshPro/Distance Field_Instancing" {
-
-Properties {
-	_FaceTex			("Face Texture", 2D) = "white" {}
-	_FaceUVSpeedX		("Face UV Speed X", Range(-5, 5)) = 0.0
-	_FaceUVSpeedY		("Face UV Speed Y", Range(-5, 5)) = 0.0
-	_FaceColor		    ("Face Color", Color) = (1,1,1,1)
-	_FaceDilate			("Face Dilate", Range(-1,1)) = 0
-
-	_OutlineColor	    ("Outline Color", Color) = (0,0,0,1)
-	_OutlineTex			("Outline Texture", 2D) = "white" {}
-	_OutlineUVSpeedX	("Outline UV Speed X", Range(-5, 5)) = 0.0
-	_OutlineUVSpeedY	("Outline UV Speed Y", Range(-5, 5)) = 0.0
-	_OutlineWidth		("Outline Thickness", Range(0, 1)) = 0
-	_OutlineSoftness	("Outline Softness", Range(0,1)) = 0
-
-	_Bevel				("Bevel", Range(0,1)) = 0.5
-	_BevelOffset		("Bevel Offset", Range(-0.5,0.5)) = 0
-	_BevelWidth			("Bevel Width", Range(-.5,0.5)) = 0
-	_BevelClamp			("Bevel Clamp", Range(0,1)) = 0
-	_BevelRoundness		("Bevel Roundness", Range(0,1)) = 0
-
-	_LightAngle			("Light Angle", Range(0.0, 6.2831853)) = 3.1416
-	_SpecularColor	    ("Specular", Color) = (1,1,1,1)
-	_SpecularPower		("Specular", Range(0,4)) = 2.0
-	_Reflectivity		("Reflectivity", Range(5.0,15.0)) = 10
-	_Diffuse			("Diffuse", Range(0,1)) = 0.5
-	_Ambient			("Ambient", Range(1,0)) = 0.5
-
-	_BumpMap 			("Normal map", 2D) = "bump" {}
-	_BumpOutline		("Bump Outline", Range(0,1)) = 0
-	_BumpFace			("Bump Face", Range(0,1)) = 0
-
-	_ReflectFaceColor	("Reflection Color", Color) = (0,0,0,1)
-	_ReflectOutlineColor("Reflection Color", Color) = (0,0,0,1)
-	_Cube 				("Reflection Cubemap", Cube) = "black" { /* TexGen CubeReflect */ }
-	_EnvMatrixRotation	("Texture Rotation", vector) = (0, 0, 0, 0)
-
-
-	_UnderlayColor	    ("Border Color", Color) = (0,0,0, 0.5)
-	_UnderlayOffsetX	("Border OffsetX", Range(-1,1)) = 0
-	_UnderlayOffsetY	("Border OffsetY", Range(-1,1)) = 0
-	_UnderlayDilate		("Border Dilate", Range(-1,1)) = 0
-	_UnderlaySoftness	("Border Softness", Range(0,1)) = 0
-
-	_GlowColor		    ("Color", Color) = (0, 1, 0, 0.5)
-	_GlowOffset			("Offset", Range(-1,1)) = 0
-	_GlowInner			("Inner", Range(0,1)) = 0.05
-	_GlowOuter			("Outer", Range(0,1)) = 0.05
-	_GlowPower			("Falloff", Range(1, 0)) = 0.75
-
-	_WeightNormal		("Weight Normal", float) = 0
-	_WeightBold			("Weight Bold", float) = 0.5
-
-	_ShaderFlags		("Flags", float) = 0
-	_ScaleRatioA		("Scale RatioA", float) = 1
-	_ScaleRatioB		("Scale RatioB", float) = 1
-	_ScaleRatioC		("Scale RatioC", float) = 1
-
-	_MainTex			("Font Atlas", 2D) = "white" {}
-	_TextureWidth		("Texture Width", float) = 512
-	_TextureHeight		("Texture Height", float) = 512
-	_GradientScale		("Gradient Scale", float) = 5.0
-	_ScaleX				("Scale X", float) = 1.0
-	_ScaleY				("Scale Y", float) = 1.0
-	_PerspectiveFilter	("Perspective Correction", Range(0, 1)) = 0.875
-	_Sharpness			("Sharpness", Range(-1,1)) = 0
-
-	_VertexOffsetX		("Vertex OffsetX", float) = 0
-	_VertexOffsetY		("Vertex OffsetY", float) = 0
-
-	_MaskCoord			("Mask Coordinates", vector) = (0, 0, 32767, 32767)
-	_ClipRect			("Clip Rect", vector) = (-32767, -32767, 32767, 32767)
-	_MaskSoftnessX		("Mask SoftnessX", float) = 0
-	_MaskSoftnessY		("Mask SoftnessY", float) = 0
-
-	_StencilComp		("Stencil Comparison", Float) = 8
-	_Stencil			("Stencil ID", Float) = 0
-	_StencilOp			("Stencil Operation", Float) = 0
-	_StencilWriteMask	("Stencil Write Mask", Float) = 255
-	_StencilReadMask	("Stencil Read Mask", Float) = 255
-
-	_CullMode			("Cull Mode", Float) = 0
-	_ColorMask			("Color Mask", Float) = 15
-}
-
-SubShader {
-
-	Tags
-	{
-		"Queue"="Transparent"
-		"IgnoreProjector"="True"
-		"RenderType"="Transparent"
-	}
-
-	Stencil
-	{
-		Ref [_Stencil]
-		Comp [_StencilComp]
-		Pass [_StencilOp]
-		ReadMask [_StencilReadMask]
-		WriteMask [_StencilWriteMask]
-	}
-
-	Cull [_CullMode]
-	ZWrite Off
-	Lighting Off
-	Fog { Mode Off }
-	ZTest [unity_GUIZTestMode]
-	Blend One OneMinusSrcAlpha
-	ColorMask [_ColorMask]
-
-	Pass {
-		CGPROGRAM
-		#pragma target 3.0
-		#pragma vertex VertShader
-		#pragma fragment PixShader
-		#pragma shader_feature __ BEVEL_ON
-		#pragma shader_feature __ UNDERLAY_ON UNDERLAY_INNER
-		#pragma shader_feature __ GLOW_ON
-
-		#pragma multi_compile __ UNITY_UI_CLIP_RECT
-		#pragma multi_compile __ UNITY_UI_ALPHACLIP
-
-		#include "UnityCG.cginc"
-		#include "UnityUI.cginc"
-		#include "TMPro_Properties.cginc"
-		#include "TMPro.cginc"
-
-		struct vertex_t
-		{
-			UNITY_VERTEX_INPUT_INSTANCE_ID
-			float4	position		: POSITION;
-			float3	normal			: NORMAL;
-			fixed4	color			: COLOR;
-			float4	texcoord0		: TEXCOORD0;
-			float4	texcoord1		: TEXCOORD1;
-			float4 myCol : TEXCOORD2;   // per-instance outline color (baked from UV2)
-			float4 myCol2 : TEXCOORD3;  // per-instance underlay color + dilate (baked from UV3)
-		};
-
-		struct pixel_t
-		{
-			UNITY_VERTEX_INPUT_INSTANCE_ID
-			UNITY_VERTEX_OUTPUT_STEREO
-			float4	position		: SV_POSITION;
-			fixed4	color			: COLOR;
-			float2	atlas			: TEXCOORD0;		// Atlas
-			float4	param			: TEXCOORD1;		// alphaClip, scale, bias, weight
-			float4	mask			: TEXCOORD2;		// Position in object space(xy), pixel Size(zw)
-			float3	viewDir			: TEXCOORD3;
-
-		    #if (UNDERLAY_ON || UNDERLAY_INNER)
-			float4	texcoord2		: TEXCOORD4;		// u,v, scale, bias
-			fixed4	underlayColor	: COLOR1;
-		    #endif
-
-		    float4 textures			: TEXCOORD5;
-			float4 myCol : TEXCOORD6;
-			float4 myCol2 : TEXCOORD7;
-			float4 myCol3 : TEXCOORD8;
-		};
-
-		// Used by Unity internally to handle Texture Tiling and Offset.
-		float4 _FaceTex_ST;
-		float4 _OutlineTex_ST;
-		float _UIMaskSoftnessX;
-        float _UIMaskSoftnessY;
-        int _UIVertexColorAlwaysGammaSpace;
-
-		pixel_t VertShader(vertex_t input)
-		{
-			pixel_t output;
-
-			UNITY_INITIALIZE_OUTPUT(pixel_t, output);
-			UNITY_SETUP_INSTANCE_ID(input);
-			UNITY_TRANSFER_INSTANCE_ID(input,output);
-			UNITY_INITIALIZE_VERTEX_OUTPUT_STEREO(output);
-
-			float bold = step(input.texcoord0.w, 0);
-
-			float4 vert = input.position;
-			vert.x += _VertexOffsetX;
-			vert.y += _VertexOffsetY;
-
-			float4 vPosition = UnityObjectToClipPos(vert);
-
-			float2 pixelSize = vPosition.w;
-			pixelSize /= float2(_ScaleX, _ScaleY) * abs(mul((float2x2)UNITY_MATRIX_P, _ScreenParams.xy));
-			float scale = rsqrt(dot(pixelSize, pixelSize));
-			scale *= abs(input.texcoord0.w) * _GradientScale * (_Sharpness + 1);
-			if (UNITY_MATRIX_P[3][3] == 0) scale = lerp(abs(scale) * (1 - _PerspectiveFilter), scale, abs(dot(UnityObjectToWorldNormal(input.normal.xyz), normalize(WorldSpaceViewDir(vert)))));
-
-			float weight = lerp(_WeightNormal, _WeightBold, bold) / 4.0;
-			weight = (weight + input.texcoord1.w) * _ScaleRatioA * 0.5;
-
-			float bias =(.5 - weight) + (.5 / scale);
-
-			float alphaClip = (1.0 - input.texcoord1.z * _ScaleRatioA - _OutlineSoftness * _ScaleRatioA);
-
-		    #if GLOW_ON
-			alphaClip = min(alphaClip, 1.0 - _GlowOffset * _ScaleRatioB - _GlowOuter * _ScaleRatioB);
-		    #endif
-
-			alphaClip = alphaClip / 2.0 - ( .5 / scale) - weight;
-
-		    #if (UNDERLAY_ON || UNDERLAY_INNER)
-			float4 underlayColor = float4(input.myCol2.xyz,1);
-			underlayColor.rgb *= underlayColor.a;
-
-			float bScale = scale;
-			bScale /= 1 + ((_UnderlaySoftness*_ScaleRatioC) * bScale);
-			float bBias = (0.5 - weight) * bScale - 0.5 - ((input.myCol2.w * _ScaleRatioC) * 0.5 * bScale);
-
-			float x = -(input.texcoord1.x * _ScaleRatioC) * _GradientScale / _TextureWidth;
-			float y = -(input.texcoord1.y * _ScaleRatioC) * _GradientScale / _TextureHeight;
-			float2 bOffset = float2(x, y);
-		    #endif
-
-			// Generate UV for the Masking Texture
-			float4 clampedRect = clamp(_ClipRect, -2e10, 2e10);
-			float2 maskUV = (vert.xy - clampedRect.xy) / (clampedRect.zw - clampedRect.xy);
-
-			// Support for texture tiling and offset
-			float2 textureUV = input.texcoord1;
-			float2 faceUV = TRANSFORM_TEX(textureUV, _FaceTex);
-			float2 outlineUV = TRANSFORM_TEX(textureUV, _OutlineTex);
-
-
-            if (_UIVertexColorAlwaysGammaSpace && !IsGammaSpace())
-            {
-                input.color.rgb = UIGammaToLinear(input.color.rgb);
-            }
-			output.position = vPosition;
-			output.color = input.color;
-			output.atlas =	input.texcoord0;
-			output.param =	float4(alphaClip, scale, bias, weight);
-			const half2 maskSoftness = half2(max(_UIMaskSoftnessX, _MaskSoftnessX), max(_UIMaskSoftnessY, _MaskSoftnessY));
-			output.mask = half4(vert.xy * 2 - clampedRect.xy - clampedRect.zw, 0.25 / (0.25 * maskSoftness + pixelSize.xy));
-			output.viewDir =	mul((float3x3)_EnvMatrix, _WorldSpaceCameraPos.xyz - mul(unity_ObjectToWorld, vert).xyz);
-			#if (UNDERLAY_ON || UNDERLAY_INNER)
-			output.texcoord2 = float4(input.texcoord0 + bOffset, bScale, bBias);
-			output.underlayColor =	underlayColor;
-			#endif
-			output.textures = float4(faceUV, outlineUV);
-
-			// Per-instance style data, carried straight from the baked UVs
-			output.myCol = input.myCol;
-			output.myCol2 = input.myCol2;
-			output.myCol3 = input.texcoord1;
-			return output;
-		}
-
-
-		fixed4 PixShader(pixel_t input) : SV_Target
-		{
-			UNITY_SETUP_INSTANCE_ID(input);
-
-			float c = tex2D(_MainTex, input.atlas).a;
-
-		    #ifndef UNDERLAY_ON
-			clip(c - input.param.x);
-		    #endif
-
-			float	scale	= input.param.y;
-			float	bias	= input.param.z;
-			float	weight	= input.param.w;
-			float	sd = (bias - c) * scale;
-
-			// Outline thickness/softness come from the per-instance baked data
-			float outline = (input.myCol3.z * _ScaleRatioA) * scale;
-			float softness = (_OutlineSoftness * _ScaleRatioA) * scale;
-
-			half4 faceColor = _FaceColor;
-			half4 outlineColor = input.myCol; // per-instance outline color
-
-			faceColor.rgb *= input.color.rgb;
-
-			faceColor *= tex2D(_FaceTex, input.textures.xy + float2(_FaceUVSpeedX, _FaceUVSpeedY) * _Time.y);
-			outlineColor *= tex2D(_OutlineTex, input.textures.zw + float2(_OutlineUVSpeedX, _OutlineUVSpeedY) * _Time.y);
-
-			faceColor = GetColor(sd, faceColor, outlineColor, outline, softness);
-
-		    #if BEVEL_ON
-			float3 dxy = float3(0.5 / _TextureWidth, 0.5 / _TextureHeight, 0);
-			float3 n = GetSurfaceNormal(input.atlas, weight, dxy);
-
-			float3 bump = UnpackNormal(tex2D(_BumpMap, input.textures.xy + float2(_FaceUVSpeedX, _FaceUVSpeedY) * _Time.y)).xyz;
-			bump *= lerp(_BumpFace, _BumpOutline, saturate(sd + outline * 0.5));
-			n = normalize(n- bump);
-
-			float3 light = normalize(float3(sin(_LightAngle), cos(_LightAngle), -1.0));
-
-			float3 col = GetSpecular(n, light);
-			faceColor.rgb += col*faceColor.a;
-			faceColor.rgb *= 1-(dot(n, light)*_Diffuse);
-			faceColor.rgb *= lerp(_Ambient, 1, n.z*n.z);
-
-			fixed4 reflcol = texCUBE(_Cube, reflect(input.viewDir, -n));
-			faceColor.rgb += reflcol.rgb * lerp(_ReflectFaceColor.rgb, _ReflectOutlineColor.rgb, saturate(sd + outline * 0.5)) * faceColor.a;
-		    #endif
-
-		    #if UNDERLAY_ON
-			float d = tex2D(_MainTex, input.texcoord2.xy).a * input.texcoord2.z;
-			faceColor += input.underlayColor * saturate(d - input.texcoord2.w) * (1 - faceColor.a);
-		    #endif
-
-		    #if UNDERLAY_INNER
-			float d = tex2D(_MainTex, input.texcoord2.xy).a * input.texcoord2.z;
-			faceColor += input.underlayColor * (1 - saturate(d - input.texcoord2.w)) * saturate(1 - sd) * (1 - faceColor.a);
-		    #endif
-
-		    #if GLOW_ON
-			float4 glowColor = GetGlowColor(sd, scale);
-			faceColor.rgb += glowColor.rgb * glowColor.a;
-		    #endif
-
-		// Alternative implementation to UnityGet2DClipping with support for softness.
-		    #if UNITY_UI_CLIP_RECT
-			half2 m = saturate((_ClipRect.zw - _ClipRect.xy - abs(input.mask.xy)) * input.mask.zw);
-			faceColor *= m.x * m.y;
-		    #endif
-
-		    #if UNITY_UI_ALPHACLIP
-			clip(faceColor.a - 0.001);
-		    #endif
-
-  		    return faceColor * input.color.a;
-		}
-		ENDCG
-	}
-}
-
-Fallback "TextMeshPro/Mobile/Distance Field"
-CustomEditor "TMPro.EditorUtilities.TMP_SDFShaderGUI"
-}`,
-            },
-          ],
+          ndaProtected: true,
         },
         {
           slug: "ui-tiled-image",
@@ -856,373 +224,7 @@ CustomEditor "TMPro.EditorUtilities.TMP_SDFShaderGUI"
             "Make sure it actually gets packed into a sprite atlas. That's the entire point of this exercise, don't skip it.",
             "Drop the UI_TiledImage component onto an empty UI GameObject, point it at your sliced sprite, and smash the Resync Chunks button.",
           ],
-          codeBlocks: [
-            {
-              label: "C# (Component + Editor)",
-              code: `[RequireComponent(typeof(CanvasRenderer))]
-public class UI_TiledImage : MaskableGraphic, ILayoutElement
-{
-    public Sprite sprite;
-    public bool preserveAspect = false;
-
-    [System.Serializable]
-    public struct SpriteChunk
-    {
-        public Sprite sprite;
-        public int col;
-        public int row;
-        public Vector4 uvRegion; // (offsetX, offsetY, sizeX, sizeY) in atlas UV space
-    }
-
-    [SerializeField] private List<SpriteChunk> _chunks = new List<SpriteChunk>();
-
-    [SerializeField] private int _columns = 1;
-    [SerializeField] private int _rows = 1;
-    [SerializeField] private Vector2 _cellSize = Vector2.one; // pixel size of one slice
-    [SerializeField] private Shader _tiledShader;
-    private Vector4[] _regions;
-    private const string TiledShaderName = "Unlit/UI_TiledImage";
-    static readonly int ID_Regions = Shader.PropertyToID("_ChunkRegions");
-    static readonly int ID_Columns = Shader.PropertyToID("_GridColumns");
-    static readonly int ID_Rows = Shader.PropertyToID("_GridRows");
-    static readonly int ID_Count = Shader.PropertyToID("_ChunkCount");
-
-    private Material _matInstance;
-
-    public override Texture mainTexture => sprite != null ? sprite.texture : s_WhiteTexture;
-
-    protected override void OnEnable()
-    {
-        base.OnEnable();
-        ResolveShader();
-        UnityEngine.U2D.SpriteAtlasManager.atlasRegistered += OnAtlasRegistered;
-        BuildRegionArray();
-        SetMaterialDirty();
-        SetVerticesDirty();
-    }
-
-    protected override void OnDisable()
-    {
-        UnityEngine.U2D.SpriteAtlasManager.atlasRegistered -= OnAtlasRegistered;
-        base.OnDisable();
-        if (_matInstance != null)
-        {
-            if (Application.isPlaying) Destroy(_matInstance); else DestroyImmediate(_matInstance);
-            _matInstance = null;
-        }
-    }
-
-    private void OnAtlasRegistered(UnityEngine.U2D.SpriteAtlas atlas)
-    {
-        BuildRegionArray();
-        SetMaterialDirty();
-    }
-
-    public override Material GetModifiedMaterial(Material baseMaterial)
-    {
-        Material baseMat = base.GetModifiedMaterial(baseMaterial);
-        if (baseMat == null) return null;
-
-        Shader shader = ResolveShader();
-        if (shader == null) return baseMat;
-
-        if (_matInstance == null)
-            _matInstance = new Material(shader) { name = "UI_TiledImage (Instance)" };
-        else if (_matInstance.shader != shader)
-            _matInstance.shader = shader;
-
-        CopyStencilState(baseMat, _matInstance);
-        ApplyToMaterial(_matInstance);
-        return _matInstance;
-    }
-
-    private void ApplyToMaterial(Material m)
-    {
-        if (m == null || _regions == null || _regions.Length == 0) return;
-        m.SetVectorArray(ID_Regions, _regions);
-        m.SetInteger(ID_Columns, _columns);
-        m.SetInteger(ID_Rows, _rows);
-        m.SetInteger(ID_Count, _chunks.Count);
-    }
-
-    // Draws a single full-rect quad — the shader does the per-cell tiling
-    protected override void OnPopulateMesh(VertexHelper vh)
-    {
-        vh.Clear();
-        if (sprite == null || _chunks == null || _chunks.Count == 0) return;
-
-        Rect r = GetDrawingRect(preserveAspect);
-        if (r.width <= 0 || r.height <= 0) return;
-
-        Color32 c = color;
-        vh.AddVert(new Vector3(r.xMin, r.yMin), c, new Vector2(0f, 0f));
-        vh.AddVert(new Vector3(r.xMin, r.yMax), c, new Vector2(0f, 1f));
-        vh.AddVert(new Vector3(r.xMax, r.yMax), c, new Vector2(1f, 1f));
-        vh.AddVert(new Vector3(r.xMax, r.yMin), c, new Vector2(1f, 0f));
-
-        vh.AddTriangle(0, 1, 2);
-        vh.AddTriangle(2, 3, 0);
-    }
-
-    // Reads the per-cell atlas UV regions straight off the sliced sprite
-    private void BuildRegionArray()
-    {
-        if (_chunks == null || _chunks.Count == 0) { _regions = null; return; }
-
-        int len = Mathf.Max(_columns * _rows, _chunks.Count);
-        _regions = new Vector4[len];
-        for (int i = 0; i < _chunks.Count; i++)
-        {
-            var ch = _chunks[i];
-
-            Vector4 region = ch.uvRegion;
-            if (ch.sprite != null)
-            {
-                Vector4 outer = UnityEngine.Sprites.DataUtility.GetOuterUV(ch.sprite);
-                region = new Vector4(outer.x, outer.y, outer.z - outer.x, outer.w - outer.y);
-            }
-
-            int idx = ch.row * _columns + ch.col;
-            if (idx >= 0 && idx < _regions.Length)
-                _regions[idx] = region;
-        }
-    }
-
-    // Re-derives grid size, cell size and chunk list from the sprite's slice data
-    public void UpdateChunks()
-    {
-        if (sprite == null) { _chunks.Clear(); _regions = null; return; }
-#if UNITY_EDITOR
-        string path = AssetDatabase.GetAssetPath(sprite.texture);
-        Object[] allAssets = AssetDatabase.LoadAllAssetsAtPath(path);
-        if (allAssets == null || allAssets.Length <= 1) return;
-
-        var sprites = allAssets.OfType<Sprite>().ToList();
-        if (sprites.Count == 0) return;
-
-        float texW = sprite.texture.width;
-        float texH = sprite.texture.height;
-
-        _cellSize = new Vector2(
-            sprites.Min(s => s.rect.width),
-            sprites.Min(s => s.rect.height));
-
-        const float tol = 1f; // pixels
-        _columns = CountDistinct(sprites.Select(s => s.rect.x), tol);
-        _rows = CountDistinct(sprites.Select(s => s.rect.y), tol);
-
-        _chunks.Clear();
-        foreach (var s in sprites)
-        {
-            int col = Mathf.RoundToInt(s.rect.x / _cellSize.x);
-            // Unity Y is bottom-up; grid rows are top-down so we flip.
-            int row = Mathf.RoundToInt((texH - s.rect.y - s.rect.height) / _cellSize.y);
-
-            Vector4 outer = UnityEngine.Sprites.DataUtility.GetOuterUV(s);
-            Vector4 uvRegion = new Vector4(
-                outer.x, outer.y,
-                outer.z - outer.x, outer.w - outer.y);
-
-            _chunks.Add(new SpriteChunk { sprite = s, col = col, row = row, uvRegion = uvRegion });
-        }
-
-        BuildRegionArray();
-        EditorUtility.SetDirty(this);
-#endif
-    }
-
-    public override void SetNativeSize()
-    {
-        if (sprite == null) return;
-        rectTransform.sizeDelta = new Vector2(_cellSize.x * _columns, _cellSize.y * _rows);
-        SetAllDirty();
-    }
-}
-
-// --- Custom Editor ---
-[CustomEditor(typeof(UI_TiledImage), true)]
-[CanEditMultipleObjects]
-public class UI_TiledImageEditor : GraphicEditor
-{
-    SerializedProperty _sprite, _preserveAspect, _maskable, _tiledShader;
-    SerializedProperty _columns, _rows, _cellSize;
-
-    protected override void OnEnable()
-    {
-        base.OnEnable();
-        _sprite         = serializedObject.FindProperty("sprite");
-        _preserveAspect = serializedObject.FindProperty("preserveAspect");
-        _maskable       = serializedObject.FindProperty("m_Maskable");
-        _tiledShader    = serializedObject.FindProperty("_tiledShader");
-
-        _columns  = serializedObject.FindProperty("_columns");
-        _rows     = serializedObject.FindProperty("_rows");
-        _cellSize = serializedObject.FindProperty("_cellSize");
-    }
-
-    public override void OnInspectorGUI()
-    {
-        serializedObject.Update();
-
-        EditorGUI.BeginChangeCheck();
-        EditorGUILayout.PropertyField(_sprite);
-        bool spriteChanged = EditorGUI.EndChangeCheck();
-
-        AppearanceControlsGUI();
-        RaycastControlsGUI();
-        EditorGUILayout.PropertyField(_maskable);
-        EditorGUILayout.PropertyField(_preserveAspect);
-        EditorGUILayout.PropertyField(_tiledShader, new GUIContent("Tiled Shader"));
-
-        // Read-only, auto-derived grid/cell info for quick sanity checks
-        using (new EditorGUI.DisabledScope(true))
-        {
-            EditorGUILayout.LabelField("Grid",
-                $"{_columns.intValue} x {_rows.intValue}  ({_columns.intValue * _rows.intValue} cells)");
-            EditorGUILayout.LabelField("Cell Size",
-                $"{_cellSize.vector2Value.x} x {_cellSize.vector2Value.y} px");
-        }
-
-        serializedObject.ApplyModifiedProperties();
-
-        // Re-derive immediately when the sprite is swapped in the inspector
-        if (spriteChanged)
-        {
-            foreach (var t in targets)
-            {
-                var ci = (UI_TiledImage)t;
-                ci.UpdateChunks();
-                ci.SetAllDirty();
-            }
-            serializedObject.Update();
-        }
-
-        if (GUILayout.Button("Force Resync Chunks"))
-        {
-            AssetDatabase.Refresh();
-            foreach (var t in targets)
-            {
-                var ci = (UI_TiledImage)t;
-                ci.UpdateChunks();
-                ci.SetAllDirty();
-                EditorUtility.SetDirty(ci);
-            }
-            AssetDatabase.SaveAssets();
-        }
-
-        if (GUILayout.Button("Set Native Size"))
-        {
-            foreach (var t in targets) ((UI_TiledImage)t).SetNativeSize();
-        }
-    }
-}`,
-            },
-            {
-              label: "Shader",
-              code: `Shader "Unlit/UI_TiledImage"
-{
-    Properties
-    {
-        [PerRendererData]_MainTex ("Texture", 2D) = "white" {}
-
-        _StencilComp ("Stencil Comparison", Float) = 8
-        _Stencil ("Stencil ID", Float) = 0
-        _StencilOp ("Stencil Operation", Float) = 0
-        _StencilWriteMask ("Stencil Write Mask", Float) = 255
-        _StencilReadMask ("Stencil Read Mask", Float) = 255
-        _ColorMask ("Color Mask", Float) = 15
-        [Toggle(UNITY_UI_ALPHACLIP)] _UseUIAlphaClip ("Use Alpha Clip", Float) = 0
-    }
-    SubShader
-    {
-        Tags{"RenderType" = "Transparent" "Queue" = "Transparent"}
-        Stencil
-        {
-            Ref [_Stencil]
-            Comp [_StencilComp]
-            Pass [_StencilOp]
-            ReadMask [_StencilReadMask]
-            WriteMask [_StencilWriteMask]
-        }
-        ColorMask [_ColorMask]
-        Cull Off ZWrite Off Blend SrcAlpha OneMinusSrcAlpha
-        Pass
-        {
-            CGPROGRAM
-            #pragma vertex vert
-            #pragma fragment frag
-
-            #pragma multi_compile DUMMY PIXELSNAP_ON
-            #pragma multi_compile __ UNITY_UI_CLIP_RECT
-            #pragma multi_compile __ UNITY_UI_ALPHACLIP
-
-            #include "UnityUI.cginc"
-            #include "UnityCG.cginc"
-
-            float4 _ClipRect;
-
-            struct appdata
-            {
-                float4 vertex : POSITION;
-                float2 uv : TEXCOORD0;
-                float4 color : COLOR;
-            };
-
-            struct v2f
-            {
-                float4 vertex : SV_POSITION;
-                float2 uv : TEXCOORD0;
-                float4 worldPosition : TEXCOORD1;
-                float4 color : COLOR;
-            };
-
-            sampler2D _MainTex;
-            float4 _MainTex_ST;
-            float4 _ChunkRegions[512];   // (offsetX, offsetY, sizeX, sizeY)
-            int _GridColumns, _GridRows, _ChunkCount;
-
-            v2f vert (appdata v)
-            {
-                v2f o;
-                o.vertex = UnityObjectToClipPos(v.vertex);
-                o.uv = v.uv;
-                o.worldPosition = v.vertex;
-                o.color = v.color;
-                return o;
-            }
-
-            fixed4 frag (v2f i) : SV_Target
-            {
-                // Which grid cell does this pixel fall into?
-                int cellX = (int)floor(i.uv.x * _GridColumns);
-                int cellY = (int)floor((1.0 - i.uv.y) * _GridRows);
-
-                cellX = clamp(cellX, 0, _GridColumns - 1);
-                cellY = clamp(cellY, 0, _GridRows - 1);
-
-                int cellOffset = cellY * _GridColumns + cellX;
-                float4 region = _ChunkRegions[cellOffset]; // (offsetX, offsetY, sizeX, sizeY)
-
-                // Remap this cell's local UV into that chunk's atlas region
-                float2 localUV = frac(float2(i.uv.x * _GridColumns, i.uv.y * _GridRows));
-                float2 atlasUV = region.xy + localUV * region.zw;
-
-                float4 col = tex2D(_MainTex, atlasUV) * i.color;
-
-                #ifdef UNITY_UI_CLIP_RECT
-                    col.a *= UnityGet2DClipping(i.worldPosition.xy, _ClipRect);
-                #endif
-                #ifdef UNITY_UI_ALPHACLIP
-                    clip (col.a - 0.001);
-                #endif
-                return col;
-            }
-            ENDCG
-        }
-    }
-}`,
-            },
-          ],
+          ndaProtected: true,
         },
       ],
     },
@@ -1247,6 +249,122 @@ public class UI_TiledImageEditor : GraphicEditor
           longDescription: [
             "Basically: turn characters into cubes, on the GPU, in real time. Instead of voxelizing meshes the slow way, this captures the character on screen and rebuilds it as a grid of instanced cubes using compute shaders — so the cube count just scales with how big the character looks on screen. Free LOD, nice.",
             "When an enemy goes down, those cubes stop following the character and get shoved around by a little GPU physics pass instead, so they tumble and scatter like a disintegration effect. Whole thing stays on the GPU the entire time.",
+          ],
+        },
+        {
+          slug: "mass-spring-cloth",
+          name: "GPU Mass-Spring Soft-Body & Cloth",
+          tagline: "Thousands of springs solved on the GPU, in real time.",
+          image: "/projects/CustomMassSpringPhysics.gif",
+          detailImage: "",
+          description:
+            "A GPU compute-shader mass-spring system in Unity that simulates cloth and soft bodies — structural, shear, and bend springs solved in parallel, with collisions, wind, pinning, and grab interaction.",
+          link: "",
+          demoLink: "https://www.youtube.com/watch?v=X_14W7rgOC4&t=166s",
+          skills: ["Unity", "Compute Shaders", "HLSL", "Physics", "RK4 Integration"],
+          longDescription: [
+            "Cloth as a network of point masses held together by springs — the classic mass-spring model, but the whole solve runs on the GPU. Every vertex becomes a spring node, and three kinds of springs hold the mesh together: structural (elastic) springs along the edges, shear springs across the diagonals to resist stretching, and bend springs that stop the fabric from folding in on itself. Each spring type has its own stiffness, so you can dial in anything from stiff leather to floppy silk.",
+            "The forces get integrated with RK4 (fourth-order Runge-Kutta) rather than a plain Euler step — that's what keeps a stiff, high-tension cloth from exploding, letting the solver stay stable even with strong spring constants. A second compute pass resolves collisions against sphere and box colliders with configurable restitution and friction, so the cloth drapes, slides, and settles on scene geometry instead of clipping through it.",
+            "On top of the core solve there's wind driven by noise for natural gusting, pinned nodes to anchor corners or seams, and a grab system that lets you reach in and yank the cloth around at runtime. The simulated points drive a SkinnedMeshRenderer through a generated bone hierarchy, so it renders like any other skinned mesh. Runs entirely in FixedUpdate on the GPU, scaling to thousands of springs without touching the CPU physics loop.",
+          ],
+          highlights: [
+            "Structural, shear, and bend springs — each with independent stiffness",
+            "RK4 integration for stability under high spring tension",
+            "GPU collision pass against sphere and box colliders (restitution + friction)",
+            "Noise-driven wind, pinned anchor nodes, and runtime grab interaction",
+            "Drives a SkinnedMeshRenderer via a generated bone hierarchy",
+          ],
+        },
+        {
+          slug: "niagara-inter-emitter",
+          name: "Niagara VFX — Inter-Emitter Force & Skeletal Mesh Sampling",
+          tagline: "Particles reading a skeletal mesh, and particles pushing on other particles.",
+          image: "/projects/inter-emitter-niagara.gif",
+          detailImage: "",
+          engine: "unreal",
+          link: "",
+          skills: ["Unreal Engine", "Niagara", "VFX", "Compute", "Skeletal Mesh"],
+          description:
+            "An Unreal Niagara system where particles sample a live skeletal mesh to drive their positions, and one emitter's particles exert custom force vectors onto another emitter's orbs through attribute readers.",
+          longDescription: [
+            "Two things going on here, both about particles talking to something outside themselves. First, skeletal mesh sampling: a primary emitter reads vertices straight off an animated skeletal mesh every frame and pins its particles to them, so the particle field follows the character's motion live — deforming, stretching, and settling exactly as the mesh animates rather than sitting on a static shape.",
+            "Second, and the more interesting part, is inter-emitter communication. The primary particles don't just sit there — each one exposes a custom force vector, and a second emitter of orb particles reads those forces through Niagara's attribute readers, letting one particle system push, pull, and steer another. It's essentially a little force-field pipeline built between emitters, with no CPU round-trip.",
+            "The result is a reactive, layered effect: a mesh-driven primary shape acting as a moving source of force, and a cloud of secondary orbs responding to it in real time. It's a good showcase of Niagara's compute logic and the attribute-reader plumbing that makes emitter-to-emitter communication possible.",
+          ],
+          highlights: [
+            "Live skeletal-mesh vertex sampling drives primary particle positions",
+            "Primary particles expose custom per-particle force vectors",
+            "Secondary orb emitter reads those forces via Niagara attribute readers",
+            "Emitter-to-emitter force pipeline running entirely in Niagara compute",
+          ],
+        },
+        {
+          slug: "niagara-sdf-gradient",
+          name: "Niagara VFX — SDF Texture Gradient & Finite Differences",
+          tagline: "Particles reading a distance field and riding its gradient along the isolines.",
+          image: "/projects/sdf-gradient-niagara.gif",
+          detailImage: "",
+          engine: "unreal",
+          link: "",
+          skills: ["Unreal Engine", "Niagara", "VFX", "Scratch Module", "SDF"],
+          description:
+            "A custom Niagara scratch module that samples a 2D signed distance field texture, computes the local gradient with finite differences, and steers particles along the field's isolines.",
+          longDescription: [
+            "The whole effect rests on one idea: a signed distance field texture tells you, at every point, how far you are from a shape's edge. If you can read the direction that distance changes fastest — the gradient — you can push particles perpendicular to it and have them flow neatly along the shape's contours (its isolines) instead of drifting randomly.",
+            "There's no gradient stored in the texture, so the scratch module computes it on the fly with finite differences: it samples the SDF a tiny step to the left and right for ∂x, up and down for ∂y, and the differences give a local gradient vector for that particle's position. Rotate that vector 90° and you have a tangent — a direction that follows the isoline rather than crossing it — which becomes the particle's steering force.",
+            "All of it lives in a hand-written Niagara scratch module, so it's raw vector math running per particle on the GPU: texture sampling, finite-difference derivatives, and the calculus that turns a static distance field into live motion. A tidy proof of the advanced math and GPU data-sampling that scratch modules make possible.",
+          ],
+          highlights: [
+            "Custom Niagara scratch module samples a 2D SDF texture per particle",
+            "Local gradient (∂x, ∂y) computed on the fly via finite differences",
+            "Gradient rotated to a tangent to steer particles along the isolines",
+            "Pure per-particle vector math + GPU texture sampling in a scratch module",
+          ],
+        },
+        {
+          slug: "jump-flood-sdf",
+          name: "GPU Jump Flood — SDF, Glow & Outlines",
+          tagline: "Nearest-seed distance fields from any texture, in a handful of GPU passes.",
+          image: "/projects/floodfill.png",
+          detailImage: "",
+          description:
+            "A GPU compute-shader implementation of the Jump Flood Algorithm that turns any texture into a signed distance field and nearest-seed (Voronoi) map — the basis for glow, outline, and SDF effects.",
+          link: "",
+          skills: ["Unity", "Compute Shaders", "HLSL", "SDF", "Rendering"],
+          longDescription: [
+            "The Jump Flood Algorithm (JFA) answers one question for every pixel: 'which is the nearest filled pixel to me, and how far away is it?' — and it does it in roughly log₂(resolution) passes instead of flooding the image one ring at a time. That makes it fast enough to run every frame on the GPU, even on large textures.",
+            "It starts by seeding: every opaque pixel (alpha above a cutoff) writes its own UV coordinate and colour into a buffer, packed cleverly into an RGBA-float texture so both position and colour survive in the channels. Then the flood: a ping-pong pass samples nine neighbours at a step width that halves each iteration — 128, 64, 32, … 1 — each pixel keeping whichever seed is closest. After the last pass, every pixel knows its nearest seed's UV and colour.",
+            "A final pass converts that nearest-seed distance into the actual effect: a smoothstep falloff over the distance gives you a clean outline or a soft glow tinted by any colour, and the raw distance field itself is a proper SDF you can reuse for shadows, borders, or shape morphing. One texture in, a distance field out — no CPU work in the loop.",
+          ],
+          highlights: [
+            "Jump Flood Algorithm in ~log₂(N) GPU passes instead of an O(N) flood fill",
+            "Seeds pack UV + colour into an RGBA-float ping-pong buffer",
+            "Outputs a reusable signed distance field from any input texture",
+            "Drives glow, outline, and Voronoi effects with a tunable falloff + colour",
+          ],
+        },
+        {
+          slug: "gpu-rain-system",
+          name: "Niagara VFX — GPU Rain Particles: Depth Occlusion & Wet-Edge Highlights",
+          tagline: "Rain that knows what's indoors, what's exposed, and where the water drips.",
+          image: "/projects/rainsystem_wip.gif",
+          detailImage: "",
+          engine: "unreal",
+          link: "",
+          skills: ["Unreal Engine", "Niagara", "VFX", "VR", "Screen-Space Effects"],
+          description:
+            "A GPU rain particle system with top-down depth-heightfield occlusion for dry indoor spots, exposed-normal wetness masking, a player-centric rain volume, edge dripping, and camera-lens water distortion — built with VR performance in mind.",
+          longDescription: [
+            "The core problem with cheap rain is that it falls through roofs. This system fixes that with a top-down depth pass: the scene is captured from above into a height field, and each raindrop checks that buffer to see whether something is above it. If there's a roof or ledge in the way, the drop gets culled — so overhangs, doorways, and indoor areas stay dry automatically, and the culling respects the rain's direction so slanted rain shadows fall where they should.",
+            "Wetness is driven by geometry, not guesswork: surfaces are masked by how exposed their normals are to the sky, so upward-facing faces darken and glisten while sheltered undersides stay dry. The rain itself follows the player as a local volume — particles only ever simulate in a box around the camera, which keeps the count tiny and the whole thing cheap enough for VR, where you're paying for every frame twice.",
+            "On top of the simulation sit the finishing touches: water beads and drips off exposed edges, and a camera-lens post-process adds subtle screen-space distortion, like rain hitting a visor. Between the depth-buffer reads, the normal-based masking, and the custom shader math for the drips and lens warp, it's a compact showcase of performance-minded, VR-friendly rendering architecture.",
+          ],
+          inlineImage: "/projects/rainsystem_module.png",
+          highlights: [
+            "Top-down depth height-field occlusion keeps indoor/overhang areas dry (with directional rain support)",
+            "Exposed-normal wetness masking — sky-facing surfaces get wet, sheltered ones stay dry",
+            "Player-centric local rain volume keeps particle counts low for VR",
+            "Edge water dripping plus a camera-lens post-process distortion pass",
           ],
         },
         {
