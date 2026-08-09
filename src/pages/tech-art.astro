@@ -157,30 +157,59 @@ const ENGINE_ICONS: Record<string, string> = {
   </style>
 
   <script>
+    const STORAGE_KEY = "techart-engine-filter";
     const buttons = document.querySelectorAll<HTMLButtonElement>(".filter-btn");
     const cards = document.querySelectorAll<HTMLElement>(".project-card");
 
-    function applyFilter(filter: string) {
+    // `animate` = false skips the fade/scale so re-applying a saved filter on
+    // load doesn't flash every card in and out.
+    function applyFilter(filter: string, animate = true) {
       cards.forEach((card) => {
         const matches = filter === "all" || card.dataset.engine === filter;
         if (matches) {
           card.style.display = "";
-          requestAnimationFrame(() => card.classList.remove("card-hidden"));
+          if (animate) {
+            requestAnimationFrame(() => card.classList.remove("card-hidden"));
+          } else {
+            card.classList.remove("card-hidden");
+          }
         } else {
-          card.classList.add("card-hidden");
-          setTimeout(() => {
-            if (card.classList.contains("card-hidden")) card.style.display = "none";
-          }, 350);
+          if (animate) {
+            card.classList.add("card-hidden");
+            setTimeout(() => {
+              if (card.classList.contains("card-hidden")) card.style.display = "none";
+            }, 350);
+          } else {
+            card.classList.add("card-hidden");
+            card.style.display = "none";
+          }
         }
       });
     }
 
+    function setActive(filter: string) {
+      buttons.forEach((b) => b.classList.toggle("active", b.dataset.filter === filter));
+    }
+
     buttons.forEach((btn) => {
       btn.addEventListener("click", () => {
-        buttons.forEach((b) => b.classList.remove("active"));
-        btn.classList.add("active");
-        applyFilter(btn.dataset.filter || "all");
+        const filter = btn.dataset.filter || "all";
+        setActive(filter);
+        applyFilter(filter, true);
+        try {
+          sessionStorage.setItem(STORAGE_KEY, filter);
+        } catch (e) {}
       });
     });
+
+    // Restore the last-used filter (e.g. after going back from a project page).
+    let saved = "all";
+    try {
+      saved = sessionStorage.getItem(STORAGE_KEY) || "all";
+    } catch (e) {}
+    if (saved !== "all") {
+      setActive(saved);
+      applyFilter(saved, false);
+    }
   </script>
 </Layout>
