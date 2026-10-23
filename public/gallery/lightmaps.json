@@ -2,7 +2,7 @@
   "meshes": {
     "Gallery": {
       "lightmap": "lightmap_gallery.png",
-      "scale": 18.082469940185547
+      "scale": 18.081253051757812
     },
     "Terminal": {
       "realtime": true
@@ -12,8 +12,8 @@
     "Concrete_Wall": 2.799999952316284,
     "Concrete_Block": 2.799999952316284,
     "Concrete_Floor": 2.799999952316284,
-    "LightStrip": 1.0,
     "Void": 1.0,
+    "LightStrip": 1.0,
     "Water": 1.0
   },
   "lights": [
@@ -112,8 +112,8 @@
         0.6499999761581421
       ],
       "size": [
-        0.8399999618530274,
-        0.8399999618530274
+        0.8399999743700022,
+        0.8399999743700022
       ],
       "spotSize": 0.0
     }

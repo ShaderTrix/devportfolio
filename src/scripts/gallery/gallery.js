@@ -1,18 +1,14 @@
-// VR Art Gallery landing: lightmapped hallway (baked in Blender), animated pool,
+// VR Art Gallery landing: lightmapped hallway (baked in Blender), still dark pool,
 // and a wall terminal you click to glide down the hallway and use.
 import * as THREE from "three";
 import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader.js";
-import { createWater } from "./water.js";
 import { TerminalScreen } from "./terminal.js";
+import { GRADE, applyGrade, maybeGradePanel } from "./grade.js";
 
-// Look of the page. Exposure goes into AgX; contrast/brightness are an optional CSS
-// filter on the canvas (1 = off).
-const GRADE = { exposure: 0.8, contrast: 1, brightness: 1 };
 const FLY_SECONDS = 2.6;
 const SCREEN_MATERIAL = "blinn3";     // the CRT face in fallout_terminal.glb
 const WATER_MATERIAL = "Water";
 const STRIP_MATERIAL = "LightStrip";
-const SCREEN_GLOW = 2.6;
 const STRIP_GLOW = 3.0;             // pool-lip LED; the Blender value (12) reads as a thick bar without bloom
 const SCREEN_FILL = 0.52;           // CRT height as a fraction of the view at the terminal
 const TERMINAL_AMBIENT = 0.2;       // stands in for the bounce light the terminal gets in Cycles
@@ -27,15 +23,12 @@ export async function initGallery(root, data, { assets = "/gallery/", onProgress
   const host = root.querySelector("[data-gallery-canvas]");
   const renderer = new THREE.WebGLRenderer({ antialias: true, powerPreference: "high-performance" });
   renderer.setPixelRatio(Math.min(devicePixelRatio, 1.75));
-  renderer.outputColorSpace = THREE.SRGBColorSpace;
-  renderer.toneMapping = THREE.AgXToneMapping;          // matches the Blender view transform
-  renderer.toneMappingExposure = GRADE.exposure;
-  if (GRADE.contrast !== 1 || GRADE.brightness !== 1)
-    renderer.domElement.style.filter = `contrast(${GRADE.contrast}) brightness(${GRADE.brightness})`;
+  renderer.outputColorSpace = THREE.SRGBColorSpace;   // tone mapping / exposure: see grade.js
   host.appendChild(renderer.domElement);
 
   const scene = new THREE.Scene();
-  scene.background = new THREE.Color().setRGB(0.7 * 4, 0.75 * 4, 0.82 * 4, THREE.LinearSRGBColorSpace);
+  // never meant to be seen from the camera path; dark so any sliver of gap reads as shadow
+  scene.background = new THREE.Color(0x050505);
 
   const info = await (await fetch(assets + "lightmaps.json")).json();
   const camera = new THREE.PerspectiveCamera(info.camera.fovY, 1, 0.05, 200);
@@ -54,6 +47,7 @@ export async function initGallery(root, data, { assets = "/gallery/", onProgress
   scene.add(gltf.scene);
 
   const terminalMeshes = [];
+  const lightmapMaterials = [], terminalLights = [];
   let screenMesh = null, waterMesh = null;
   const maxAniso = renderer.capabilities.getMaxAnisotropy();
   gltf.scene.traverse((o) => {
@@ -81,6 +75,7 @@ export async function initGallery(root, data, { assets = "/gallery/", onProgress
       basic.lightMap = null;
       basic.color.copy(m.emissive).multiplyScalar(STRIP_GLOW);
     }
+    else lightmapMaterials.push({ material: basic, base: basic.lightMapIntensity });
     o.material = basic;
     m.dispose();
   });
@@ -118,8 +113,11 @@ export async function initGallery(root, data, { assets = "/gallery/", onProgress
     if (!light) continue;               // (the sun only washes one wall; that's in the lightmap)
     scene.add(light);
     if (light.target) scene.add(light.target);
+    terminalLights.push({ light, base: light.intensity });
   }
-  scene.add(new THREE.HemisphereLight(0xb8c2cf, 0x3a3631, TERMINAL_AMBIENT));
+  const ambient = new THREE.HemisphereLight(0xb8c2cf, 0x3a3631, TERMINAL_AMBIENT);
+  scene.add(ambient);
+  terminalLights.push({ light: ambient, base: ambient.intensity });
 
   // ---------------------------------------------------------------- terminal screen
   const terminal = new TerminalScreen(data);
@@ -143,15 +141,33 @@ export async function initGallery(root, data, { assets = "/gallery/", onProgress
     screenMesh.material = new THREE.MeshBasicMaterial({
       name: SCREEN_MATERIAL,
       map: terminal.texture,
-      color: new THREE.Color(SCREEN_GLOW, SCREEN_GLOW, SCREEN_GLOW),
     });
   }
   const termBox = new THREE.Box3();
   for (const m of terminalMeshes) termBox.expandByObject(m);
 
   // ---------------------------------------------------------------- water
-  const water = waterMesh ? createWater(waterMesh, renderer) : null;
-  if (water) scene.add(water.mesh);
+  // A flat, dark, unlit surface. It sits at floor level (the baked water is 3.5 cm lower),
+  // which also closes the slit under the leaning mass where the background used to peek
+  // through as a thin bright line.
+  let waterMaterial = null;
+  if (waterMesh) {
+    const box = new THREE.Box3().setFromObject(waterMesh);
+    const size = box.getSize(new THREE.Vector3()), c = box.getCenter(new THREE.Vector3());
+    waterMaterial = new THREE.MeshBasicMaterial({ color: GRADE.water });
+    const plane = new THREE.Mesh(new THREE.PlaneGeometry(size.x, size.z), waterMaterial);
+    plane.rotation.x = -Math.PI / 2;
+    plane.position.set(c.x, -0.002, c.z);
+    scene.add(plane);
+    waterMesh.visible = false;
+  }
+
+  // ---------------------------------------------------------------- grade
+  const grade = { renderer, scene, vignetteEl: root.querySelector(".gallery-vignette"),
+    lightmapMaterials, terminalLights, screenMaterial: screenMesh?.material, waterMaterial };
+  const regrade = () => applyGrade(GRADE, grade);
+  regrade();
+  maybeGradePanel(root, GRADE, regrade);
 
   // ---------------------------------------------------------------- camera states
   // hero -> flying -> terminal -> flying -> hero
@@ -220,7 +236,6 @@ export async function initGallery(root, data, { assets = "/gallery/", onProgress
     camera.aspect = w / h;
     camera.updateProjectionMatrix();
     renderer.setSize(w, h);
-    water?.resize(w * renderer.getPixelRatio(), h * renderer.getPixelRatio());
     if (state === "terminal") { const p = terminalPose(); pos.copy(p.pos); target.copy(p.target); }
   };
   new ResizeObserver(resize).observe(host);
@@ -248,12 +263,11 @@ export async function initGallery(root, data, { assets = "/gallery/", onProgress
     camera.position.y += Math.sin(t * 0.6) * 0.01;     // a breath of handheld drift
 
     terminal.update(dt, t);
-    water?.update(t);
     renderer.render(scene, camera);
   });
 
   setState("hero");
-  const api = { flyIn, flyOut, get state() { return state; }, renderer, scene, camera, terminal, water, GRADE, THREE };
+  const api = { flyIn, flyOut, get state() { return state; }, renderer, scene, camera, terminal, GRADE, regrade, THREE };
   root.gallery = api;                 // handy for tuning from the console
   return api;
 }

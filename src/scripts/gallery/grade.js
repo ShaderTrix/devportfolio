@@ -1,0 +1,132 @@
+// Colour grade for the gallery + a tuning panel (open the page with ?grade).
+// Tone mapping and exposure run in three.js; contrast/brightness/saturation/hue/sepia
+// are a CSS filter on the canvas and the vignette is a CSS overlay, so the whole
+// grade costs no extra render pass.
+import * as THREE from "three";
+
+// Paste values from the panel's "Copy values" here to make them the defaults.
+export const GRADE = {
+  toneMapping: "AgX",
+  exposure: 0.8,
+  contrast: 1,
+  brightness: 1,
+  saturation: 1,
+  hue: 0,
+  sepia: 0,
+  vignette: 0.65,
+  vignetteSize: 45,
+  bakedLight: 1,        // multiplies every lightmap
+  terminalFill: 1,      // multiplies the terminal's real-time lights
+  screenGlow: 2.6,      // CRT brightness
+  water: "#030606",
+};
+
+const TONE_MAPPINGS = {
+  None: THREE.NoToneMapping,
+  Linear: THREE.LinearToneMapping,
+  Reinhard: THREE.ReinhardToneMapping,
+  Cineon: THREE.CineonToneMapping,
+  ACES: THREE.ACESFilmicToneMapping,
+  AgX: THREE.AgXToneMapping,
+  Neutral: THREE.NeutralToneMapping,
+};
+
+const FIELDS = [
+  ["toneMapping", "Tone map", { options: Object.keys(TONE_MAPPINGS) }],
+  ["exposure", "Exposure", { min: 0, max: 3, step: 0.01 }],
+  ["contrast", "Contrast", { min: 0.5, max: 2, step: 0.01 }],
+  ["brightness", "Brightness", { min: 0.3, max: 2, step: 0.01 }],
+  ["saturation", "Saturation", { min: 0, max: 2, step: 0.01 }],
+  ["hue", "Hue (deg)", { min: -180, max: 180, step: 1 }],
+  ["sepia", "Sepia", { min: 0, max: 1, step: 0.01 }],
+  ["vignette", "Vignette", { min: 0, max: 1, step: 0.01 }],
+  ["vignetteSize", "Vignette size", { min: 0, max: 90, step: 1 }],
+  ["bakedLight", "Baked light", { min: 0, max: 3, step: 0.01 }],
+  ["terminalFill", "Terminal light", { min: 0, max: 4, step: 0.01 }],
+  ["screenGlow", "Screen glow", { min: 0, max: 8, step: 0.05 }],
+  ["water", "Water", { color: true }],
+];
+
+/**
+ * hooks: { renderer, scene, vignetteEl, lightmapMaterials: [{material, base}],
+ *          terminalLights: [{light, base}], screenMaterial, waterMaterial }
+ */
+export function applyGrade(g, hooks) {
+  const { renderer, scene } = hooks;
+  const tm = TONE_MAPPINGS[g.toneMapping] ?? THREE.AgXToneMapping;
+  if (renderer.toneMapping !== tm) {
+    renderer.toneMapping = tm;
+    scene.traverse((o) => { if (o.material) [].concat(o.material).forEach((m) => (m.needsUpdate = true)); });
+  }
+  renderer.toneMappingExposure = g.exposure;
+  const f = [];
+  if (g.contrast !== 1) f.push(`contrast(${g.contrast})`);
+  if (g.brightness !== 1) f.push(`brightness(${g.brightness})`);
+  if (g.saturation !== 1) f.push(`saturate(${g.saturation})`);
+  if (g.hue) f.push(`hue-rotate(${g.hue}deg)`);
+  if (g.sepia) f.push(`sepia(${g.sepia})`);
+  renderer.domElement.style.filter = f.join(" ");
+  if (hooks.vignetteEl) {
+    hooks.vignetteEl.style.setProperty("--vig", g.vignette);
+    hooks.vignetteEl.style.setProperty("--vig-size", `${g.vignetteSize}%`);
+  }
+  for (const { material, base } of hooks.lightmapMaterials ?? []) material.lightMapIntensity = base * g.bakedLight;
+  for (const { light, base } of hooks.terminalLights ?? []) light.intensity = base * g.terminalFill;
+  hooks.screenMaterial?.color.setScalar(g.screenGlow);
+  hooks.waterMaterial?.color.set(g.water);
+}
+
+/** Bottom-right tuning panel. Only built when the URL has ?grade. */
+export function maybeGradePanel(root, g, apply) {
+  if (!new URLSearchParams(location.search).has("grade")) return;
+  const defaults = { ...g };
+  const panel = document.createElement("div");
+  panel.className = "grade-panel";
+  panel.innerHTML = `<div class="grade-head"><b>Colour grade</b><button type="button" data-collapse>–</button></div><div class="grade-body"></div>
+    <div class="grade-actions"><button type="button" data-reset>Reset</button><button type="button" data-copy>Copy values</button></div>`;
+  const body = panel.querySelector(".grade-body");
+  for (const [key, label, opt] of FIELDS) {
+    const row = document.createElement("label");
+    row.className = "grade-row";
+    row.innerHTML = `<span>${label}</span>`;
+    if (opt.options) {
+      const sel = document.createElement("select");
+      sel.innerHTML = opt.options.map((o) => `<option${o === g[key] ? " selected" : ""}>${o}</option>`).join("");
+      sel.oninput = () => { g[key] = sel.value; apply(); };
+      row.append(sel);
+    } else if (opt.color) {
+      const c = document.createElement("input");
+      c.type = "color"; c.value = g[key];
+      c.oninput = () => { g[key] = c.value; apply(); };
+      row.append(c);
+    } else {
+      const range = document.createElement("input");
+      const num = document.createElement("input");
+      Object.assign(range, { type: "range", ...opt, value: g[key] });
+      Object.assign(num, { type: "number", ...opt, value: g[key] });
+      range.oninput = () => { num.value = range.value; g[key] = Number(range.value); apply(); };
+      num.oninput = () => { range.value = num.value; g[key] = Number(num.value); apply(); };
+      row.append(range, num);
+    }
+    body.append(row);
+  }
+  panel.querySelector("[data-collapse]").onclick = (e) => {
+    panel.classList.toggle("is-collapsed");
+    e.currentTarget.textContent = panel.classList.contains("is-collapsed") ? "+" : "–";
+  };
+  panel.querySelector("[data-reset]").onclick = () => {
+    Object.assign(g, defaults);
+    panel.remove();
+    apply();
+    maybeGradePanel(root, g, apply);
+  };
+  panel.querySelector("[data-copy]").onclick = async (e) => {
+    const text = JSON.stringify(g, null, 2);
+    try { await navigator.clipboard.writeText(text); e.currentTarget.textContent = "Copied!"; }
+    catch { prompt("Copy these values:", text); }
+    setTimeout(() => (e.currentTarget.textContent = "Copy values"), 1500);
+  };
+  // keep the panel's clicks/keys/wheel away from the 3D view and the terminal
+  for (const ev of ["pointerdown", "click", "wheel", "keydown"]) panel.addEventListener(ev, (e) => e.stopPropagation());
+  root.append(panel);
+}
