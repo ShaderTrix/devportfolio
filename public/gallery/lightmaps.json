@@ -1,0 +1,53 @@
+{
+  "meshes": {
+    "Gallery": {
+      "lightmap": "lightmap_gallery.png",
+      "scale": 2.768386328220368
+    },
+    "Terminal": {
+      "lightmap": "lightmap_terminal.png",
+      "scale": 9.276438980102538
+    }
+  },
+  "materialIntensity": {
+    "Concrete_Floor": 2.799999952316284,
+    "Concrete_Block": 2.799999952316284,
+    "Concrete_Wall": 2.799999952316284,
+    "Water": 1.0,
+    "LightStrip": 1.0,
+    "Void": 1.0,
+    "lambert2": 1.0,
+    "blinn2": 1.0,
+    "lambert4": 1.0,
+    "lambert3": 1.0,
+    "blinn1": 1.0,
+    "phong1": 1.0,
+    "blinn3": 1.0
+  },
+  "terminalView": {
+    "position": [
+      4.799445152282715,
+      0.9725773930549622,
+      1.628509283065796
+    ],
+    "target": [
+      1.5563011169433594,
+      0.9725773930549622,
+      1.628509283065796
+    ],
+    "frameFill": 0.72
+  },
+  "camera": {
+    "position": [
+      31.7493953704834,
+      6.053024768829346,
+      0.6404950022697449
+    ],
+    "fovY": 50.224699816326975,
+    "target": [
+      22.493297576904297,
+      2.967527151107788,
+      2.8323757648468018
+    ]
+  }
+}

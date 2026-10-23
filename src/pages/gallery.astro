@@ -1,0 +1,183 @@
+---
+// Interactive 3D landing: the brutalist hallway with the wall terminal.
+// "Read it as a page" leads to the normal site.
+import { siteConfig } from "../config";
+import "../styles/global.css";
+
+const s = siteConfig;
+const { professional, personal } = s.projectCategories;
+const terminalData = {
+  name: s.name,
+  role: s.title.split("|")[0].trim(),
+  about: s.aboutMe,
+  experience: s.experience,
+  projects: [...professional.projects, ...personal.projects].map((p) => ({
+    name: p.name,
+    tagline: p.tagline,
+    link: p.link || "",
+    demoLink: ("demoLink" in p && p.demoLink) || "",
+  })),
+  skills: s.skills,
+  resumeUrl: s.resumeUrl,
+  contact: [
+    s.social.email && { label: "Email", value: s.social.email, href: `mailto:${s.social.email}` },
+    s.social.linkedin && { label: "LinkedIn", value: "linkedin.com/in/shivanshu-chauhan", href: s.social.linkedin },
+    s.social.github && { label: "GitHub", value: "github.com/ShaderTrix", href: s.social.github },
+    s.social.artstation && { label: "ArtStation", value: "artstation.com/shivanshuchauhan", href: s.social.artstation },
+    s.social.youtube && { label: "YouTube", value: "@shivanshuchauhan3032", href: s.social.youtube },
+  ].filter(Boolean),
+};
+---
+
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <title>{s.name} - {terminalData.role}</title>
+    <meta name="description" content={s.description} />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet" />
+    <link rel="preload" href="/gallery/gallery.glb" as="fetch" crossorigin />
+  </head>
+  <body class="gallery-body">
+    <div class="gallery" data-gallery data-state="loading">
+      <div class="gallery-canvas" data-gallery-canvas></div>
+      <div class="gallery-vignette" aria-hidden="true"></div>
+
+      <!-- top bar -->
+      <header class="gallery-top">
+        <div>
+          <h1 class="gallery-name">{s.name}</h1>
+          <p class="gallery-role">{terminalData.role} · Shaders · Rendering</p>
+        </div>
+        <div class="gallery-contact">
+          <a href={`mailto:${s.social.email}`}>{s.social.email}</a>
+        </div>
+      </header>
+
+      <!-- back control while at the terminal -->
+      <button class="gallery-back" data-gallery-back type="button" aria-label="Back to the hallway">
+        <span>BACK</span><kbd>ESC</kbd>
+      </button>
+
+      <!-- hint while in the hallway -->
+      <p class="gallery-hint">Click the terminal</p>
+
+      <!-- bottom bar -->
+      <nav class="gallery-bottom">
+        <button class="gallery-btn" data-gallery-help type="button"><span class="gallery-q">?</span>Help</button>
+        <a class="gallery-btn gallery-btn-primary" href="/">Read it as a page</a>
+        <a class="gallery-btn" href={s.social.github} target="_blank" rel="noopener noreferrer">GitHub <span aria-hidden="true">↗</span></a>
+      </nav>
+
+      <div class="gallery-help" data-gallery-help-panel hidden>
+        <p><b>Hallway</b> click the glowing terminal to walk up to it.</p>
+        <p><b>Terminal</b> click a line, or use ↑ ↓ Enter and number keys. Scroll for long pages.</p>
+        <p><b>Leave</b> Esc, Back, or [LOG OFF].</p>
+      </div>
+
+      <div class="gallery-loading" data-gallery-loading>
+        <p>ROBCO TERMLINK // LOADING <span data-gallery-pct>0</span>%</p>
+        <div class="gallery-bar"><div data-gallery-bar></div></div>
+      </div>
+    </div>
+
+    <script type="application/json" id="gallery-data" set:html={JSON.stringify(terminalData)} />
+
+    <script>
+      import { initGallery } from "../scripts/gallery/gallery.js";
+
+      const root = document.querySelector<HTMLElement>("[data-gallery]")!;
+      const data = JSON.parse(document.getElementById("gallery-data")!.textContent!);
+      const pct = root.querySelector<HTMLElement>("[data-gallery-pct]")!;
+      const bar = root.querySelector<HTMLElement>("[data-gallery-bar]")!;
+      const loading = root.querySelector<HTMLElement>("[data-gallery-loading]")!;
+      const help = root.querySelector<HTMLElement>("[data-gallery-help-panel]")!;
+
+      // the terminal measures its character grid, so the font must be in first
+      await document.fonts.load('30px "JetBrains Mono"').catch(() => {});
+      const gallery = await initGallery(root, data, {
+        assets: "/gallery/",
+        onProgress: (p) => {
+          const v = Math.round(p * 100);
+          pct.textContent = String(v);
+          bar.style.width = v + "%";
+        },
+      });
+      loading.classList.add("is-done");
+
+      root.querySelector("[data-gallery-back]")!.addEventListener("click", () => gallery.flyOut());
+      root.querySelector("[data-gallery-help]")!.addEventListener("click", () => { help.hidden = !help.hidden; });
+      addEventListener("keydown", (e) => {
+        if (e.key === "Escape" && gallery.state === "hero") help.hidden = true;
+      });
+    </script>
+
+    <style is:global>
+      .gallery-body { margin: 0; background: #050505; overflow: hidden; }
+      .gallery { position: fixed; inset: 0; color: var(--text-primary); font-family: "JetBrains Mono", monospace; }
+      .gallery-canvas, .gallery-canvas canvas { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
+      .gallery-vignette { position: absolute; inset: 0; pointer-events: none;
+        background: radial-gradient(ellipse 75% 85% at 50% 50%, transparent 45%, rgba(0,0,0,0.7) 100%); }
+
+      .gallery-top { position: absolute; top: 0; left: 0; right: 0; display: flex; justify-content: space-between;
+        gap: 16px; padding: 22px 28px; pointer-events: none;
+        background: linear-gradient(rgba(0,0,0,0.55), transparent); }
+      .gallery-top a { pointer-events: auto; }
+      .gallery-name { margin: 0; font-size: clamp(20px, 2.4vw, 30px); font-weight: 600; letter-spacing: -0.02em; }
+      .gallery-role { margin: 4px 0 0; color: var(--text-secondary); font-size: 13px; }
+      .gallery-contact { text-align: right; font-size: 13px; }
+      .gallery-contact a { color: var(--text-secondary); text-decoration: underline; text-underline-offset: 3px; }
+      .gallery-contact a:hover { color: var(--accent); }
+
+      .gallery-bottom { position: absolute; left: 24px; bottom: 22px; display: flex; flex-wrap: wrap; gap: 10px; }
+      .gallery-btn { display: inline-flex; align-items: center; gap: 10px; padding: 11px 18px; border-radius: 999px;
+        font: 600 14px "JetBrains Mono", monospace; color: var(--text-primary); text-decoration: none; cursor: pointer;
+        background: rgba(10,10,10,0.55); border: 1px solid rgba(255,255,255,0.18); backdrop-filter: blur(6px);
+        transition: background .2s, border-color .2s, color .2s; }
+      .gallery-btn:hover { border-color: var(--accent); color: var(--accent); }
+      .gallery-btn-primary { background: var(--accent); color: #0b0f08; border-color: var(--accent); }
+      .gallery-btn-primary:hover { background: var(--accent-hover); color: #0b0f08; }
+      .gallery-q { display: inline-grid; place-items: center; width: 22px; height: 22px; border-radius: 50%;
+        background: rgba(255,255,255,0.14); font-size: 12px; }
+
+      .gallery-help { position: absolute; left: 24px; bottom: 82px; max-width: 360px; padding: 14px 18px; font-size: 13px;
+        line-height: 1.6; color: var(--text-secondary); background: rgba(8,8,8,0.8); border: 1px solid rgba(255,255,255,0.12);
+        border-radius: 12px; backdrop-filter: blur(8px); }
+      .gallery-help p { margin: 0 0 6px; } .gallery-help b { color: var(--accent); font-weight: 600; margin-right: 6px; }
+
+      .gallery-hint { position: absolute; left: 50%; bottom: 30px; transform: translateX(-50%); margin: 0; font-size: 12px;
+        letter-spacing: 0.2em; text-transform: uppercase; color: var(--text-secondary); pointer-events: none;
+        animation: gallery-pulse 2.4s ease-in-out infinite; transition: opacity .4s; }
+      @keyframes gallery-pulse { 50% { opacity: 0.35; } }
+
+      .gallery-back { position: absolute; top: 84px; right: 28px; display: flex; align-items: center; gap: 10px;
+        padding: 8px 10px 8px 14px; font: 600 13px "JetBrains Mono", monospace; letter-spacing: 0.15em; color: var(--text-primary);
+        background: rgba(8,8,8,0.6); border: 1px solid rgba(255,255,255,0.2); border-radius: 8px; cursor: pointer;
+        opacity: 0; pointer-events: none; transition: opacity .4s; }
+      .gallery-back kbd { padding: 2px 7px; border: 1px solid rgba(255,255,255,0.4); border-radius: 4px; font: inherit; }
+      .gallery-back:hover { border-color: var(--accent); color: var(--accent); }
+
+      .gallery[data-state="terminal"] .gallery-back { opacity: 1; pointer-events: auto; }
+      .gallery:not([data-state="hero"]) .gallery-hint { visibility: hidden; animation: none; opacity: 0; }
+      .gallery[data-state="terminal"] .gallery-bottom, .gallery[data-state="flying"] .gallery-bottom { opacity: 0.35; }
+      .gallery-bottom { transition: opacity .4s; }
+
+      .gallery-loading { position: absolute; inset: 0; display: grid; place-content: center; gap: 14px; background: #050505;
+        color: var(--accent); font-size: 13px; letter-spacing: 0.15em; transition: opacity .8s; }
+      .gallery-loading.is-done { opacity: 0; pointer-events: none; }
+      .gallery-bar { width: min(320px, 70vw); height: 2px; background: rgba(138,184,112,0.2); }
+      .gallery-bar div { width: 0; height: 100%; background: var(--accent); transition: width .2s; }
+
+      @media (max-width: 640px) {
+        .gallery-top { padding: 16px 18px; } .gallery-contact { display: none; }
+        .gallery-bottom { left: 14px; right: 14px; bottom: 14px; } .gallery-btn { padding: 9px 14px; font-size: 13px; }
+        .gallery-back { top: 70px; right: 16px; } .gallery-hint { bottom: 76px; }
+      }
+      /* buttons wrap onto two rows on phones; keep the hint above them */
+      @media (max-width: 440px) { .gallery-hint { bottom: 132px; } }
+    </style>
+  </body>
+</html>
