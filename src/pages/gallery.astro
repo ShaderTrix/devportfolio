@@ -1,6 +1,6 @@
 ---
 // Interactive 3D landing: the brutalist hallway with the wall terminal.
-// "Read it as a page" leads to the normal site.
+// "Go to Website" leads to the normal site.
 import { siteConfig } from "../config";
 import "../styles/global.css";
 
@@ -70,7 +70,7 @@ const terminalData = {
       <!-- bottom bar -->
       <nav class="gallery-bottom">
         <button class="gallery-btn" data-gallery-help type="button"><span class="gallery-q">?</span>Help</button>
-        <a class="gallery-btn gallery-btn-primary" href="/">Read it as a page</a>
+        <a class="gallery-btn gallery-btn-primary" href="/">Go to Website</a>
         <a class="gallery-btn" href={s.social.github} target="_blank" rel="noopener noreferrer">GitHub <span aria-hidden="true">↗</span></a>
       </nav>
 
@@ -81,7 +81,7 @@ const terminalData = {
       </div>
 
       <div class="gallery-loading" data-gallery-loading>
-        <p>ROBCO TERMLINK // LOADING <span data-gallery-pct>0</span>%</p>
+        <p>SHADERTRIX TERMINAL // LOADING <span data-gallery-pct>0</span>%</p>
         <div class="gallery-bar"><div data-gallery-bar></div></div>
       </div>
     </div>
@@ -158,7 +158,7 @@ const terminalData = {
         border-radius: 12px; backdrop-filter: blur(8px); }
       .gallery-help p { margin: 0 0 6px; } .gallery-help b { color: var(--accent); font-weight: 600; margin-right: 6px; }
 
-      .gallery-hint { position: absolute; left: 50%; bottom: 30px; transform: translateX(-50%); margin: 0; font-size: 12px;
+      .gallery-hint { position: absolute; left: 50%; bottom: 96px; transform: translateX(-50%); margin: 0; font-size: 12px;
         letter-spacing: 0.2em; text-transform: uppercase; color: var(--text-secondary); pointer-events: none;
         animation: gallery-pulse 2.4s ease-in-out infinite; transition: opacity .4s; }
       @keyframes gallery-pulse { 50% { opacity: 0.35; } }
@@ -204,7 +204,7 @@ const terminalData = {
         .gallery-wordmark { white-space: normal; text-align: center; font-size: 11.5vw; }
         .gallery-edition { font-size: 3.4vw; }
         .gallery-bottom { left: 14px; right: 14px; bottom: 14px; } .gallery-btn { padding: 9px 14px; font-size: 13px; }
-        .gallery-back { top: 70px; right: 16px; } .gallery-hint { bottom: 76px; }
+        .gallery-back { top: 70px; right: 16px; } .gallery-hint { bottom: 84px; }
       }
       /* buttons wrap onto two rows on phones; keep the hint above them */
       @media (max-width: 440px) { .gallery-hint { bottom: 132px; } }

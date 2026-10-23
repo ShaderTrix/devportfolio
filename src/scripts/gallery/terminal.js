@@ -1,4 +1,4 @@
-// RobCo-style terminal drawn live onto the CRT's screen via a CanvasTexture.
+// Retro green-phosphor terminal drawn live onto the CRT's screen via a CanvasTexture.
 // idle  -> ambient loop (hex dump, flicker, "click to access")
 // boot  -> typed logon sequence, then the menu
 // menu / page -> portfolio content, mouse + keyboard driven
@@ -48,9 +48,9 @@ export class TerminalScreen {
     const d = this.data;
     const user = d.name.split(" ")[0].toUpperCase();
     this.setLines([
-      { text: "ROBCO INDUSTRIES UNIFIED OPERATING SYSTEM" },
-      { text: "COPYRIGHT 2075-2077 ROBCO INDUSTRIES" },
-      { text: "-SERVER 6-" },
+      { text: "SHADERTRIX UNIFIED OPERATING SYSTEM" },
+      { text: `COPYRIGHT ${new Date().getFullYear()} SHADERTRIX` },
+      { text: "-NODE 01-" },
       { text: "" },
       { text: `> LOGON ${user}` },
       { text: "ENTER PASSWORD NOW" },
@@ -252,7 +252,7 @@ export class TerminalScreen {
     c.fillStyle = BG;
     c.fillRect(MARGIN_X - 10, MARGIN_TOP - 10, SIZE - 2 * MARGIN_X + 20, LINE_H * 2 + 14);
     c.fillStyle = GREEN;
-    c.fillText("ROBCO INDUSTRIES (TM) TERMLINK", MARGIN_X, MARGIN_TOP);
+    c.fillText("SHADERTRIX TERMINAL V1.0", MARGIN_X, MARGIN_TOP);
     c.fillText(`${this.data.name.toUpperCase()} // ONLINE`, MARGIN_X, MARGIN_TOP + LINE_H);
     const msg = "> CLICK TO ACCESS TERMINAL";
     const y = SIZE / 2 + LINE_H;

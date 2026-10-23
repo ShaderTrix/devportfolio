@@ -6,18 +6,18 @@ import * as THREE from "three";
 
 // Paste values from the panel's "Copy values" here to make them the defaults.
 export const GRADE = {
-  toneMapping: "AgX",
-  exposure: 0.8,
+  toneMapping: "ACES",
+  exposure: 1.39,
   contrast: 1,
-  brightness: 1,
-  saturation: 1,
-  hue: 0,
-  sepia: 0,
-  vignette: 0.65,
-  vignetteSize: 45,
+  brightness: 1.07,
+  saturation: 1.19,
+  hue: -28,
+  sepia: 0.11,
+  vignette: 1,
+  vignetteSize: 40,
   bakedLight: 1,        // multiplies every lightmap
-  terminalFill: 1,      // multiplies the terminal's real-time lights
-  screenGlow: 2.6,      // CRT brightness
+  terminalFill: 0.42,   // multiplies the terminal's real-time lights
+  screenGlow: 3.25,     // CRT brightness
   water: "#030606",
 };
 
