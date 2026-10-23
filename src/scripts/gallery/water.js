@@ -13,7 +13,7 @@ const WaterShader = {
     deep: { value: new THREE.Color(0.004, 0.012, 0.012) },   // linear; near-black teal
     bump: { value: 0.16 },          // ripple slope
     distort: { value: 0.014 },      // how far ripples bend the reflection
-    reflectBase: { value: 0.32 },   // reflection seen straight down
+    reflectBase: { value: 0.14 },   // reflection seen straight down
   },
   vertexShader: /* glsl */ `
     uniform mat4 textureMatrix;

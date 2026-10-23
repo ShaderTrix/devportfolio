@@ -5,14 +5,19 @@ import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader.js";
 import { createWater } from "./water.js";
 import { TerminalScreen } from "./terminal.js";
 
-// Look of the page. Exposure goes into AgX; contrast/brightness are a CSS filter on
-// the canvas (free on the GPU compositor, no post-processing pass).
-const GRADE = { exposure: 0.6, contrast: 1.16, brightness: 0.94 };
+// Look of the page. Exposure goes into AgX; contrast/brightness are an optional CSS
+// filter on the canvas (1 = off).
+const GRADE = { exposure: 0.8, contrast: 1, brightness: 1 };
 const FLY_SECONDS = 2.6;
 const SCREEN_MATERIAL = "blinn3";     // the CRT face in fallout_terminal.glb
 const WATER_MATERIAL = "Water";
+const STRIP_MATERIAL = "LightStrip";
 const SCREEN_GLOW = 2.6;
+const STRIP_GLOW = 3.0;             // pool-lip LED; the Blender value (12) reads as a thick bar without bloom
 const SCREEN_FILL = 0.52;           // CRT height as a fraction of the view at the terminal
+const TERMINAL_AMBIENT = 0.2;       // stands in for the bounce light the terminal gets in Cycles
+// per-light multipliers so the real-time stand-ins match the Cycles render of the terminal
+const LIGHT_SCALE = { Fill: 0.0004, Terminal_ScreenGlow: 0.4 };
 
 // Blender is Z-up, glTF/three is Y-up: (x, y, z) -> (x, z, -y)
 const fromBlender = ([x, y, z]) => new THREE.Vector3(x, z, -y);
@@ -25,7 +30,8 @@ export async function initGallery(root, data, { assets = "/gallery/", onProgress
   renderer.outputColorSpace = THREE.SRGBColorSpace;
   renderer.toneMapping = THREE.AgXToneMapping;          // matches the Blender view transform
   renderer.toneMappingExposure = GRADE.exposure;
-  renderer.domElement.style.filter = `contrast(${GRADE.contrast}) brightness(${GRADE.brightness})`;
+  if (GRADE.contrast !== 1 || GRADE.brightness !== 1)
+    renderer.domElement.style.filter = `contrast(${GRADE.contrast}) brightness(${GRADE.brightness})`;
   host.appendChild(renderer.domElement);
 
   const scene = new THREE.Scene();
@@ -38,7 +44,7 @@ export async function initGallery(root, data, { assets = "/gallery/", onProgress
   // ---------------------------------------------------------------- load + lightmaps
   const texLoader = new THREE.TextureLoader();
   const lightmaps = {};
-  await Promise.all(Object.entries(info.meshes).map(([name, m]) => texLoader.loadAsync(assets + m.lightmap).then((t) => {
+  await Promise.all(Object.entries(info.meshes).filter(([, m]) => m.lightmap).map(([name, m]) => texLoader.loadAsync(assets + m.lightmap).then((t) => {
     t.flipY = false;                     // glTF UV convention
     t.colorSpace = THREE.SRGBColorSpace; // stored sRGB-encoded, scaled by m.scale
     t.channel = 1;                       // TEXCOORD_1
@@ -55,17 +61,65 @@ export async function initGallery(root, data, { assets = "/gallery/", onProgress
     const owner = info.meshes[o.name] ? o.name : o.parent?.name;
     if (owner === "Terminal") terminalMeshes.push(o);
     const lm = lightmaps[owner];
-    for (const m of [].concat(o.material)) {
-      for (const t of [m.map, m.aoMap]) if (t) t.anisotropy = maxAniso;   // grazing walls stay sharp
-      if (lm) {
-        // texel = irradiance / scale; three divides diffuse by PI, Blender doesn't
-        m.lightMap = lm.tex;
-        m.lightMapIntensity = Math.PI * lm.scale * (info.materialIntensity[m.name] ?? 1);
-      }
-      if (m.name === SCREEN_MATERIAL) screenMesh = o;
-      if (m.name === WATER_MATERIAL) waterMesh = o;
+    const m = o.material;
+    if (m.name === SCREEN_MATERIAL) screenMesh = o;
+    if (m.name === WATER_MATERIAL) waterMesh = o;
+    if (!lm) return;
+    // Architecture is fully baked: an unlit material shows the lightmap and ignores the
+    // real-time lights that only exist for the terminal.
+    // texel = irradiance / scale; three divides diffuse by PI, Blender doesn't.
+    const basic = new THREE.MeshBasicMaterial({
+      name: m.name,
+      color: m.color,
+      map: m.map,
+      aoMap: m.aoMap,
+      lightMap: lm.tex,
+      lightMapIntensity: Math.PI * lm.scale * (info.materialIntensity[m.name] ?? 1),
+    });
+    for (const t of [basic.map, basic.aoMap]) if (t) t.anisotropy = maxAniso;   // grazing walls stay sharp
+    if (m.name === STRIP_MATERIAL) {
+      basic.lightMap = null;
+      basic.color.copy(m.emissive).multiplyScalar(STRIP_GLOW);
     }
+    o.material = basic;
+    m.dispose();
   });
+
+  // ---------------------------------------------------------------- real-time light for the terminal only
+  // The terminal is too detailed to lightmap crisply, so it gets the scene's actual
+  // Blender lights (exported in lightmaps.json). Only its standard materials react.
+  // Area lights become cheap stand-ins (RectAreaLight's lookup tables would double
+  // the JS bundle): big panels -> directional, small panels -> a wide spot.
+  const toThreeDir = ([x, y, z]) => new THREE.Vector3(x, z, -y);
+  const termCenter = new THREE.Box3();
+  for (const m of terminalMeshes) termCenter.expandByObject(m);
+  const aim = termCenter.getCenter(new THREE.Vector3());
+  for (const l of info.lights ?? []) {
+    const color = new THREE.Color().setRGB(...l.color, THREE.LinearSRGBColorSpace);
+    const pos = fromBlender(l.position), dir = toThreeDir(l.direction);
+    const k = LIGHT_SCALE[l.name] ?? 1;
+    let light = null;
+    if (l.type === "AREA" && l.size[0] * (l.size[1] || l.size[0]) > 1) {
+      light = new THREE.DirectionalLight(color, l.energy * k);
+      light.position.copy(pos);
+      light.target.position.copy(aim);
+    } else if (l.type === "AREA") {
+      // small glowing panel (the CRT): a point just in front of it washes the bezel and keys
+      light = new THREE.PointLight(color, (l.energy / (4 * Math.PI)) * k, 0, 2);
+      light.position.copy(pos.clone().addScaledVector(dir, 0.12));
+    } else if (l.type === "SPOT") {
+      light = new THREE.SpotLight(color, (l.energy / (4 * Math.PI)) * k, 0, THREE.MathUtils.degToRad(l.spotSize) / 2, 0.8, 2);
+      light.position.copy(pos);
+      light.target.position.copy(pos.clone().add(dir));
+    } else if (l.type === "POINT") {
+      light = new THREE.PointLight(color, (l.energy / (4 * Math.PI)) * k, 0, 2);
+      light.position.copy(pos);
+    }
+    if (!light) continue;               // (the sun only washes one wall; that's in the lightmap)
+    scene.add(light);
+    if (light.target) scene.add(light.target);
+  }
+  scene.add(new THREE.HemisphereLight(0xb8c2cf, 0x3a3631, TERMINAL_AMBIENT));
 
   // ---------------------------------------------------------------- terminal screen
   const terminal = new TerminalScreen(data);
@@ -84,14 +138,13 @@ export async function initGallery(root, data, { assets = "/gallery/", onProgress
     pts.forEach((v, i) => { uv[2 * i] = (zMax - v.z) / (zMax - zMin); uv[2 * i + 1] = (v.y - yMin) / (yMax - yMin); });
     g.setAttribute("uv", new THREE.BufferAttribute(uv, 2));
     terminal.fitToUVs(0, 0, 1, 1);
-    const m = screenMesh.material;            // pure emissive: the canvas is the light
-    m.map = null;
-    m.lightMap = null;
-    m.color.setRGB(0, 0, 0);
-    m.emissive.setRGB(1, 1, 1);
-    m.emissiveMap = terminal.texture;
-    m.emissiveIntensity = SCREEN_GLOW;
-    m.needsUpdate = true;
+    // unlit: the canvas is the light (and no specular smear from the terminal's lights)
+    screenMesh.material.dispose();
+    screenMesh.material = new THREE.MeshBasicMaterial({
+      name: SCREEN_MATERIAL,
+      map: terminal.texture,
+      color: new THREE.Color(SCREEN_GLOW, SCREEN_GLOW, SCREEN_GLOW),
+    });
   }
   const termBox = new THREE.Box3();
   for (const m of terminalMeshes) termBox.expandByObject(m);
@@ -200,7 +253,7 @@ export async function initGallery(root, data, { assets = "/gallery/", onProgress
   });
 
   setState("hero");
-  const api = { flyIn, flyOut, get state() { return state; }, renderer, scene, camera, terminal, water, GRADE };
+  const api = { flyIn, flyOut, get state() { return state; }, renderer, scene, camera, terminal, water, GRADE, THREE };
   root.gallery = api;                 // handy for tuning from the console
   return api;
 }
