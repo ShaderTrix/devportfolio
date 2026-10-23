@@ -1,8 +1,9 @@
-// VR Art Gallery landing: lightmapped hallway (baked in Blender), still dark pool,
+// VR Art Gallery landing: lightmapped hallway (baked in Blender), rippling reflective pool,
 // and a wall terminal you click to glide down the hallway and use.
 import * as THREE from "three";
 import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader.js";
 import { TerminalScreen } from "./terminal.js";
+import { createWater } from "./water.js";
 import { GRADE, applyGrade, maybeGradePanel } from "./grade.js";
 
 const FLY_SECONDS = 2.6;
@@ -147,24 +148,13 @@ export async function initGallery(root, data, { assets = "/gallery/", onProgress
   for (const m of terminalMeshes) termBox.expandByObject(m);
 
   // ---------------------------------------------------------------- water
-  // A flat, dark, unlit surface. It sits at floor level (the baked water is 3.5 cm lower),
-  // which also closes the slit under the leaning mass where the background used to peek
-  // through as a thin bright line.
-  let waterMaterial = null;
-  if (waterMesh) {
-    const box = new THREE.Box3().setFromObject(waterMesh);
-    const size = box.getSize(new THREE.Vector3()), c = box.getCenter(new THREE.Vector3());
-    waterMaterial = new THREE.MeshBasicMaterial({ color: GRADE.water });
-    const plane = new THREE.Mesh(new THREE.PlaneGeometry(size.x, size.z), waterMaterial);
-    plane.rotation.x = -Math.PI / 2;
-    plane.position.set(c.x, -0.002, c.z);
-    scene.add(plane);
-    waterMesh.visible = false;
-  }
+  // Rippled real-time mirror of the hall; its look is driven by the grade (grade.js).
+  const water = waterMesh ? createWater(waterMesh, renderer) : null;
+  if (water) scene.add(water.mesh);
 
   // ---------------------------------------------------------------- grade
   const grade = { renderer, scene, vignetteEl: root.querySelector(".gallery-vignette"),
-    lightmapMaterials, terminalLights, screenMaterial: screenMesh?.material, waterMaterial };
+    lightmapMaterials, terminalLights, screenMaterial: screenMesh?.material, water };
   const regrade = () => applyGrade(GRADE, grade);
   regrade();
   maybeGradePanel(root, GRADE, regrade);
@@ -236,6 +226,7 @@ export async function initGallery(root, data, { assets = "/gallery/", onProgress
     camera.aspect = w / h;
     camera.updateProjectionMatrix();
     renderer.setSize(w, h);
+    water?.resize(w * renderer.getPixelRatio(), h * renderer.getPixelRatio());
     if (state === "terminal") { const p = terminalPose(); pos.copy(p.pos); target.copy(p.target); }
   };
   new ResizeObserver(resize).observe(host);
@@ -263,11 +254,12 @@ export async function initGallery(root, data, { assets = "/gallery/", onProgress
     camera.position.y += Math.sin(t * 0.6) * 0.01;     // a breath of handheld drift
 
     terminal.update(dt, t);
+    water?.update(dt);
     renderer.render(scene, camera);
   });
 
   setState("hero");
-  const api = { flyIn, flyOut, get state() { return state; }, renderer, scene, camera, terminal, GRADE, regrade, THREE };
+  const api = { flyIn, flyOut, get state() { return state; }, renderer, scene, camera, terminal, water, GRADE, regrade, THREE };
   root.gallery = api;                 // handy for tuning from the console
   return api;
 }

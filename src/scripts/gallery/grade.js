@@ -18,7 +18,13 @@ export const GRADE = {
   bakedLight: 1,        // multiplies every lightmap
   terminalFill: 0.42,   // multiplies the terminal's real-time lights
   screenGlow: 3.25,     // CRT brightness
-  water: "#030606",
+  water: "#030606",     // deep water colour
+  waterReflect: 0.14,   // reflection seen straight down
+  waterFresnel: 1,      // extra reflection at grazing angles
+  waterRipple: 0.16,    // ripple height
+  waterRippleSize: 1,   // higher = smaller, busier ripples
+  waterDistort: 0.014,  // how far ripples bend the reflection
+  waterSpeed: 1,        // ripple animation speed
 };
 
 const TONE_MAPPINGS = {
@@ -44,12 +50,18 @@ const FIELDS = [
   ["bakedLight", "Baked light", { min: 0, max: 3, step: 0.01 }],
   ["terminalFill", "Terminal light", { min: 0, max: 4, step: 0.01 }],
   ["screenGlow", "Screen glow", { min: 0, max: 8, step: 0.05 }],
-  ["water", "Water", { color: true }],
+  ["water", "Water colour", { color: true }],
+  ["waterReflect", "Reflection", { min: 0, max: 1, step: 0.01 }],
+  ["waterFresnel", "Edge reflect", { min: 0, max: 1, step: 0.01 }],
+  ["waterRipple", "Ripple height", { min: 0, max: 1, step: 0.01 }],
+  ["waterRippleSize", "Ripple size", { min: 0.1, max: 4, step: 0.05 }],
+  ["waterDistort", "Distortion", { min: 0, max: 0.1, step: 0.001 }],
+  ["waterSpeed", "Ripple speed", { min: 0, max: 4, step: 0.05 }],
 ];
 
 /**
  * hooks: { renderer, scene, vignetteEl, lightmapMaterials: [{material, base}],
- *          terminalLights: [{light, base}], screenMaterial, waterMaterial }
+ *          terminalLights: [{light, base}], screenMaterial, water }
  */
 export function applyGrade(g, hooks) {
   const { renderer, scene } = hooks;
@@ -73,7 +85,16 @@ export function applyGrade(g, hooks) {
   for (const { material, base } of hooks.lightmapMaterials ?? []) material.lightMapIntensity = base * g.bakedLight;
   for (const { light, base } of hooks.terminalLights ?? []) light.intensity = base * g.terminalFill;
   hooks.screenMaterial?.color.setScalar(g.screenGlow);
-  hooks.waterMaterial?.color.set(g.water);
+  if (hooks.water) {
+    const u = hooks.water.uniforms;
+    u.deep.value.set(g.water);
+    u.reflectBase.value = g.waterReflect;
+    u.fresnelAmt.value = g.waterFresnel;
+    u.bump.value = g.waterRipple;
+    u.rippleScale.value = g.waterRippleSize;
+    u.distort.value = g.waterDistort;
+    hooks.water.speed = g.waterSpeed;
+  }
 }
 
 /** Bottom-right tuning panel. Only built when the URL has ?grade. */
