@@ -5,7 +5,7 @@ const links = [
   { href: "/tech-art", label: "Techart" },
   { href: "/art", label: "Art" },
   { href: "/pro-games", label: "Games" },
-  { href: "/", label: "About Me" },
+  { href: "/", label: "About" },
   { href: "/contact", label: "Contact" },
 ];
 
@@ -21,14 +21,8 @@ const isActive = (href: string) => {
 <header
   id="header"
   class="fixed top-0 left-0 right-0 z-50 backdrop-blur-md border-b border-white/5 transition-all duration-300 overflow-hidden"
-  style={{ backgroundColor: "color-mix(in srgb, var(--bg) 80%, transparent)" }}
+  style={{ backgroundColor: "color-mix(in srgb, var(--bg) 82%, transparent)" }}
 >
-  <!-- Accent gradient hairline -->
-  <div
-    class="absolute bottom-0 left-0 right-0 h-px opacity-30"
-    style={`background: linear-gradient(90deg, transparent, ${siteConfig.accentColor}, transparent)`}
-  ></div>
-
   <!-- Faint grid pattern, matches footer -->
   <svg
     aria-hidden="true"
@@ -43,66 +37,28 @@ const isActive = (href: string) => {
     <rect fill="url(#header-grid-pattern)" width="100%" height="100%" stroke-width={0}></rect>
   </svg>
 
-  <nav class="max-w-7xl mx-auto px-6 sm:px-8 py-5">
-    <div class="flex items-center justify-between gap-4">
-      <a
-        href="/"
-        class="group flex items-center gap-2.5 font-mono text-base sm:text-lg font-bold text-white whitespace-nowrap transition-opacity hover:opacity-80"
-      >
-        <span class="status-dot inline-block w-2 h-2 rounded-full" aria-hidden="true"></span>
-        <span class="text-gray-500 transition-colors group-hover:text-white">&gt;</span>
-        {siteConfig.name}
-      </a>
+  <nav class="hdr">
+    <!-- brand: amber slash, name, discipline -->
+    <a href="/" class="hdr-brand">
+      <span class="hdr-slash" aria-hidden="true"></span>
+      <span class="hdr-id">
+        <span class="hdr-name">{siteConfig.name}</span>
+        <span class="hdr-role">Technical Artist | Graphics</span>
+      </span>
+    </a>
 
-      <div class="hidden md:flex items-center gap-6 lg:gap-8">
-        <ul class="nav-list flex items-center">
-          {
-            links.map((link, i) => (
-              <li>
-                <a
-                  href={link.href}
-                  aria-current={isActive(link.href) ? "page" : undefined}
-                  class={`nav-link relative flex items-center gap-2 py-1 font-mono text-xs uppercase tracking-[0.18em] transition-colors duration-300 ${
-                    isActive(link.href) ? "nav-link-active" : "text-gray-400"
-                  }`}
-                >
-                  <span class="nav-num">{String(i + 1).padStart(2, "0")}</span>
-                  {link.label}
-                  <span class="nav-underline"></span>
-                </a>
-              </li>
-            ))
-          }
-        </ul>
-
-        <!-- light mode is off for now
-        <button id="theme-toggle" type="button" aria-label="Toggle theme" class="theme-toggle">
-          <span class="theme-toggle-track"><span class="theme-toggle-thumb"></span></span>
-        </button>
-        -->
-      </div>
-
-      <!-- light mode is off for now
-      <div class="flex md:hidden items-center gap-2">
-        <button id="theme-toggle-mobile" type="button" aria-label="Toggle theme" class="theme-toggle">
-          <span class="theme-toggle-track"><span class="theme-toggle-thumb"></span></span>
-        </button>
-      </div>
-      -->
-    </div>
-
-    <!-- Mobile sub-menu: same tabs as desktop, always visible, no hamburger needed -->
-    <ul class="mobile-subnav flex md:hidden items-center justify-center gap-5 overflow-x-auto pt-3 mt-3 border-t border-white/5 -mx-6 px-6">
+    <ul class="hdr-links hidden md:flex">
       {
-        links.map((link) => (
-          <li class="flex-shrink-0">
+        links.map((link, i) => (
+          <li>
             <a
               href={link.href}
               aria-current={isActive(link.href) ? "page" : undefined}
-              class={`nav-link relative inline-flex items-center py-1 font-mono text-[11px] uppercase tracking-[0.14em] whitespace-nowrap transition-colors duration-300 ${
-                isActive(link.href) ? "nav-link-active" : "text-gray-400"
+              class={`nav-link relative flex items-center gap-3 py-1 font-mono text-[12.5px] font-semibold uppercase tracking-[0.18em] transition-colors duration-300 ${
+                isActive(link.href) ? "nav-link-active" : ""
               }`}
             >
+              <span class="nav-num">{String(i + 1).padStart(2, "0")}</span>
               {link.label}
               <span class="nav-underline"></span>
             </a>
@@ -110,7 +66,42 @@ const isActive = (href: string) => {
         ))
       }
     </ul>
+
+    <!-- terminal-green status lamp -->
+    <div class="hdr-status" aria-hidden="true">
+      <span class="status-dot inline-block w-2 h-2 rounded-full"></span>
+      <span class="hdr-status-label">Systems online</span>
+    </div>
+
+    <!-- light mode is off for now
+    <button id="theme-toggle" type="button" aria-label="Toggle theme" class="theme-toggle">
+      <span class="theme-toggle-track"><span class="theme-toggle-thumb"></span></span>
+    </button>
+    <button id="theme-toggle-mobile" type="button" aria-label="Toggle theme" class="theme-toggle">
+      <span class="theme-toggle-track"><span class="theme-toggle-thumb"></span></span>
+    </button>
+    -->
   </nav>
+
+  <!-- Mobile sub-menu: same tabs as desktop, always visible, no hamburger needed -->
+  <ul class="mobile-subnav flex md:hidden items-center justify-center gap-5 overflow-x-auto py-2.5 border-t border-white/5 px-6">
+    {
+      links.map((link) => (
+        <li class="flex-shrink-0">
+          <a
+            href={link.href}
+            aria-current={isActive(link.href) ? "page" : undefined}
+            class={`nav-link relative inline-flex items-center py-1 font-mono text-[11px] uppercase tracking-[0.14em] whitespace-nowrap transition-colors duration-300 ${
+              isActive(link.href) ? "nav-link-active" : "text-gray-400"
+            }`}
+          >
+            {link.label}
+            <span class="nav-underline"></span>
+          </a>
+        </li>
+      ))
+    }
+  </ul>
 </header>
 
 <script>
@@ -150,11 +141,68 @@ const isActive = (href: string) => {
   .mobile-subnav::-webkit-scrollbar {
     display: none;
   }
-  /* minimal industrial nav: index numbers, hairline separators, amber for the active page */
-  .nav-list > li + li {
-    margin-left: 1.25rem;
-    padding-left: 1.25rem;
+  /* three blocks with full-height charcoal dividers: brand | numbered nav | status */
+  .hdr {
+    display: grid;
+    grid-template-columns: auto 1fr auto;
+    align-items: stretch;
+    height: 72px;
+  }
+  .hdr-brand {
+    display: flex;
+    align-items: center;
+    gap: 1.25rem;
+    padding: 0 clamp(1.5rem, 3vw, 2.75rem) 0 clamp(1rem, 4vw, 4.5rem);
+    border-right: 1px solid var(--border);
+    text-decoration: none;
+  }
+  .hdr-slash {
+    width: 3px;
+    height: 30px;
+    background: var(--accent);
+    transform: skewX(-16deg);
+  }
+  .hdr-id { display: flex; flex-direction: column; gap: 4px; }
+  .hdr-name {
+    font: 600 15px/1 var(--font-mono);
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    color: var(--text-primary);
+    white-space: nowrap;
+  }
+  .hdr-role {
+    font: 400 10.5px/1 var(--font-mono);
+    letter-spacing: 0.24em;
+    text-transform: uppercase;
+    color: var(--text-secondary);
+    opacity: 0.75;
+    white-space: nowrap;
+  }
+  .hdr-brand:hover .hdr-name { color: var(--accent); }
+  .hdr-links {
+    align-items: center;
+    gap: clamp(1.75rem, 3.6vw, 4.25rem);
+    padding: 0 clamp(1.5rem, 3.4vw, 3rem);
+  }
+  .hdr-links .nav-link { color: var(--text-primary); }
+  .hdr-status {
+    display: none;
+    align-items: center;
+    gap: 0.85rem;
+    padding: 0 clamp(1rem, 4vw, 4.5rem) 0 clamp(1.5rem, 3vw, 2.75rem);
     border-left: 1px solid var(--border);
+  }
+  .hdr-status-label {
+    font: 400 11px/1 var(--font-mono);
+    letter-spacing: 0.24em;
+    text-transform: uppercase;
+    color: var(--text-secondary);
+    white-space: nowrap;
+  }
+  @media (min-width: 1100px) { .hdr-status { display: flex; } }
+  @media (max-width: 767px) {
+    .hdr { height: 60px; grid-template-columns: 1fr; }
+    .hdr-brand { border-right: 0; }
   }
   .nav-num {
     color: var(--text-subtle);
@@ -162,7 +210,7 @@ const isActive = (href: string) => {
   }
   .nav-underline {
     position: absolute;
-    bottom: -2px;
+    bottom: -9px;
     left: 0;
     right: 0;
     height: 2px;
