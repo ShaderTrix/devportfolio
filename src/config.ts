@@ -54,37 +54,56 @@ export const siteConfig = {
   // fall back to a clean text "monogram" card.
   toolStack: [
     {
-      category: "Languages & Engines",
+      category: "Engines",
       items: [
         { name: "Unity", icon: "unity" },
         { name: "Unreal Engine", icon: "unrealengine" },
+      ],
+    },
+    {
+      category: "Languages",
+      items: [
         { name: "C#", icon: "csharp" },
         { name: "C++", icon: "cplusplus" },
         { name: "Python", icon: "python" },
-        { name: "HLSL" },
-        { name: "GLSL" },
         { name: "MEL" },
       ],
     },
     {
-      category: "Software I use",
+      category: "Shaders",
+      items: [
+        { name: "HLSL" },
+        { name: "GLSL" },
+      ],
+    },
+    {
+      category: "3D & DCC",
       items: [
         { name: "Blender", icon: "blender" },
         { name: "Maya", icon: "autodeskmaya" },
         { name: "3ds Max", icon: "autodesk" },
         { name: "ZBrush" },
         { name: "Mudbox" },
+      ],
+    },
+    {
+      category: "Texturing & Rendering",
+      items: [
         { name: "Substance" },
-        { name: "Photoshop", icon: "adobephotoshop" },
         { name: "Marmoset" },
         { name: "V-Ray" },
         { name: "Arnold" },
+      ],
+    },
+    {
+      category: "2D & Tools",
+      items: [
+        { name: "Photoshop", icon: "adobephotoshop" },
         { name: "Spine2D", icon: "spine" },
         { name: "GitHub", icon: "github" },
       ],
     },
   ],
-
   experience: [
     {
       company: "Gameberry Labs",

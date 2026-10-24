@@ -1,9 +1,7 @@
 ---
 // src/pages/art.astro
 import Layout from "../layouts/Layout.astro";
-import { siteConfig } from "../config";
-
-const accent = siteConfig.accentColor;
+import "../styles/editorial.css";
 
 // Brand-logo path data (24x24 viewBox), rendered with currentColor.
 // Tags without a known icon just show as plain text tags.
@@ -68,14 +66,16 @@ const artProjects = [
     demoLink: `${ART_DEMO_BASE}&t=150s`,
   },
 ];
+const pad = (n: number) => String(n).padStart(2, "0");
+// "3D Art / Maya": the tool a piece was mainly built in (the first tag with a logo)
+const kindOf = (tags: string[]) => `3D Art / ${tags.find((t) => iconKeyFor(t)) ?? tags[0]}`;
 ---
 
 <Layout title="Art Portfolio">
-  <section class="relative isolate overflow-hidden py-20 sm:py-24 px-6 sm:px-12 lg:px-16" style={{ backgroundColor: "var(--bg)" }}>
-    <div class="absolute inset-0 -z-10" style="background: radial-gradient(ellipse at top, var(--surface), var(--bg), var(--bg))"></div>
+  <section class="tx relative isolate overflow-hidden py-14 sm:py-16" style={{ backgroundColor: "var(--bg)" }}>
     <svg
       aria-hidden="true"
-      class="absolute inset-0 -z-10 size-full opacity-[0.35] [mask-image:radial-gradient(100%_100%_at_top_left,white,transparent)]"
+      class="absolute inset-0 -z-10 size-full opacity-[0.3] [mask-image:radial-gradient(100%_100%_at_top_left,white,transparent)]"
       style={{ stroke: "var(--grid-stroke)" }}
     >
       <defs>
@@ -85,116 +85,68 @@ const artProjects = [
       </defs>
       <rect fill="url(#art-grid-pattern)" width="100%" height="100%" stroke-width={0}></rect>
     </svg>
-    <div class="max-w-7xl mx-auto">
 
-      <div class="max-w-2xl mb-12">
-        <h1 class="text-3xl sm:text-4xl md:text-5xl font-bold tracking-tight text-white animate-fade-in">
-          My Art Stuff
-        </h1>
-        <div class="rule mt-4 animate-fade-in animation-delay-200"></div>
-        <div class="mt-6 text-base sm:text-lg text-gray-300 leading-relaxed animate-fade-in animation-delay-400 space-y-4">
-          <p>
-            A few <span style={{ color: accent, fontStyle: 'italic' }}>3D and environment art pieces</span> I made purely because <span style={{ color: accent, fontStyle: 'italic' }}>I enjoyed making them</span>.
-          </p>
-          <p>
-            <span style={{ color: accent, fontStyle: 'italic' }}>Modeling, sculpting, and lighting</span> things just to see them come together.
-          </p>
-          <p>
-            Click through to ArtStation for the full breakdowns, wireframes, and turntables.
-          </p>
+    <div class="tx-wrap">
+      <!-- page header: title | amber rule + blurb | selected-works count -->
+      <header class="tx-head animate-fade-in">
+        <div class="tx-title-col">
+          <p class="tx-kicker"><span>//</span> Art</p>
+          <h1 class="tx-title">Art<br />Projects</h1>
         </div>
-      </div>
+        <div class="tx-blurb">
+          <p>A few <em>3D and environment art pieces</em> I made purely because <em>I enjoyed making them</em>.</p>
+          <p><em>Modeling, sculpting, and lighting</em> things just to see them come together.</p>
+          <p>Click through to ArtStation for the full breakdowns, wireframes, and turntables.</p>
+        </div>
+        <a href="#works" class="tx-count" aria-label={`${artProjects.length} selected works`}>
+          <span class="tx-count-label">Selected<br />works</span>
+          <span class="tx-count-num">{pad(artProjects.length)}</span>
+        </a>
+      </header>
 
-      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-        {artProjects.map((art, index) => (
-          <div
-            class="group relative flex flex-col h-[420px] rounded-xl border overflow-hidden transition-all duration-300 hover:-translate-y-1"
-            style={{ backgroundColor: "var(--surface)", borderColor: "var(--border)" }}
-          >
-            <a
-              href={art.demoLink}
-              target="_blank"
-              rel="noopener noreferrer"
-              class="block h-[70%] w-full relative overflow-hidden bg-black/40 border-b border-white/[0.04]"
-            >
-              <div
-                class="absolute top-4 right-4 w-8 h-8 z-20 flex items-center justify-center rounded-sm text-gray-400 group-hover:text-white transition-all border border-white/5" style={{ backgroundColor: "var(--surface)" }}
-              >
-                <svg class="w-3.5 h-3.5 transform transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 17L17 7M17 7H7M17 7V17" />
-                </svg>
-              </div>
-
-              <span class="card-num absolute top-4 left-4 z-20">ART-{String(index + 1).padStart(2, "0")}</span>
-
-              <div
-                class="absolute inset-0 z-0 bg-cover bg-center transition-transform duration-700 ease-out group-hover:scale-[1.03]"
-                style={`background-image: url('${art.image}');`}
-              />
-
-              <div class="absolute inset-0 z-10 bg-gradient-to-t from-gray-950/60 via-transparent to-transparent pointer-events-none" />
-            </a>
-
-            <div class="h-[30%] px-5 py-4 flex items-center justify-between gap-3" style={{ backgroundColor: "var(--surface)" }}>
-              <div class="truncate flex flex-col justify-center h-full w-full">
-                <h2 class="text-base font-bold text-white tracking-tight truncate transition-colors">
-                  {art.title}
-                </h2>
-
-                <div class="flex flex-wrap items-center gap-1.5 mt-2 overflow-hidden max-h-[26px]">
-                  {(() => {
-                    const primaryTag = art.tags.find((tag) => iconKeyFor(tag));
-                    const iconKey = primaryTag ? iconKeyFor(primaryTag) : undefined;
-                    return iconKey ? (
-                      <svg class="w-6 h-6 text-white flex-shrink-0" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
-                        <path d={TOOL_ICONS[iconKey]} />
-                      </svg>
-                    ) : null;
-                  })()}
-                  {art.tags.map((tag) => (
-                    <span class="px-2.5 py-0.5 rounded text-[10px] font-mono text-gray-400 bg-gray-900/40 border border-gray-800 whitespace-nowrap">
-                      {tag}
-                    </span>
-                  ))}
+      <ol id="works" class="tx-list art-list">
+        {artProjects.map((art, index) => {
+          const iconKey = art.tags.map(iconKeyFor).find(Boolean);
+          return (
+            <li class={`tx-row${index % 2 ? " is-flip" : ""}`}>
+              <a href={art.demoLink} target="_blank" rel="noopener noreferrer" class="tx-media" tabindex="-1" aria-hidden="true">
+                <span class="tx-main" style={`background-image: url('${art.image}')`}></span>
+              </a>
+              <div class="tx-text">
+                <span class="tx-num" aria-hidden="true">{pad(index + 1)}</span>
+                <div class="tx-copy">
+                  <p class="tx-kind">
+                    {iconKey && (
+                      <svg class="art-kind-icon" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d={TOOL_ICONS[iconKey]} /></svg>
+                    )}
+                    {kindOf(art.tags)}
+                  </p>
+                  <h2 class="tx-name"><a href={art.artstationLink} target="_blank" rel="noopener noreferrer">{art.title}</a></h2>
+                  <div class="tx-tags">{art.tags.map((t) => <span>{t}</span>)}</div>
+                  <div class="art-ctas">
+                    {art.artstationLink && (
+                      <a href={art.artstationLink} target="_blank" rel="noopener noreferrer" class="tx-cta">View on ArtStation <span aria-hidden="true">→</span></a>
+                    )}
+                    {art.demoLink && (
+                      <a href={art.demoLink} target="_blank" rel="noopener noreferrer" class="tx-cta">Watch on YouTube <span aria-hidden="true">→</span></a>
+                    )}
+                  </div>
                 </div>
               </div>
-
-              <div class="flex-shrink-0 flex flex-col items-stretch gap-1.5">
-                {art.artstationLink && (
-                  <a
-                    href={art.artstationLink}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    aria-label={`View ${art.title} on ArtStation`}
-                    class="flex items-center justify-center gap-1.5 px-2.5 py-1 rounded-md text-[10px] font-mono font-medium text-black whitespace-nowrap transition-transform hover:-translate-y-0.5"
-                    style={{ backgroundColor: accent }}
-                  >
-                    View on
-                    <svg xmlns="http://www.w3.org/2000/svg" class="w-3 h-3 flex-shrink-0" viewBox="0 0 24 24" fill="currentColor"><path d="M0 17.723l2.027 3.505h.001a2.424 2.424 0 0 0 2.164 1.333h13.457l-2.792-4.838H0zm24 .19a2.41 2.41 0 0 0-.336-1.218L15.366 1.81a2.424 2.424 0 0 0-2.115-1.244H9.595l12.965 22.42 1.06-1.835A2.42 2.42 0 0 0 24 17.913zM12.453 7.555l4.515 7.823H7.937z"/></svg>
-                  </a>
-                )}
-                {art.demoLink && (
-                  <a
-                    href={art.demoLink}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    aria-label={`Watch ${art.title} demo on YouTube`}
-                    class="flex items-center justify-center gap-1.5 px-2.5 py-1 rounded-md text-[10px] font-mono font-medium text-black whitespace-nowrap transition-transform hover:-translate-y-0.5"
-                    style={{ backgroundColor: accent }}
-                  >
-                    View on
-                    <svg class="w-3 h-3 flex-shrink-0" fill="currentColor" viewBox="0 0 24 24">
-                      <path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/>
-                    </svg>
-                  </a>
-                )}
-              </div>
-            </div>
-
-          </div>
-        ))}
-      </div>
-
+            </li>
+          );
+        })}
+      </ol>
     </div>
   </section>
 </Layout>
+
+<style>
+  /* art pieces are mostly upright renders: a taller frame than Techart's wide captures */
+  .art-list { margin-top: 2.25rem; }
+  .art-list :global(.tx-main) { aspect-ratio: 16 / 9; }
+  .art-kind-icon { display: inline-block; width: 14px; height: 14px; margin: -2px 0.55rem 0 0; vertical-align: middle; color: var(--text-primary); }
+  .art-ctas { display: flex; flex-wrap: wrap; gap: 0 1.75rem; }
+  .art-list .tx-row:hover .tx-cta span { transform: none; }
+  .art-ctas .tx-cta:hover span { transform: translateX(4px); }
+</style>

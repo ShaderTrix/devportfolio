@@ -19,30 +19,33 @@ const ICONS: Record<string, string> = {
 };
 ---
 
-<section id="about" class="border-t border-white/5" style={{ backgroundColor: "var(--bg)" }}>
-
+<section id="about">
   {siteConfig.toolStack && siteConfig.toolStack.length > 0 && (
-    <div class="px-8 sm:px-12 md:px-16 lg:px-24 pt-24 pb-16 border-b border-white/5">
-      <div class="max-w-7xl mx-auto">
-        <h2 class="text-3xl sm:text-4xl md:text-5xl font-bold tracking-tight text-white text-center mb-12">
-          Toolstack
-        </h2>
-        <div class="flex flex-wrap justify-center gap-4 sm:gap-5">
-          {siteConfig.toolStack.flatMap((group) => group.items).map((item) => (
-            <div
-              class="tool-card flex flex-col items-center justify-center gap-3 w-28 h-28 sm:w-32 sm:h-32 rounded-2xl border border-white/[0.06] transition-all duration-200 hover:-translate-y-1"
-              style="background-color: var(--surface);"
-            >
-              {item.icon && ICONS[item.icon] ? (
-                <svg class="tool-icon w-12 h-12 sm:w-14 sm:h-14" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
-                  <path d={ICONS[item.icon]} />
-                </svg>
-              ) : (
-                <span class="tool-icon flex items-center justify-center w-12 h-12 sm:w-14 sm:h-14 text-xl font-bold font-mono">
-                  {item.name.slice(0, 2)}
-                </span>
-              )}
-              <span class="text-xs font-mono text-gray-400 text-center leading-tight px-1">{item.name}</span>
+    <div class="hs">
+      <div class="hs-inner hs-first">
+        <div class="hs-head">
+          <h2 class="hs-title">Toolstack</h2>
+          <div class="rule mt-4"></div>
+        </div>
+
+        <div class="ts-groups">
+          {siteConfig.toolStack.map((group) => (
+            <div class="ts-group">
+              <p class="ts-label">{group.category}</p>
+              <ul class="ts-items">
+                {group.items.map((item) => (
+                  <li class="ts-item">
+                    {item.icon && ICONS[item.icon] ? (
+                      <svg class="ts-icon" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+                        <path d={ICONS[item.icon]} />
+                      </svg>
+                    ) : (
+                      <span class="ts-mono" aria-hidden="true">{item.name.slice(0, 2)}</span>
+                    )}
+                    <span class="ts-name">{item.name}</span>
+                  </li>
+                ))}
+              </ul>
             </div>
           ))}
         </div>
@@ -50,67 +53,124 @@ const ICONS: Record<string, string> = {
     </div>
   )}
 
-  <div class="py-24 px-8 sm:px-12 md:px-16 lg:px-24">
-    <div class="max-w-7xl mx-auto">
-    <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-16 items-start">
-      <div class="lg:col-span-4">
-        <h2 class="text-3xl sm:text-4xl md:text-5xl font-bold tracking-tight text-white">
-          About Me
-        </h2>
-        <div
-          class="rule mt-3"
-        >
-        </div>
+  <div class="hs">
+    <div class="hs-inner">
+      <div class="hs-head">
+        <h2 class="hs-title">About Me</h2>
+        <div class="rule mt-4"></div>
+        <p class="hs-lede">
+          Hey, I'm Shivanshu Chauhan — a Technical Artist specializing in <em class="hs-em">UI systems</em> who lives somewhere between art and engineering. I spend most of my time building <em class="hs-em">shaders, rendering features, and tools</em> that help artists and designers bring their ideas to life without fighting the engine to do it.
+        </p>
       </div>
 
-      <div class="lg:col-span-8 space-y-8">
-        <div class="text-base sm:text-lg md:text-xl leading-relaxed text-gray-300 font-sans space-y-4">
-          <p>
-            Hey, I'm Shivanshu Chauhan — a Technical Artist specializing in <span style={{ color: siteConfig.accentColor, fontStyle: 'italic' }}>UI systems</span> who lives somewhere between art and engineering. I spend most of my time building <span style={{ color: siteConfig.accentColor, fontStyle: 'italic' }}>shaders, rendering features, and tools</span> that help artists and designers bring their ideas to life without fighting the engine to do it.
-          </p>
-          <p>
-            Currently, I'm focused on creating <span style={{ color: siteConfig.accentColor, fontStyle: 'italic' }}>high-performance UI solutions</span> for production mobile games, optimizing canvas performance and reducing draw calls to maintain smooth frame rates on low-end devices.
-          </p>
-          <p>
-            I care a lot about making things look <span style={{ color: siteConfig.accentColor, fontStyle: 'italic' }}>good while still running smoothly</span>, especially on mobile, where every bit of performance counts.
-          </p>
-          <p>
-            Outside of production work I'm usually <span style={{ color: siteConfig.accentColor, fontStyle: 'italic' }}>sculpting, texturing, or tinkering with rendering tricks</span> just for fun.
-          </p>
-        </div>
+      <div>
+        <ul class="ab-points">
+          <li>
+            <span class="ab-slash" aria-hidden="true">/</span>
+            <p>Currently, I'm focused on creating <em class="hs-em">high-performance UI solutions</em> for production mobile games, optimizing canvas performance and reducing draw calls to maintain smooth frame rates on low-end devices.</p>
+          </li>
+          <li>
+            <span class="ab-slash" aria-hidden="true">/</span>
+            <p>I care a lot about making things look <em class="hs-em">good while still running smoothly</em>, especially on mobile, where every bit of performance counts.</p>
+          </li>
+          <li>
+            <span class="ab-slash" aria-hidden="true">/</span>
+            <p>Outside of production work I'm usually <em class="hs-em">sculpting, texturing, or tinkering with rendering tricks</em> just for fun.</p>
+          </li>
+        </ul>
 
-        <div class="pt-4">
-          <div class="flex flex-wrap gap-2">
-            {
-              siteConfig.skills.map((skill) => (
-                <span
-                  class="px-3 py-1.5 rounded-md text-xs sm:text-sm font-mono text-gray-200 border border-white/[0.06] hover:border-[var(--skill-accent)] transition-colors duration-200"
-                  style={`background-color: var(--surface); --skill-accent: ${siteConfig.accentColor}`}
-                >
-                  {skill}
-                </span>
-              ))
-            }
-          </div>
-        </div>
-
+        <ul class="hs-tags ab-skills">
+          {siteConfig.skills.map((skill) => <li>{skill}</li>)}
+        </ul>
       </div>
-    </div>
-
     </div>
   </div>
 </section>
 
 <style>
-  .tool-icon {
+  /* tool groups in aligned columns, each behind a charcoal divider */
+  .ts-groups {
+    display: grid;
+    grid-template-columns: repeat(2, max-content);
+    row-gap: 2.5rem;
+    align-self: center;
+  }
+  .ts-group {
+    padding: 0 clamp(1rem, 2vw, 1.75rem);
+    border-left: 1px solid var(--border);
+  }
+  .ts-label {
+    margin-bottom: 1.4rem;
+    font: 500 11px/1 var(--font-mono);
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
     color: var(--text-secondary);
+    white-space: nowrap;
+  }
+  .ts-items {
+    display: flex;
+    gap: 1.1rem 0.75rem;
+  }
+  .ts-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.8rem;
+    width: 66px;
+    color: var(--text-primary);
     transition: color 0.2s;
   }
-  .tool-card:hover {
-    border-color: var(--accent);
-    box-shadow: 0 0 18px var(--accent-dim);
+  .ts-item:hover { color: var(--accent); }
+  .ts-icon { width: 38px; height: 38px; }
+  /* tools without a logo: a beige key-cap monogram */
+  .ts-mono {
+    display: grid;
+    place-items: center;
+    width: 38px;
+    height: 38px;
+    border-radius: 3px;
+    background: var(--text-primary);
+    color: var(--bg);
+    font: 800 17px/1 var(--font-display);
+    text-transform: uppercase;
+    transition: background-color 0.2s;
   }
-  .tool-card:hover .tool-icon {
+  .ts-item:hover .ts-mono { background: var(--accent); }
+  .ts-name {
+    font: 400 11px/1.25 var(--font-mono);
+    color: var(--text-secondary);
+    text-align: center;
+  }
+
+  /* three short statements, each led by an amber slash */
+  .ab-points {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+  }
+  .ab-points li {
+    display: flex;
+    gap: 1rem;
+    padding: 0.25rem clamp(1rem, 2vw, 1.75rem);
+    border-left: 1px solid var(--border);
+  }
+  .ab-slash {
+    font: 700 20px/1.1 var(--font-mono);
     color: var(--accent);
+    transform: skewX(-8deg);
+  }
+  .ab-points p {
+    font: 400 13.5px/1.75 var(--font-mono);
+    color: var(--text-secondary);
+  }
+  .ab-skills {
+    margin-top: 2.5rem;
+    padding-left: clamp(1rem, 2vw, 1.75rem);
+  }
+  @media (max-width: 1023px) {
+    .ts-groups { grid-template-columns: 1fr; }
+    .ts-group, .ab-points li { border-left: 0; padding-left: 0; }
+    .ts-items { flex-wrap: wrap; }
+    .ab-points { grid-template-columns: 1fr; gap: 1.5rem; }
+    .ab-skills { padding-left: 0; }
   }
 </style>

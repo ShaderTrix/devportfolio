@@ -1,65 +1,46 @@
 ---
 import { siteConfig } from "../config";
 const hasExperience = siteConfig.experience && siteConfig.experience.length > 0;
+// "Jul 2024 - Present" -> ["Jul 2024", "– Present"] for the two-line timeline date
+const dateLines = (range: string) => range.split(/\s+-\s+/).map((d, i) => (i ? `– ${d}` : d));
 ---
 
 {
   hasExperience && (
-    <section id="experience" class="py-20 px-8 sm:px-12 md:px-16 lg:px-24" style={{ backgroundColor: 'var(--bg)', borderTop: '1px solid var(--border)' }}>
-      <div class="max-w-7xl mx-auto">
-        <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-16 items-start">
-          <div class="lg:col-span-4">
-            <h2 class="text-3xl sm:text-4xl font-bold tracking-tight text-white">
-              Experience
-            </h2>
-            <div
-              class="rule mt-3"
-            />
-          </div>
+    <section id="experience" class="hs">
+      <div class="hs-inner">
+        <div class="hs-head">
+          <h2 class="hs-title">Experience</h2>
+          <div class="rule mt-4" />
+          <a class="hs-btn" href={siteConfig.resumeUrl} target="_blank" rel="noopener">
+            View full resume <span aria-hidden="true">→</span>
+          </a>
+        </div>
 
-          <div class="lg:col-span-8">
-            <div class="space-y-6">
-              {siteConfig.experience.map((exp) => (
-                <div 
-                  class="rounded-xl border p-6 sm:p-8 transition-all duration-300"
-                  style={{ backgroundColor: 'var(--surface)', borderColor: 'var(--border)' }}
-                >
-                  <div class="flex flex-col sm:flex-row sm:items-start sm:justify-between mb-4">
-                    <div>
-                      <h3 class="text-xl font-bold text-white">
-                        {exp.role || exp.title}
-                      </h3>
-                      <p
-                        class="text-base font-mono mt-1"
-                        style={`color: ${siteConfig.accentColor}`}
-                      >
-                        {exp.company}
-                      </p>
-                    </div>
-                    <span class="text-xs sm:text-sm text-gray-500 font-mono mt-2 sm:mt-0">
-                      // {exp.dateRange}
-                    </span>
-                  </div>
-
-                  <p class="text-sm sm:text-base text-gray-300 leading-relaxed mb-4">
-                    {exp.description}
-                  </p>
-
+        <ol class="tl">
+          {siteConfig.experience.map((exp, i) => (
+            <li class="tl-item">
+              <p class={`tl-date ${i === 0 ? "is-current" : ""}`}>
+                <span class="tl-dot" aria-hidden="true" />
+                {dateLines(exp.dateRange).map((d) => <span>{d}</span>)}
+              </p>
+              <div class="tl-card">
+                <div>
+                  <h3 class="tl-role">{exp.role || exp.title}</h3>
+                  <p class="tl-org">{exp.company}</p>
+                </div>
+                <div>
+                  <p class="tl-desc">{exp.description}</p>
                   {exp.highlights && (
-                    <ul class="space-y-2">
-                      {exp.highlights.map((highlight) => (
-                        <li class="flex items-start text-sm text-gray-400">
-                          <span class="text-gray-600 mr-2 font-mono">›</span>
-                          <span>{highlight}</span>
-                        </li>
-                      ))}
+                    <ul class="tl-list">
+                      {exp.highlights.map((highlight) => <li>{highlight}</li>)}
                     </ul>
                   )}
                 </div>
-              ))}
-            </div>
-          </div>
-        </div>
+              </div>
+            </li>
+          ))}
+        </ol>
       </div>
     </section>
   )

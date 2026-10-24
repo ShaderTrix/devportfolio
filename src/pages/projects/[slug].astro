@@ -1,6 +1,7 @@
 ---
 import Layout from "../../layouts/Layout.astro";
-import { siteConfig, allProjects } from "../../config";
+import "../../styles/editorial.css";
+import { allProjects } from "../../config";
 
 export function getStaticPaths() {
   return allProjects.map((project) => ({
@@ -10,7 +11,6 @@ export function getStaticPaths() {
 }
 
 const { project } = Astro.props;
-const accent = siteConfig.accentColor;
 
 // Detail-page banner: prefer `detailImage`, fall back to the tile `image`.
 const bannerImage = project.hideDetailBanner ? "" : (project.detailImage || project.image || "");
@@ -27,252 +27,254 @@ const categoryBackLabel =
 ---
 
 <Layout title={project.name}>
-  {bannerImage && (
-    <div id="preview-banner" class="relative w-full h-56 sm:h-72 md:h-96 overflow-hidden" style={{ backgroundColor: "var(--surface)" }}>
-      <div
-        id="preview-image"
-        class="absolute inset-0 bg-cover bg-center"
-        style={`background-image: url('${bannerImage}')`}
-      ></div>
-      <!-- Fade into the page background at the bottom -->
-      <div
-        id="preview-fade"
-        class="absolute inset-0"
-        style="background: linear-gradient(to bottom, color-mix(in srgb, var(--bg) 25%, transparent) 0%, color-mix(in srgb, var(--bg) 60%, transparent) 60%, var(--bg) 100%)"
-      ></div>
+  <section class="relative isolate overflow-hidden py-14 sm:py-16" style={{ backgroundColor: "var(--bg)" }}>
+    <svg
+      aria-hidden="true"
+      class="absolute inset-0 -z-10 size-full opacity-[0.3] [mask-image:radial-gradient(100%_100%_at_top_left,white,transparent)]"
+      style={{ stroke: "var(--grid-stroke)" }}
+    >
+      <defs>
+        <pattern x="50%" y={-1} id="project-grid-pattern" width={40} height={40} patternUnits="userSpaceOnUse">
+          <path d="M.5 40V.5H40" fill="none"></path>
+        </pattern>
+      </defs>
+      <rect fill="url(#project-grid-pattern)" width="100%" height="100%" stroke-width={0}></rect>
+    </svg>
 
-      <button
-        id="preview-toggle"
-        type="button"
-        aria-label="Toggle full preview"
-        class="absolute bottom-4 right-4 z-20 flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-gray-950/70 border border-white/10 text-xs font-mono text-gray-200 hover:text-white hover:border-white/30 transition-colors backdrop-blur-sm"
-      >
-        <svg id="preview-toggle-icon" class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
-        </svg>
-        <span id="preview-toggle-label">Expand preview</span>
-      </button>
-    </div>
-  )}
+    <div class="page-wrap">
+      <a href={categoryHref} class="dp-back"><span aria-hidden="true">←</span> Back to {categoryBackLabel}</a>
 
-  <style>
-    #preview-banner {
-      transition: height 0.4s ease;
-    }
-    #preview-banner.preview-expanded {
-      height: 85vh;
-    }
-    #preview-image {
-      transition: background-size 0.3s ease;
-    }
-    #preview-banner.preview-expanded #preview-image {
-      background-size: contain;
-    }
-    #preview-fade {
-      transition: opacity 0.3s ease;
-    }
-    #preview-banner.preview-expanded #preview-fade {
-      opacity: 0;
-    }
-    #preview-toggle-icon {
-      transition: transform 0.3s ease;
-    }
-    #preview-banner.preview-expanded #preview-toggle-icon {
-      transform: rotate(180deg);
-    }
-  </style>
-
-  <script>
-    const banner = document.getElementById("preview-banner");
-    const toggle = document.getElementById("preview-toggle");
-    const label = document.getElementById("preview-toggle-label");
-
-    toggle?.addEventListener("click", () => {
-      const expanded = banner?.classList.toggle("preview-expanded");
-      if (label) label.textContent = expanded ? "Collapse preview" : "Expand preview";
-    });
-  </script>
-
-  <article class="py-20 sm:py-24 px-6 sm:px-12 lg:px-16" style={{ backgroundColor: "var(--bg)" }}>
-    <div class="max-w-3xl mx-auto">
-      <!-- Back link -->
-      <a
-        href={categoryHref}
-        class="inline-flex items-center gap-2 text-sm font-mono text-gray-400 hover:text-white transition-colors"
-      >
-        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
-        </svg>
-        Back to {categoryBackLabel}
-      </a>
-
-      <!-- Title -->
-      <header class="mt-8">
-        <div class="flex items-center justify-between gap-4">
-          <span class="text-xs font-mono tracking-widest uppercase" style={{ color: accent }}>
-            // {project.categoryLabel}
-          </span>
-          {project.categoryKey === "professional" && (
-            <span class="status-badge">Live · Production Tested</span>
-          )}
+      <!-- title block, same voice as the Techart page header -->
+      <header class="dp-head animate-fade-in">
+        <div>
+          <p class="tx-kicker"><span>//</span> {project.categoryLabel}</p>
+          <h1 class="tx-title">{project.name}</h1>
+          {project.tagline && <p class="dp-tagline">{project.tagline}</p>}
         </div>
-        <h1 class="text-3xl sm:text-4xl md:text-5xl font-bold tracking-tight text-white mt-2">
-          {project.name}
-        </h1>
-        {project.tagline && (
-          <p class="mt-3 text-lg font-mono text-gray-400">{project.tagline}</p>
+        {project.categoryKey === "professional" && (
+          <span class="status-badge dp-badge">Live · Production Tested</span>
         )}
-        <div class="rule mt-5"></div>
       </header>
 
-      <!-- Skills -->
-      {project.skills && project.skills.length > 0 && (
-        <div class="flex flex-wrap gap-2 mt-6">
-          {project.skills.map((skill) => (
-            <span class="px-2.5 py-1 rounded text-xs font-mono text-gray-300 bg-gray-900/40 border border-gray-800">
-              {skill}
-            </span>
-          ))}
+      {bannerImage && (
+        <div id="preview-banner" class="dp-banner">
+          <div id="preview-image" style={`background-image: url('${bannerImage}')`}></div>
+          <button id="preview-toggle" type="button" aria-label="Toggle full preview" class="dp-toggle">
+            <svg id="preview-toggle-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+            </svg>
+            <span id="preview-toggle-label">Expand preview</span>
+          </button>
         </div>
       )}
 
-      <!-- Body -->
-      <div class="mt-8 space-y-5">
-        {project.longDescription?.map((paragraph) => (
-          <p class="text-base text-gray-300 leading-relaxed">{paragraph}</p>
-        ))}
+      <!-- Overview: tags + links on the left, the write-up on the right -->
+      <div class="hs-inner dp-first">
+        <div class="dp-side">
+          <h2 class="dp-h">Overview</h2>
+          <div class="rule mt-3"></div>
+          {project.skills && project.skills.length > 0 && (
+            <div class="tx-tags dp-tags">{project.skills.map((skill) => <span>{skill}</span>)}</div>
+          )}
+          {(project.link || project.demoLink) && (
+            <div class="dp-links">
+              {project.link && (
+                <a href={project.link} target="_blank" rel="noopener noreferrer" class="hs-btn">
+                  {project.link.includes("github.com") && (
+                    <svg fill="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path fill-rule="evenodd" clip-rule="evenodd" d="M12 2C6.477 2 2 6.477 2 12c0 4.42 2.865 8.166 6.839 9.489.5.092.682-.217.682-.482 0-.237-.008-.866-.013-1.7-2.782.603-3.369-1.34-3.369-1.34-.454-1.156-1.11-1.464-1.11-1.464-.908-.62.069-.0.069-.608.0 1.003.702 1.531 1.532 1.531.892 0 1.634-.559 2.03-1.02.086-.615.333-1.02.606-1.255-2.22-.253-4.555-1.11-4.555-4.943 0-1.091.39-1.984 1.029-2.683-.103-.253-.446-1.27.098-2.647 0 0 .84-.269 2.75 1.024A9.564 9.564 0 0112 6.844c.85.004 1.705.115 2.504.337 1.909-1.293 2.747-1.024 2.747-1.024.546 1.377.203 2.394.1 2.647.64.699 1.028 1.592 1.028 2.683 0 3.842-2.339 4.687-4.566 4.935.359.309.678.919.678 1.852 0 1.336-.012 2.415-.012 2.743 0 .267.18.579.688.481C19.137 20.162 22 16.418 22 12c0-5.523-4.477-10-10-10z"/></svg>
+                  )}
+                  View project <span aria-hidden="true">↗</span>
+                </a>
+              )}
+              {project.demoLink && (
+                <a href={project.demoLink} target="_blank" rel="noopener noreferrer" class="hs-btn">
+                  <svg fill="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/></svg>
+                  View demo <span aria-hidden="true">↗</span>
+                </a>
+              )}
+            </div>
+          )}
+        </div>
+
+        <div class="dp-body">
+          {project.longDescription?.map((paragraph) => <p>{paragraph}</p>)}
+          {project.inlineImage && <img src={project.inlineImage} alt={project.name} class="dp-img" />}
+          {project.galleryImages?.map((img) => <img src={img} alt={project.name} class="dp-img" />)}
+        </div>
       </div>
 
-      <!-- Inline preview image -->
-      {project.inlineImage && (
-        <div class="mt-8 rounded-xl overflow-hidden border" style={{ borderColor: "var(--border)" }}>
-          <img src={project.inlineImage} alt={project.name} class="w-full h-auto" />
-        </div>
-      )}
-
-      <!-- Gallery images (e.g. graph / blueprint breakdowns) -->
-      {project.galleryImages && project.galleryImages.length > 0 && (
-        <div class="mt-8 space-y-6">
-          {project.galleryImages.map((img) => (
-            <div class="rounded-xl overflow-hidden border" style={{ borderColor: "var(--border)" }}>
-              <img src={img} alt={project.name} class="w-full h-auto" />
-            </div>
-          ))}
-        </div>
-      )}
-
-      <!-- How to use -->
       {project.usageNotes && (
-        <div class="mt-8 rounded-xl border-2 p-6 sm:p-8" style={{ backgroundColor: "var(--surface)", borderColor: accent }}>
-          <div class="flex items-center gap-2.5">
-            <span class="text-xl">🛠️</span>
-            <h2 class="text-sm font-mono uppercase tracking-widest font-bold" style={{ color: accent }}>
-              How To Use
-            </h2>
+        <div class="hs-inner">
+          <div>
+            <h2 class="dp-h">How to use</h2>
+            <div class="rule mt-3"></div>
           </div>
-          <ol class="mt-5 space-y-4 text-sm sm:text-base text-gray-300 leading-relaxed">
+          <ol class="dp-steps">
             {project.usageNotes.map((note, index) => (
-              <li class="flex gap-3 sm:gap-4">
-                <span
-                  class="flex-shrink-0 flex items-center justify-center w-6 h-6 rounded-full text-xs font-mono font-bold"
-                  style={{ backgroundColor: accent, color: "var(--bg)" }}
-                >
-                  {index + 1}
-                </span>
-                <span class="pt-0.5">{note}</span>
-              </li>
+              <li><span class="dp-step-num" aria-hidden="true">{String(index + 1).padStart(2, "0")}</span><p>{note}</p></li>
             ))}
           </ol>
         </div>
       )}
 
-      <!-- External links -->
-      {(project.link || project.demoLink) && (
-        <div class="flex flex-wrap items-center gap-3 mt-10">
-          {project.link && (
-            <a
-              href={project.link}
-              target="_blank"
-              rel="noopener noreferrer"
-              class="inline-flex items-center gap-2 px-5 py-2.5 rounded-lg font-mono text-sm font-medium text-black transition-transform hover:-translate-y-0.5"
-              style={{ backgroundColor: accent }}
-            >
-              {project.link.includes("github.com") && (
-                <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
-                  <path fill-rule="evenodd" clip-rule="evenodd" d="M12 2C6.477 2 2 6.477 2 12c0 4.42 2.865 8.166 6.839 9.489.5.092.682-.217.682-.482 0-.237-.008-.866-.013-1.7-2.782.603-3.369-1.34-3.369-1.34-.454-1.156-1.11-1.464-1.11-1.464-.908-.62.069-.0.069-.608.0 1.003.702 1.531 1.532 1.531.892 0 1.634-.559 2.03-1.02.086-.615.333-1.02.606-1.255-2.22-.253-4.555-1.11-4.555-4.943 0-1.091.39-1.984 1.029-2.683-.103-.253-.446-1.27.098-2.647 0 0 .84-.269 2.75 1.024A9.564 9.564 0 0112 6.844c.85.004 1.705.115 2.504.337 1.909-1.293 2.747-1.024 2.747-1.024.546 1.377.203 2.394.1 2.647.64.699 1.028 1.592 1.028 2.683 0 3.842-2.339 4.687-4.566 4.935.359.309.678.919.678 1.852 0 1.336-.012 2.415-.012 2.743 0 .267.18.579.688.481C19.137 20.162 22 16.418 22 12c0-5.523-4.477-10-10-10z"/>
-                </svg>
-              )}
-              View project
-              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 17L17 7M17 7H7M17 7V17" />
-              </svg>
-            </a>
-          )}
-
-          {project.demoLink && (
-            <a
-              href={project.demoLink}
-              target="_blank"
-              rel="noopener noreferrer"
-              class="inline-flex items-center gap-2 px-5 py-2.5 rounded-lg font-mono text-sm font-medium text-black transition-transform hover:-translate-y-0.5"
-              style={{ backgroundColor: accent }}
-            >
-              <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
-                <path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/>
-              </svg>
-              View Demo
-              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 17L17 7M17 7H7M17 7V17" />
-              </svg>
-            </a>
-          )}
-        </div>
-      )}
-
-      <!-- Tutorial / Code -->
-      {project.ndaProtected ? (
-        <div class="mt-12 rounded-xl border-2 p-6 sm:p-8" style={{ backgroundColor: "var(--surface)", borderColor: accent }}>
-          <div class="flex items-center gap-2.5">
-            <svg class="w-5 h-5" fill="none" stroke={accent} viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
-            </svg>
-            <h2 class="text-sm font-mono uppercase tracking-widest font-bold" style={{ color: accent }}>
-              Code Under NDA
-            </h2>
+      <!-- Code (or the NDA note). The "Tutorial: coming soon" placeholder is switched off for now. -->
+      {(project.ndaProtected || project.codeBlocks || project.code) && (
+        <div class="hs-inner">
+          <div>
+            <h2 class="dp-h">{project.ndaProtected ? "Code under NDA" : "Code"}</h2>
+            <div class="rule mt-3"></div>
           </div>
-          <p class="mt-4 text-sm sm:text-base text-gray-300 leading-relaxed">
-            This system is live in a shipped commercial title, so the actual source is covered by an NDA and I'm not able to share it publicly here. I've kept the write-up above focused on the how and the why — the architecture, the trade-offs, and how it's used in production.
-          </p>
-          <p class="mt-3 text-sm sm:text-base text-gray-400 leading-relaxed">
-            Happy to talk through the implementation in more detail in a conversation or interview — feel free to <a href="/contact" class="underline" style={{ color: accent }}>reach out</a>.
-          </p>
-        </div>
-      ) : project.codeBlocks ? (
-        <div class="mt-12 space-y-6">
-          {project.codeBlocks.map((block) => (
-            <div class="rounded-xl border p-6 sm:p-8" style={{ backgroundColor: "var(--surface)", borderColor: "var(--border)" }}>
-              <h2 class="text-sm font-mono uppercase tracking-widest text-gray-500">// {block.label}</h2>
-              <pre class="mt-3 text-xs sm:text-sm text-gray-300 leading-relaxed overflow-x-auto"><code>{block.code}</code></pre>
-            </div>
-          ))}
-        </div>
-      ) : (
-        <div class="mt-12 rounded-xl border p-6 sm:p-8" style={{ backgroundColor: "var(--surface)", borderColor: "var(--border)" }}>
-          {project.code ? (
-            <>
-              <h2 class="text-sm font-mono uppercase tracking-widest text-gray-500">// Code</h2>
-              <pre class="mt-3 text-xs sm:text-sm text-gray-300 leading-relaxed overflow-x-auto"><code>{project.code}</code></pre>
-            </>
-          ) : (
-            <>
-              <h2 class="text-sm font-mono uppercase tracking-widest text-gray-500">// Tutorial</h2>
-              <p class="mt-3 text-sm sm:text-base text-gray-400 leading-relaxed">
-                Coming soon — working on a write-up / video breakdown of how this one works.
+          {project.ndaProtected ? (
+            <div class="dp-body dp-note">
+              <p>
+                This system is live in a shipped commercial title, so the actual source is covered by an NDA and I'm not able to share it publicly here. I've kept the write-up above focused on the how and the why — the architecture, the trade-offs, and how it's used in production.
               </p>
-            </>
+              <p>
+                Happy to talk through the implementation in more detail in a conversation or interview — feel free to <a href="/contact">reach out</a>.
+              </p>
+            </div>
+          ) : project.codeBlocks ? (
+            <div class="dp-codes">
+              {project.codeBlocks.map((block) => (
+                <div class="dp-code">
+                  <p class="dp-code-label">// {block.label}</p>
+                  <pre><code>{block.code}</code></pre>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <div class="dp-code"><pre><code>{project.code}</code></pre></div>
           )}
         </div>
       )}
+
+      {/*
+      <div class="hs-inner">
+        <div>
+          <h2 class="dp-h">Tutorial</h2>
+          <div class="rule mt-3"></div>
+        </div>
+        <div class="dp-body">
+          <p>Coming soon — working on a write-up / video breakdown of how this one works.</p>
+        </div>
+      </div>
+      */}
     </div>
-  </article>
+  </section>
 </Layout>
+
+<script>
+  const banner = document.getElementById("preview-banner");
+  const toggle = document.getElementById("preview-toggle");
+  const label = document.getElementById("preview-toggle-label");
+
+  toggle?.addEventListener("click", () => {
+    const expanded = banner?.classList.toggle("preview-expanded");
+    if (label) label.textContent = expanded ? "Collapse preview" : "Expand preview";
+  });
+</script>
+
+<style>
+  .dp-back {
+    display: inline-flex;
+    gap: 0.6rem;
+    font: 500 11.5px var(--font-mono);
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--text-secondary);
+    transition: color 0.2s;
+  }
+  .dp-back:hover { color: var(--accent); }
+  .dp-head {
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: 1.5rem 2.5rem;
+    margin-top: 2.25rem;
+  }
+  .dp-tagline {
+    margin-top: 1rem;
+    font: 400 15px/1.5 var(--font-mono);
+    color: var(--text-secondary);
+  }
+  .dp-badge { flex-shrink: 0; margin-bottom: 0.3rem; }
+
+  /* banner sits inside the content column; expand shows the whole image */
+  .dp-banner {
+    position: relative;
+    height: clamp(220px, 34vw, 470px);
+    margin-top: 2.25rem;
+    border: 1px solid var(--border);
+    background: #000;
+    transition: height 0.4s ease;
+  }
+  #preview-image { position: absolute; inset: 0; background: center / cover no-repeat; }
+  .dp-banner.preview-expanded { height: 85vh; }
+  .dp-banner.preview-expanded #preview-image { background-size: contain; }
+  .dp-toggle {
+    position: absolute;
+    right: 14px;
+    bottom: 14px;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.55rem 0.9rem;
+    font: 500 10.5px var(--font-mono);
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--text-primary);
+    background: rgba(11, 11, 10, 0.82);
+    border: 1px solid var(--border);
+    cursor: pointer;
+    transition: color 0.2s, border-color 0.2s;
+  }
+  .dp-toggle:hover { color: var(--accent); border-color: var(--accent); }
+  .dp-toggle svg { width: 13px; height: 13px; transition: transform 0.3s; }
+  .preview-expanded .dp-toggle svg { transform: rotate(180deg); }
+
+  .dp-first { margin-top: 2.5rem; }
+  .dp-h {
+    font: 800 clamp(1.7rem, 2.4vw, 2.2rem)/1 var(--font-display);
+    text-transform: uppercase;
+    color: var(--text-primary);
+  }
+  .dp-tags { margin-top: 1.6rem; }
+  .dp-links { display: flex; flex-direction: column; align-items: flex-start; gap: 0.75rem; margin-top: 1.75rem; }
+  .dp-links .hs-btn { margin-top: 0; padding: 0.75rem 1.1rem; font-size: 11px; }
+  .dp-links svg { width: 14px; height: 14px; }
+
+  .dp-body { display: grid; gap: 1.25rem; max-width: 78ch; }
+  .dp-body p {
+    font: 400 13.5px/1.85 var(--font-mono);
+    color: var(--text-secondary);
+  }
+  .dp-body a { color: var(--accent); text-decoration: underline; text-underline-offset: 3px; }
+  .dp-img { width: 100%; height: auto; margin-top: 0.5rem; border: 1px solid var(--border); }
+
+  .dp-steps { display: grid; gap: 1.1rem; max-width: 78ch; }
+  .dp-steps li { display: grid; grid-template-columns: 44px 1fr; gap: 0.75rem; }
+  .dp-step-num { font: 300 20px/1.2 var(--font-mono); color: var(--text-secondary); }
+  .dp-step-num::after { content: ""; display: block; width: 18px; height: 2px; margin-top: 0.45rem; background: var(--accent); }
+  .dp-steps p { font: 400 13.5px/1.8 var(--font-mono); color: var(--text-secondary); }
+
+  .dp-codes { display: grid; gap: 1.25rem; min-width: 0; }
+  .dp-code {
+    min-width: 0;
+    padding: 1.25rem 1.5rem;
+    border: 1px solid var(--border);
+    background: color-mix(in srgb, var(--surface) 55%, transparent);
+  }
+  .dp-code-label {
+    margin-bottom: 0.75rem;
+    font: 500 11px var(--font-mono);
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: var(--accent);
+  }
+  .dp-code pre { overflow-x: auto; font: 400 12.5px/1.7 var(--font-mono); color: var(--text-primary); }
+
+  @media (max-width: 640px) {
+    .dp-head { flex-direction: column; align-items: flex-start; }
+    .dp-badge { order: -1; margin-bottom: 0; }
+  }
+</style>
