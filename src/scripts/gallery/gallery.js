@@ -4,6 +4,7 @@ import * as THREE from "three";
 import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader.js";
 import { TerminalScreen } from "./terminal.js";
 import { createWater } from "./water.js";
+import { createDust } from "./dust.js";
 import { GRADE, applyGrade, maybeGradePanel } from "./grade.js";
 
 const FLY_SECONDS = 2.6;
@@ -70,6 +71,10 @@ export async function initGallery(root, data, { assets = "/gallery/", onProgress
       aoMap: m.aoMap,
       lightMap: lm.tex,
       lightMapIntensity: Math.PI * lm.scale * (info.materialIntensity[m.name] ?? 1),
+      transparent: m.transparent,     // the painted "02" decal
+      alphaTest: m.alphaTest,
+      alphaHash: m.alphaHash,
+      depthWrite: m.depthWrite,
     });
     for (const t of [basic.map, basic.aoMap]) if (t) t.anisotropy = maxAniso;   // grazing walls stay sharp
     if (m.name === STRIP_MATERIAL) {
@@ -152,9 +157,38 @@ export async function initGallery(root, data, { assets = "/gallery/", onProgress
   const water = waterMesh ? createWater(waterMesh, renderer) : null;
   if (water) scene.add(water.mesh);
 
+  // ---------------------------------------------------------------- dust in the sun shaft
+  const dust = info.sunShaft ? createDust(info.sunShaft, fromBlender) : null;
+  if (dust) scene.add(dust.mesh);
+
+  // ---------------------------------------------------------------- terminal reflections
+  // The baked paint has bare-steel chips and brass screws; metal reflects nothing without an
+  // environment. Capture the (lightmapped) hall from just in front of the terminal and
+  // prefilter it for rough surfaces. Re-captured when the baked light level changes.
+  const terminalMaterials = terminalMeshes.map((m) => m.material).filter((m) => m.isMeshStandardMaterial);
+  const pmrem = new THREE.PMREMGenerator(renderer);
+  let envTarget = null;
+  const captureEnv = () => {
+    const hide = [...terminalMeshes, water?.mesh, dust?.mesh].filter((o) => o && o.visible);
+    hide.forEach((o) => (o.visible = false));
+    const eye = aim.clone().add(new THREE.Vector3(0.6, 0, 0));   // the terminal faces +X
+    gltf.scene.position.sub(eye);                                 // fromScene captures at the origin
+    const rt = pmrem.fromScene(scene, 0, 0.05, 100);
+    gltf.scene.position.add(eye);
+    gltf.scene.updateMatrixWorld(true);   // or anything measured before the next frame sees the shifted hall
+    hide.forEach((o) => (o.visible = true));
+    envTarget?.dispose();
+    envTarget = rt;
+    for (const m of terminalMaterials) {
+      if (!m.envMap) m.needsUpdate = true;
+      m.envMap = rt.texture;
+    }
+  };
+
   // ---------------------------------------------------------------- grade
   const grade = { renderer, scene, vignetteEl: root.querySelector(".gallery-vignette"),
-    lightmapMaterials, terminalLights, screenMaterial: screenMesh?.material, water };
+    lightmapMaterials, terminalLights, screenMaterial: screenMesh?.material, water, dust,
+    terminalMaterials, captureEnv };
   const regrade = () => applyGrade(GRADE, grade);
   regrade();
   maybeGradePanel(root, GRADE, regrade);
@@ -227,6 +261,7 @@ export async function initGallery(root, data, { assets = "/gallery/", onProgress
     camera.updateProjectionMatrix();
     renderer.setSize(w, h);
     water?.resize(w * renderer.getPixelRatio(), h * renderer.getPixelRatio());
+    dust?.resize(camera, h * renderer.getPixelRatio());
     if (state === "terminal") { const p = terminalPose(); pos.copy(p.pos); target.copy(p.target); }
   };
   new ResizeObserver(resize).observe(host);
@@ -255,11 +290,12 @@ export async function initGallery(root, data, { assets = "/gallery/", onProgress
 
     terminal.update(dt, t);
     water?.update(dt);
+    dust?.update(dt);
     renderer.render(scene, camera);
   });
 
   setState("hero");
-  const api = { flyIn, flyOut, get state() { return state; }, renderer, scene, camera, terminal, water, GRADE, regrade, THREE };
+  const api = { flyIn, flyOut, get state() { return state; }, renderer, scene, camera, terminal, water, dust, GRADE, regrade, THREE };
   root.gallery = api;                 // handy for tuning from the console
   return api;
 }

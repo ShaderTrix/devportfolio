@@ -6,18 +6,18 @@ import * as THREE from "three";
 
 // Paste values from the panel's "Copy values" here to make them the defaults.
 export const GRADE = {
-  toneMapping: "ACES",
-  exposure: 1.39,
-  contrast: 1,
-  brightness: 1.07,
+  toneMapping: "AgX",
+  exposure: 1.13,
+  contrast: 0.98,
+  brightness: 1.4,
   saturation: 1.19,
-  hue: -28,
-  sepia: 0.11,
+  hue: -20,
+  sepia: 0,
   vignette: 1,
   vignetteSize: 40,
-  bakedLight: 1,        // multiplies every lightmap
+  bakedLight: 0.26,     // multiplies every lightmap
   terminalFill: 0.42,   // multiplies the terminal's real-time lights
-  screenGlow: 3.25,     // CRT brightness
+  screenGlow: 1.5,     // CRT brightness
   water: "#030606",     // deep water colour
   waterReflect: 0.14,   // reflection seen straight down
   waterFresnel: 1,      // extra reflection at grazing angles
@@ -25,6 +25,11 @@ export const GRADE = {
   waterRippleSize: 1,   // higher = smaller, busier ripples
   waterDistort: 0.014,  // how far ripples bend the reflection
   waterSpeed: 1,        // ripple animation speed
+  terminalReflect: 1,   // how much the terminal's metal reflects the hall
+  dust: 0.6,            // share of the dust motes shown in the sun shaft
+  dustSize: 0.035,      // mote size, metres (the shaft is 20-40 m from the hero camera)
+  dustBright: 3,
+  dustSpeed: 1,
 };
 
 const TONE_MAPPINGS = {
@@ -57,11 +62,17 @@ const FIELDS = [
   ["waterRippleSize", "Ripple size", { min: 0.1, max: 4, step: 0.05 }],
   ["waterDistort", "Distortion", { min: 0, max: 0.1, step: 0.001 }],
   ["waterSpeed", "Ripple speed", { min: 0, max: 4, step: 0.05 }],
+  ["terminalReflect", "Terminal reflect", { min: 0, max: 3, step: 0.01 }],
+  ["dust", "Dust amount", { min: 0, max: 1, step: 0.01 }],
+  ["dustSize", "Dust size", { min: 0.002, max: 0.05, step: 0.001 }],
+  ["dustBright", "Dust bright", { min: 0, max: 6, step: 0.05 }],
+  ["dustSpeed", "Dust speed", { min: 0, max: 4, step: 0.05 }],
 ];
 
 /**
  * hooks: { renderer, scene, vignetteEl, lightmapMaterials: [{material, base}],
- *          terminalLights: [{light, base}], screenMaterial, water }
+ *          terminalLights: [{light, base}], screenMaterial, water, dust,
+ *          terminalMaterials, captureEnv }
  */
 export function applyGrade(g, hooks) {
   const { renderer, scene } = hooks;
@@ -94,6 +105,18 @@ export function applyGrade(g, hooks) {
     u.rippleScale.value = g.waterRippleSize;
     u.distort.value = g.waterDistort;
     hooks.water.speed = g.waterSpeed;
+  }
+  if (hooks.dust) {
+    hooks.dust.setAmount(g.dust);
+    hooks.dust.uniforms.size.value = g.dustSize;
+    hooks.dust.uniforms.brightness.value = g.dustBright;
+    hooks.dust.speed = g.dustSpeed;
+  }
+  for (const m of hooks.terminalMaterials ?? []) m.envMapIntensity = g.terminalReflect;
+  // the terminal's reflections are a capture of the lightmapped hall: redo it when that changes
+  if (hooks.captureEnv && hooks.envBakedLight !== g.bakedLight) {
+    hooks.envBakedLight = g.bakedLight;
+    hooks.captureEnv();
   }
 }
 
