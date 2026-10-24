@@ -24,8 +24,8 @@ const LIGHT_SCALE = { Fill: 0.0004, Terminal_ScreenGlow: 0.4 };
 // Blender is Z-up, glTF/three is Y-up: (x, y, z) -> (x, z, -y)
 const fromBlender = ([x, y, z]) => new THREE.Vector3(x, z, -y);
 const ease = (t) => (t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2);
-const CUE_PERIOD = 5;               // s between "click the terminal" callouts (hallway view)
-const CUE_LENGTH = 2;               // s each callout stays up
+const CUE_PERIOD = 8;               // s between "click the terminal" callouts (hallway view)
+const CUE_LENGTH = 4;               // s each callout takes to fade in and out (sin²)
 
 export async function initGallery(root, data, { assets = "/gallery/", onProgress = () => {} } = {}) {
   const host = root.querySelector("[data-gallery-canvas]");

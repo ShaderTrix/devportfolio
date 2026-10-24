@@ -67,8 +67,11 @@ const terminalData = {
       <p class="gallery-edition">{terminalData.role}<span class="gallery-dash" aria-hidden="true"></span></p>
     </div>
     <nav class="gallery-nav">
+      <button class="gallery-nav-item" data-gallery-terminal type="button">
+        <span class="gallery-nav-icon" aria-hidden="true">→</span>Go to Terminal
+      </button>
       <a class="gallery-nav-item" href={siteHref} data-gallery-site>
-        <span class="gallery-nav-icon" aria-hidden="true">→</span>Go to Website
+        <span class="gallery-nav-icon" aria-hidden="true">↓</span>Go to Website
       </a>
       <a class="gallery-nav-item" href={s.resumeUrl} download>
         <svg class="gallery-nav-icon" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 17v2a2 2 0 0 0 2 2h12a2 2 0 0 0 2 -2v-2" /><path d="M7 11l5 5l5 -5" /><path d="M12 4l0 12" /></svg>Download CV
@@ -100,7 +103,7 @@ const terminalData = {
   </button>
 
   <!-- hint while in the hallway; on the home page it scrolls down into the site -->
-  <a class="gallery-hint" href={siteHref} data-gallery-site>Go to website <span aria-hidden="true">↓</span></a>
+  <a class="gallery-hint" href={siteHref} data-gallery-site>Scroll down <span aria-hidden="true">↓</span></a>
   <!-- credits for the original Sketchfab models the scene is built from: "Fallout Terminal" by
        Daniele Cocchi (CC BY 4.0) and "VR Art Gallery" by carlcapu9 -->
   <p class="gallery-credits">
@@ -141,6 +144,7 @@ const terminalData = {
   loading.classList.add("is-done");
 
   root.querySelector("[data-gallery-back]")!.addEventListener("click", () => gallery.flyOut());
+  root.querySelector("[data-gallery-terminal]")!.addEventListener("click", () => gallery.flyIn());
   const soundBtn = root.querySelector<HTMLButtonElement>("[data-gallery-sound]")!;
   const showSound = () => {
     soundBtn.setAttribute("aria-pressed", String(!gallery.audio.muted));
@@ -211,6 +215,8 @@ const terminalData = {
   .gallery-nav-item:last-child { border-bottom: 0; }
   .gallery-nav-item:hover, .gallery-nav-item:focus-visible { color: var(--gallery-amber); outline: none;
     background: linear-gradient(90deg, rgba(217,154,50,0.14), transparent); }
+  /* already there: "Go to Terminal" steps out of the menu (and the phone bottom bar) */
+  .gallery:not([data-state="hero"]) [data-gallery-terminal] { display: none; }
   .gallery-nav-icon { width: 20px; height: 20px; flex: none; display: grid; place-items: center; font-size: 18px; }
 
   .gallery-help { margin-top: 18px; padding: 14px 18px; font-size: 13px; line-height: 1.6; color: var(--text-secondary);
@@ -219,7 +225,7 @@ const terminalData = {
   .gallery-help p { margin: 0 0 6px; } .gallery-help b { color: var(--gallery-amber); font-weight: 600; margin-right: 6px; }
 
   .gallery-hint { position: absolute; left: 50%; bottom: clamp(24px, 7vh, 64px); transform: translateX(-50%); margin: 0;
-    font-size: 13px; letter-spacing: 0.22em; text-transform: uppercase; white-space: nowrap;
+    font-size: 10.5px; letter-spacing: 0.2em; text-transform: uppercase; white-space: nowrap;
     color: rgba(255,255,255,0.75); text-decoration: none; transition: opacity .4s, color .2s;
     animation: gallery-pulse 2.4s ease-in-out infinite; }
   .gallery-hint:hover { color: var(--gallery-amber); animation: none; }
