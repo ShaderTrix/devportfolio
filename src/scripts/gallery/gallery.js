@@ -5,7 +5,7 @@ import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader.js";
 import { TerminalScreen } from "./terminal.js";
 import { createWater } from "./water.js";
 import { createDust } from "./dust.js";
-import { GRADE, applyGrade, maybeGradePanel } from "./grade.js";
+import { GRADE, applyGrade, maybeGradePanel, makeGrain } from "./grade.js";
 
 const FLY_SECONDS = 2.6;
 const SCREEN_MATERIAL = "blinn3";     // the CRT face in fallout_terminal.glb
@@ -241,7 +241,8 @@ export async function initGallery(root, data, { assets = "/gallery/", onProgress
   };
 
   // ---------------------------------------------------------------- grade
-  const grade = { renderer, scene, vignetteEl: root.querySelector(".gallery-vignette"),
+  const grainEl = root.querySelector(".gallery-grain");
+  const grade = { renderer, scene, vignetteEl: root.querySelector(".gallery-vignette"), grainEl: grainEl && makeGrain(grainEl),
     lightmapMaterials, terminalLights, screenMaterial: screenMesh?.material, water, dust,
     terminalMaterials, bodyMaterials, decalMaterials, captureEnv };
   const regrade = () => applyGrade(GRADE, grade);

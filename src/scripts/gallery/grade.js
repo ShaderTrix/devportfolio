@@ -15,16 +15,17 @@ export const GRADE = {
   sepia: 0,
   vignette: 1,
   vignetteSize: 40,
-  bakedLight: 0.26,     // multiplies every lightmap
+  noise: 0.1,          // film grain strength (overlay blend)
+  bakedLight: 0.23,     // multiplies every lightmap
   terminalFill: 0.42,   // multiplies the terminal's real-time lights
   screenGlow: 1.5,     // CRT brightness
-  water: "#030606",     // deep water colour
+  water: "#111818",     // deep water colour
   waterReflect: 0.14,   // reflection seen straight down
   waterFresnel: 1,      // extra reflection at grazing angles
-  waterRipple: 0.16,    // ripple height
-  waterRippleSize: 1,   // higher = smaller, busier ripples
+  waterRipple: 1,    // ripple height
+  waterRippleSize: 2.25,   // higher = smaller, busier ripples
   waterDistort: 0.014,  // how far ripples bend the reflection
-  waterSpeed: 1,        // ripple animation speed
+  waterSpeed: 2,        // ripple animation speed
   terminalReflect: 1,   // how much the terminal's metal reflects the hall
   terminalMetal: 0,     // one flat metalness for the terminal body (no metal map)
   decal: "#b9ad7e",     // the "02" paint tint (multiplies the white stencil image)
@@ -56,6 +57,7 @@ const FIELDS = [
   ["sepia", "Sepia", { min: 0, max: 1, step: 0.01 }],
   ["vignette", "Vignette", { min: 0, max: 1, step: 0.01 }],
   ["vignetteSize", "Vignette size", { min: 0, max: 90, step: 1 }],
+  ["noise", "Noise", { min: 0, max: 1, step: 0.01 }],
   ["bakedLight", "Baked light", { min: 0, max: 3, step: 0.01 }],
   ["terminalFill", "Terminal light", { min: 0, max: 4, step: 0.01 }],
   ["screenGlow", "Screen glow", { min: 0, max: 8, step: 0.05 }],
@@ -78,7 +80,7 @@ const FIELDS = [
 ];
 
 /**
- * hooks: { renderer, scene, vignetteEl, lightmapMaterials: [{material, base}],
+ * hooks: { renderer, scene, vignetteEl, grainEl, lightmapMaterials: [{material, base}],
  *          terminalLights: [{light, base}], screenMaterial, water, dust,
  *          terminalMaterials, bodyMaterials, decalMaterials, captureEnv }
  */
@@ -97,6 +99,7 @@ export function applyGrade(g, hooks) {
   if (g.hue) f.push(`hue-rotate(${g.hue}deg)`);
   if (g.sepia) f.push(`sepia(${g.sepia})`);
   renderer.domElement.style.filter = f.join(" ");
+  if (hooks.grainEl) hooks.grainEl.style.opacity = g.noise;
   if (hooks.vignetteEl) {
     hooks.vignetteEl.style.setProperty("--vig", g.vignette);
     hooks.vignetteEl.style.setProperty("--vig-size", `${g.vignetteSize}%`);
@@ -126,6 +129,23 @@ export function applyGrade(g, hooks) {
     hooks.envBakedLight = g.bakedLight;
     hooks.captureEnv();
   }
+}
+
+/** Fill the grain overlay with a tiling 256px grey-noise texture (mean 0.5, so the overlay
+ *  blend leaves average brightness alone). The CSS jitters it a few times a second. */
+export function makeGrain(el) {
+  const c = document.createElement("canvas");
+  c.width = c.height = 256;
+  const ctx = c.getContext("2d");
+  const img = ctx.createImageData(256, 256);
+  for (let i = 0; i < img.data.length; i += 4) {
+    const v = 128 + (Math.random() + Math.random() + Math.random() - 1.5) * 120;   // soft bell curve
+    img.data[i] = img.data[i + 1] = img.data[i + 2] = v;
+    img.data[i + 3] = 255;
+  }
+  ctx.putImageData(img, 0, 0);
+  el.firstElementChild.style.backgroundImage = `url(${c.toDataURL()})`;
+  return el;
 }
 
 /** Bottom-right tuning panel. Only built when the URL has ?grade. */
