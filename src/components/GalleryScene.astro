@@ -79,7 +79,7 @@ const terminalData = {
     </nav>
     <div class="gallery-help" data-gallery-help-panel hidden>
       <p><b>Hallway</b> click anywhere to walk up to the terminal.</p>
-      <p><b>Terminal</b> click a line, or use ↑ ↓ Enter and number keys. Scroll for long pages.</p>
+      <p><b>Terminal</b> click a line, or use ↑ ↓ Enter and number keys. Scroll, or swipe on a phone, for long pages.</p>
       <p><b>Leave</b> Esc, Back, or [LOG OFF].</p>
     </div>
   </aside>
@@ -101,6 +101,12 @@ const terminalData = {
 
   <!-- hint while in the hallway; on the home page it scrolls down into the site -->
   <a class="gallery-hint" href={siteHref} data-gallery-site>Go to website <span aria-hidden="true">↓</span></a>
+  <!-- credits for the original Sketchfab models the scene is built from: "Fallout Terminal" by
+       Daniele Cocchi (CC BY 4.0) and "VR Art Gallery" by carlcapu9 -->
+  <p class="gallery-credits">
+    Credits to &mdash; Terminal: Daniele Cocchi (CC BY) <span aria-hidden="true">&middot;</span> Gallery: carlcapu9
+  </p>
+
   <!-- corner brackets that fade in around the terminal now and then (gallery.js updateCue) -->
   <div class="gallery-cue" data-gallery-cue aria-hidden="true"><span>Click the terminal</span></div>
 
@@ -172,6 +178,7 @@ const terminalData = {
   .gallery[data-embedded] ~ #about { border-top-width: 0 !important; }   /* light theme forces its colour with !important */
   .gallery[data-embedded] .gallery-hint { bottom: clamp(96px, 12vh, 120px); }
   .gallery-canvas, .gallery-canvas canvas { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
+  .gallery[data-state="terminal"] .gallery-canvas canvas { touch-action: none; }   /* drags scroll the terminal */
   /* strength/size come from the colour grade (grade.js) */
   .gallery-vignette { position: absolute; inset: 0; pointer-events: none;
     background: radial-gradient(ellipse 75% 85% at 50% 50%, transparent var(--vig-size, 45%), rgba(0,0,0,var(--vig, 0.65)) 100%); }
@@ -264,6 +271,9 @@ const terminalData = {
   .gallery[data-state="terminal"] .gallery-back { opacity: 1; pointer-events: auto; }
   .gallery:not([data-state="hero"]) .gallery-hint { visibility: hidden; animation: none; opacity: 0; }
 
+  .gallery-credits { position: absolute; right: 28px; bottom: 18px; z-index: 4; margin: 0;
+    font: 400 10.5px/1.4 "JetBrains Mono", monospace; letter-spacing: 0.06em; text-align: right;
+    color: rgba(232,227,217,0.32); text-shadow: 0 1px 3px rgba(0,0,0,0.9); pointer-events: none; }
   .gallery-loading { position: absolute; inset: 0; display: grid; place-content: center; gap: 14px; background: #050505;
     color: var(--accent); font-size: 13px; letter-spacing: 0.15em; transition: opacity .8s; }
   .gallery-loading.is-done { opacity: 0; pointer-events: none; }
@@ -301,10 +311,12 @@ const terminalData = {
     .gallery:not([data-state="hero"]) .gallery-nav-item:last-child { border-right: 0; }
     .gallery:not([data-state="hero"]) .gallery-nav-icon { width: 16px; height: 16px; font-size: 14px; }
     .gallery:not([data-state="hero"]) .gallery-help { margin: 0 0 10px; }
+    .gallery:not([data-state="hero"]) .gallery-credits { bottom: 72px; right: 16px; }   /* above the bottom bar */
   }
   @media (max-width: 640px) {
     .gallery:not([data-state="hero"]) .gallery-nav-item { gap: 6px; padding: 0 4px; font-size: 10px; letter-spacing: 0.04em; white-space: nowrap; }
     .gallery-top { padding: 16px 18px; } .gallery-contact { display: none; }
+    .gallery-credits { right: 14px; bottom: 12px; font-size: 8.5px; letter-spacing: 0.02em; white-space: nowrap; }
     .gallery-side { top: 40px; }
     .gallery-wordmark { font-size: 11vw; }
     .gallery-nav-item { height: 48px; gap: 18px; font-size: 13px; }

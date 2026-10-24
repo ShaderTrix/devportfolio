@@ -11,6 +11,7 @@ import { makeProgress, fetchProgress } from "./load.js";
 import { GRADE, applyGrade, maybeGradePanel, makeGrain } from "./grade.js";
 
 const FLY_SECONDS = 2.6;
+const TOUCH_SCROLL = 3;              // finger drag px -> wheel px (terminal lines are small on a phone)
 const SCREEN_MATERIAL = "blinn3";     // the CRT face in fallout_terminal.glb
 const WATER_MATERIAL = "Water";
 const STRIP_MATERIAL = "LightStrip";
@@ -307,7 +308,21 @@ export async function initGallery(root, data, { assets = "/gallery/", onProgress
     ray.setFromCamera(ndc, camera);
     return ray.intersectObjects(meshes, false)[0];
   };
+  // phones/tablets: drag on the terminal to scroll long pages (the canvas has touch-action: none
+  // in terminal mode, so the page doesn't pan); a drag doesn't count as a tap on a line
+  let drag = null;
+  renderer.domElement.addEventListener("pointerdown", (e) => {
+    drag = state === "terminal" && e.pointerType !== "mouse" ? { y: e.clientY, moved: 0 } : null;
+  });
+  renderer.domElement.addEventListener("pointercancel", () => { drag = null; });
   renderer.domElement.addEventListener("pointermove", (e) => {
+    if (drag && e.pointerType !== "mouse") {
+      const dy = drag.y - e.clientY;                  // finger up = scroll down, like a phone list
+      drag.y = e.clientY;
+      drag.moved += Math.abs(dy);
+      terminal.wheel(dy * TOUCH_SCROLL);
+      return;
+    }
     const r = renderer.domElement.getBoundingClientRect();
     mouse.set(((e.clientX - r.left) / r.width) * 2 - 1, ((e.clientY - r.top) / r.height) * 2 - 1);
     let pointer = false;
@@ -319,6 +334,9 @@ export async function initGallery(root, data, { assets = "/gallery/", onProgress
     renderer.domElement.style.cursor = pointer ? "pointer" : "";
   });
   renderer.domElement.addEventListener("click", (e) => {
+    const dragged = drag && drag.moved > 8;
+    drag = null;
+    if (dragged) return;
     if (state === "hero") flyIn();
     else if (state === "terminal" && screenMesh) {
       const hit = pick(e, [screenMesh]);
@@ -326,7 +344,7 @@ export async function initGallery(root, data, { assets = "/gallery/", onProgress
     }
   });
   renderer.domElement.addEventListener("wheel", (e) => {
-    if (state === "terminal") { e.preventDefault(); terminal.wheel(e.deltaY); }
+    if (state === "terminal") { e.preventDefault(); terminal.wheel(e.deltaMode === 1 ? e.deltaY * 40 : e.deltaY); }   // deltaMode 1 = lines
   }, { passive: false });
   addEventListener("keydown", (e) => {
     if (state !== "terminal" || !onScreen) return;   // scrolled away: arrows scroll the page

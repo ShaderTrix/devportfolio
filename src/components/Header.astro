@@ -68,6 +68,7 @@ const isActive = (href: string) => {
       <span class="hdr-status-text">
         <span class="hdr-status-label">ShaderTrix Unified OS</span>
         <span class="hdr-status-sub">Guest access // <b>Granted</b></span>
+        <span class="hdr-status-time">Local <span data-local-time></span></span>
       </span>
     </div>
 
@@ -112,6 +113,15 @@ const isActive = (href: string) => {
   // }
   // document.getElementById("theme-toggle")?.addEventListener("click", toggleTheme);
   // document.getElementById("theme-toggle-mobile")?.addEventListener("click", toggleTheme);
+
+  // the visitor's local time under the status lamp, ticking each second
+  import { localTime } from "../scripts/local-time";
+  const clock = document.querySelector<HTMLElement>("[data-local-time]");
+  if (clock) {
+    const tick = () => (clock.textContent = localTime());
+    tick();
+    setInterval(tick, 1000);
+  }
 
   // Home page: the 3D gallery opens full screen with the header tucked away; it slides down
   // once you scroll (or "Go to Website") past the gallery.
@@ -197,7 +207,7 @@ const isActive = (href: string) => {
     color: var(--text-primary);
     white-space: nowrap;
   }
-  .hdr-status-text { display: flex; flex-direction: column; gap: 6px; }
+  .hdr-status-text { display: flex; flex-direction: column; gap: 5px; }
   .hdr-status-sub {
     font: 400 10.5px/1 var(--font-mono);
     letter-spacing: 0.14em;
@@ -207,6 +217,14 @@ const isActive = (href: string) => {
     white-space: nowrap;
   }
   .hdr-status-sub b { font-weight: 500; color: var(--signal); }
+  .hdr-status-time {
+    font: 400 9.5px/1 var(--font-mono);
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--text-subtle);
+    white-space: nowrap;
+  }
+  .hdr-status-time span { color: var(--text-secondary); }
   @media (min-width: 1100px) { .hdr-status { display: flex; } }
   @media (max-width: 767px) {
     .hdr { height: 60px; grid-template-columns: 1fr; }

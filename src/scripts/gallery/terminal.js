@@ -3,13 +3,16 @@
 // boot  -> typed logon sequence, then the menu
 // menu / page -> portfolio content, mouse + keyboard driven
 import * as THREE from "three";
+import { localTime } from "../local-time";
 
 const SIZE = 1024;
 const MARGIN_X = 92, MARGIN_TOP = 104, MARGIN_BOTTOM = 96;   // keep clear of the CRT's curved bezel
 const FONT_PX = 34, LINE_H = 44;
 const GREEN = "#62ff95", DIM = "#1f7a45", BG = "#020c06";
 const TYPE_BOOT = 70, TYPE_PAGE = 420;                       // characters per second
+const WHEEL_PX_PER_LINE = 60;                                // wheel distance per line scrolled
 const FONT = `${FONT_PX}px "JetBrains Mono", "IBM Plex Mono", ui-monospace, monospace`;
+const CLOCK_FONT = `26px "JetBrains Mono", "IBM Plex Mono", ui-monospace, monospace`;
 
 export class TerminalScreen {
   constructor(data) {
@@ -155,7 +158,14 @@ export class TerminalScreen {
     const row = this.uvToRow(uv);
     if (row >= 0 && this.lines[row].action) this.lines[row].action();
   }
-  wheel(dy) { this.scrollBy(Math.sign(dy) * 2); }
+  /** scroll by distance, not per event: trackpads send many small wheel events */
+  wheel(dy) {
+    this.wheelAcc = (this.wheelAcc || 0) + dy;
+    const lines = Math.trunc(this.wheelAcc / WHEEL_PX_PER_LINE);
+    if (!lines) return;
+    this.wheelAcc -= lines * WHEEL_PX_PER_LINE;
+    this.scrollBy(lines);
+  }
   scrollBy(n) {
     const max = Math.max(0, this.lines.length - this.rows);
     this.scroll = Math.min(max, Math.max(0, this.scroll + n));
@@ -221,6 +231,7 @@ export class TerminalScreen {
     c.shadowBlur = 10;
     if (this.state === "idle") this.drawIdle(t);
     else this.drawLines(t);
+    this.drawClock();
     c.shadowBlur = 0;
 
     // rolling refresh band + scanlines
@@ -233,6 +244,19 @@ export class TerminalScreen {
     c.fillStyle = band;
     c.fillRect(0, bandY - 90, SIZE, 180);
     c.drawImage(this.scan, 0, 0);
+  }
+
+  /** the visitor's local time, small and dim in the bottom-left corner */
+  drawClock() {
+    const c = this.ctx;
+    const sec = Math.floor(Date.now() / 1000);
+    if (sec !== this.clockSec) { this.clockSec = sec; this.clockText = `LOCAL ${localTime()}`; }
+    c.save();
+    c.font = CLOCK_FONT;
+    c.globalAlpha = 1;
+    c.fillStyle = DIM;
+    c.fillText(this.clockText, MARGIN_X, SIZE - MARGIN_BOTTOM + 10);
+    c.restore();
   }
 
   drawIdle(t) {

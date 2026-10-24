@@ -18,6 +18,7 @@ const games = [
       "Optimized CPU-GPU workloads to keep frame times stable on low-end devices",
     ],
     image: "/games/sorry.webp",
+    trailer: { id: "mgx4a-oreXM", seconds: 69 },      // the Play Store listing's YouTube trailer
     androidLink:
       "https://play.google.com/store/apps/details?id=com.gameberry.sorry.card.board.game&hl=en_IN",
     iosLink:
@@ -35,6 +36,7 @@ const games = [
       "Helped with techart tasks and support across the project",
     ],
     image: "/games/backgammon.webp",
+    trailer: { id: "WawwKEav3os", seconds: 38 },
     androidLink:
       "https://play.google.com/store/apps/details?id=com.gameberrylabs.backgammonfriends&hl=en",
     iosLink: "https://apps.apple.com/us/app/backgammon-friends-online/id6446756885",
@@ -53,6 +55,7 @@ const games = [
       "Set up real-time lighting and rendering in Unity with performance in mind",
     ],
     image: "/games/gamestarz.webp",
+    trailer: { id: "dSDKoqPXU-o", seconds: 113 },
     androidLink: "https://play.google.com/store/apps/details?id=com.dirtcube.gamestarz&hl=en_IN",
     iosLink: "https://apps.apple.com/in/app/gamestarz-metaverse-of-games/id1617812520?l=hi",
   },
@@ -95,7 +98,13 @@ const pad = (n: number) => String(n).padStart(2, "0");
         {games.map((game, index) => (
           <li class={`tx-row${index % 2 ? " is-flip" : ""}`}>
             <div class="tx-media">
-              <span class="tx-main corners" style={`background-image: url('${game.image}')`}></span>
+              {game.trailer ? (
+                <span class="tx-main corners tx-yt" data-yt={game.trailer.id} data-start="0" data-end={game.trailer.seconds - 1} data-fallback={game.image}>
+                  <span class="tx-yt-clip"><span class="tx-yt-frame"></span></span>
+                </span>
+              ) : (
+                <span class="tx-main corners" style={`background-image: url('${game.image}')`}></span>
+              )}
             </div>
             <div class="tx-text">
               <span class="tx-num" aria-hidden="true">{pad(index + 1)}</span>
@@ -108,12 +117,14 @@ const pad = (n: number) => String(n).padStart(2, "0");
                 <ul class="game-list">
                   {game.contributions.map((bullet) => <li>{bullet}</li>)}
                 </ul>
-                <div class="game-ctas">
-                  <a href={game.androidLink} target="_blank" rel="noopener noreferrer" class="tx-cta">
-                    <img src="/icons/google-play.svg" alt="" />Google Play <span aria-hidden="true">→</span>
+                <div class="tx-btns">
+                  <a href={game.androidLink} target="_blank" rel="noopener noreferrer" class="tx-btn">
+                    <img src="/icons/google-play.svg" alt="" class="store-logo" />
+                    Google Play
                   </a>
-                  <a href={game.iosLink} target="_blank" rel="noopener noreferrer" class="tx-cta">
-                    <img src="/icons/app-store.svg" alt="" />App Store <span aria-hidden="true">→</span>
+                  <a href={game.iosLink} target="_blank" rel="noopener noreferrer" class="tx-btn">
+                    <img src="/icons/app-store.svg" alt="" class="store-logo is-apple" />
+                    App Store
                   </a>
                 </div>
               </div>
@@ -125,9 +136,17 @@ const pad = (n: number) => String(n).padStart(2, "0");
   </section>
 </Layout>
 
+<script>
+  import { initYoutubePreviews } from "../scripts/youtube-preview";
+  initYoutubePreviews();
+</script>
+
 <style>
   .games-list { margin-top: 2.25rem; }
   .games-list .tx-main { aspect-ratio: 16 / 9; }
+  /* the stores' own logos inside the outlined buttons (Apple's is black, so lighten it) */
+  .store-logo { width: 15px; height: 15px; object-fit: contain; }
+  .store-logo.is-apple { filter: invert(0.92); }
   .games-list .tx-row { align-items: start; }
   .game-role {
     margin-top: 0.6rem;
@@ -153,9 +172,4 @@ const pad = (n: number) => String(n).padStart(2, "0");
     color: var(--text-primary);
   }
   .game-list li::before { content: "›"; position: absolute; left: 0; color: var(--accent); }
-  .game-ctas { display: flex; flex-wrap: wrap; gap: 0 1.75rem; }
-  .game-ctas img { display: inline-block; width: 13px; height: 13px; margin: -2px 0.55rem 0 0; vertical-align: middle; }
-  .game-ctas img[src*="app-store"] { filter: invert(0.92); }   /* black logo: it used to sit on an amber button */
-  .games-list .tx-row:hover .tx-cta span { transform: none; }
-  .game-ctas .tx-cta:hover span { transform: translateX(4px); }
 </style>

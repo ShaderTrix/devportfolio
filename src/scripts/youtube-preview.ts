@@ -1,6 +1,8 @@
 // Looping, muted YouTube clips used as work previews (Techart and Art pages).
-// Markup: <span class="tx-yt" data-yt={id} data-start={s} data-end={s}><span class="tx-yt-clip">
-// <span class="tx-yt-frame"></span></span></span>; styles in src/styles/editorial.css.
+// Markup: <span class="tx-yt" data-yt={id} data-start={s} data-end={s} data-fallback={img?}>
+// <span class="tx-yt-clip"><span class="tx-yt-frame"></span></span></span>; styles in
+// src/styles/editorial.css. data-fallback is an image shown only if the video can't play (removed,
+// made private or unembeddable, or YouTube blocked), so it isn't downloaded otherwise.
 
 /** The 11-character video id from a youtube.com/watch?v=… or youtu.be/… link. */
 export const youtubeId = (url?: string) => url?.match(/(?:[?&]v=|youtu\.be\/)([\w-]{11})/)?.[1];
@@ -16,6 +18,14 @@ export const youtubeStart = (url?: string) => {
  *  "More videos" for a few seconds whenever a player starts or resumes, so the video only fades
  *  in once that has cleared, and hides again whenever it pauses. */
 const REVEAL_DELAY = 3500;   // ms of playing before the video is shown
+const FALLBACK_AFTER = 12000; // ms without playback before the fallback image is shown
+
+/** show the backup still (once) when the video can't play */
+function showFallback(el: HTMLElement, failed = false) {
+  const img = el.dataset.fallback;
+  if (img && !el.style.backgroundImage) el.style.backgroundImage = `url("${img}")`;
+  if (failed) el.classList.add("is-failed");
+}
 export function initYoutubePreviews() {
   const clips = [...document.querySelectorAll<HTMLElement>(".tx-yt")];
   if (!clips.length) return;
@@ -34,6 +44,8 @@ export function initYoutubePreviews() {
 
   const create = async (el: HTMLElement) => {
     players.set(el, null);
+    // no playback in time (API blocked, very slow network): put the still up behind the player
+    const slow = setTimeout(() => { if (!el.classList.contains("is-playing")) showFallback(el); }, FALLBACK_AFTER);
     const YT = await loadApi();
     const start = Number(el.dataset.start), end = Number(el.dataset.end);
     let reveal: ReturnType<typeof setTimeout>;
@@ -48,6 +60,7 @@ export function initYoutubePreviews() {
         onStateChange: (e: any) => {
           clearTimeout(reveal);
           if (e.data === YT.PlayerState.PLAYING) {
+            clearTimeout(slow);
             e.target.unloadModule?.("captions");          // no auto-captions over the preview
             reveal = setTimeout(() => el.classList.add("is-playing"), REVEAL_DELAY);
           } else if (e.data === YT.PlayerState.PAUSED) {
@@ -56,6 +69,14 @@ export function initYoutubePreviews() {
             e.target.seekTo(start, true);
             e.target.playVideo();
           }
+        },
+        // video removed/private (100) or not embeddable (101, 150): drop the player, keep the still.
+        // Other codes can be one-off glitches; the FALLBACK_AFTER timer covers a stuck player.
+        onError: (e: any) => {
+          if (![100, 101, 150].includes(e.data)) return;
+          clearTimeout(slow);
+          clearTimeout(reveal);
+          showFallback(el, true);
         },
       },
     });
