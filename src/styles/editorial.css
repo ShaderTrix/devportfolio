@@ -130,9 +130,11 @@
   border: 1px solid var(--border);
   transition: filter 0.4s;
 }
-/* YouTube preview: the 16:9 player scaled to cover the panel (which also crops YouTube's title
-   bar), not clickable so the row still opens the project; fades in once it's playing */
+/* YouTube preview: list panels take the video's own 16:9 shape so nothing is cropped (wider panels,
+   like the project banner, still cover-crop it); not clickable so the row still opens the project;
+   fades in once it's playing */
 .tx-yt { position: relative; }
+.tx-main.tx-yt { aspect-ratio: 16 / 9; }
 .tx-yt-clip { position: absolute; inset: 0; overflow: hidden; }
 .tx-yt-frame {
   position: absolute;
@@ -140,7 +142,7 @@
   left: 50%;
   width: 100%;
   aspect-ratio: 16 / 9;
-  transform: translate(-50%, -50%) scale(1.04);
+  transform: translate(-50%, -50%);
   pointer-events: none;
   opacity: 0;
   transition: opacity 0.6s;
