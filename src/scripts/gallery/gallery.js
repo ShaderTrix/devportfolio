@@ -2,9 +2,12 @@
 // and a wall terminal you click to glide down the hallway and use.
 import * as THREE from "three";
 import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader.js";
+import { MeshoptDecoder } from "three/examples/jsm/libs/meshopt_decoder.module.js";
 import { TerminalScreen } from "./terminal.js";
 import { createWater } from "./water.js";
 import { createDust } from "./dust.js";
+import { createAudio } from "./audio.js";
+import { makeProgress, fetchProgress } from "./load.js";
 import { GRADE, applyGrade, maybeGradePanel, makeGrain } from "./grade.js";
 
 const FLY_SECONDS = 2.6;
@@ -20,25 +23,8 @@ const LIGHT_SCALE = { Fill: 0.0004, Terminal_ScreenGlow: 0.4 };
 // Blender is Z-up, glTF/three is Y-up: (x, y, z) -> (x, z, -y)
 const fromBlender = ([x, y, z]) => new THREE.Vector3(x, z, -y);
 const ease = (t) => (t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2);
-const CUE_PERIOD = 5;               // s between "click me" pulses on the terminal (hallway view)
-const CUE_LENGTH = 2;               // s each pulse lasts
-const CUE_PX = 1.5;                 // outline thickness, CSS pixels
-
-// Inverted hull: back faces pushed out along the normal by a fixed number of screen pixels,
-// drawn behind the terminal, so only a rim around its silhouette shows.
-const OutlineShader = {
-  uniforms: { alpha: { value: 0 }, px: { value: CUE_PX }, pxPerMetre: { value: 800 } },
-  vertexShader: /* glsl */ `
-    uniform float px, pxPerMetre;
-    void main() {
-      vec4 mv = modelViewMatrix * vec4(position, 1.0);
-      mv.xyz += normalize(normalMatrix * normal) * px * -mv.z / pxPerMetre;
-      gl_Position = projectionMatrix * mv;
-    }`,
-  fragmentShader: /* glsl */ `
-    uniform float alpha;
-    void main() { gl_FragColor = vec4(vec3(1.0), alpha); }`,
-};
+const CUE_PERIOD = 5;               // s between "click the terminal" callouts (hallway view)
+const CUE_LENGTH = 2;               // s each callout stays up
 
 export async function initGallery(root, data, { assets = "/gallery/", onProgress = () => {} } = {}) {
   const host = root.querySelector("[data-gallery-canvas]");
@@ -55,10 +41,18 @@ export async function initGallery(root, data, { assets = "/gallery/", onProgress
   const camera = new THREE.PerspectiveCamera(info.camera.fovY, 1, 0.05, 200);
   const hero = { pos: fromBlender(info.camera.position), target: fromBlender(info.camera.target) };
 
-  // ---------------------------------------------------------------- load + lightmaps
+  // ---------------------------------------------------------------- downloads
+  // Scene, lightmap and sounds come down in parallel behind one progress bar (weights ~ MB);
+  // the gallery only opens once all of them are in.
+  const part = makeProgress(onProgress);
+  const lightmapProgress = part(0.9), glbProgress = part(1.5);
+  const audio = createAudio(assets, part(0.95));
   const texLoader = new THREE.TextureLoader();
   const lightmaps = {};
-  await Promise.all(Object.entries(info.meshes).filter(([, m]) => m.lightmap).map(([name, m]) => texLoader.loadAsync(assets + m.lightmap).then((t) => {
+  const lightmapsReady = Promise.all(Object.entries(info.meshes).filter(([, m]) => m.lightmap).map(async ([name, m]) => {
+    const url = URL.createObjectURL(new Blob([await fetchProgress(assets + m.lightmap, lightmapProgress)]));
+    const t = await texLoader.loadAsync(url);
+    URL.revokeObjectURL(url);
     t.flipY = false;                     // glTF UV convention
     t.colorSpace = THREE.SRGBColorSpace; // stored sRGB-encoded, scaled by m.scale
     t.channel = 1;                       // TEXCOORD_1
@@ -68,8 +62,14 @@ export async function initGallery(root, data, { assets = "/gallery/", onProgress
     t.generateMipmaps = false;
     t.minFilter = THREE.LinearFilter;
     lightmaps[name] = { tex: t, scale: m.scale };
-  })));
-  const gltf = await new GLTFLoader().loadAsync(assets + "gallery.glb", (e) => e.total && onProgress(e.loaded / e.total));
+  }));
+  // geometry is meshopt-compressed (gltf-transform, see VRArtGallery/compress_web.sh)
+  const gltfReady = new GLTFLoader().setMeshoptDecoder(MeshoptDecoder)
+    .loadAsync(assets + "gallery.glb", (e) => e.total && glbProgress(Math.min(0.99, e.loaded / e.total)));
+  // sound is a nicety: if it hangs (an odd browser's decoder), open without it after 15 s
+  const audioReady = Promise.race([audio.ready, new Promise((r) => setTimeout(r, 15000))]);
+  const [, gltf] = await Promise.all([lightmapsReady, gltfReady, audioReady]);
+  glbProgress(1);
   scene.add(gltf.scene);
 
   const terminalMeshes = [];
@@ -178,30 +178,46 @@ export async function initGallery(root, data, { assets = "/gallery/", onProgress
   for (const m of terminalMeshes) termBox.expandByObject(m);
 
   // ---------------------------------------------------------------- "clickable" cue
-  // Now and then the terminal gets a white rim and a faded "Click on it" above it.
-  const outlineMat = new THREE.ShaderMaterial({ ...OutlineShader, uniforms: THREE.UniformsUtils.clone(OutlineShader.uniforms),
-    side: THREE.BackSide, transparent: true, depthWrite: false });
-  for (const m of terminalMeshes) {
-    const rim = new THREE.Mesh(m.geometry, outlineMat);
-    rim.renderOrder = 1;
-    rim.raycast = () => {};
-    m.add(rim);
+  // Now and then corner brackets fade in around the terminal with a small "Click the
+  // terminal" above them. Plain HTML fitted to the terminal's projected bounds each frame.
+  const cueEl = root.querySelector("[data-gallery-cue]");
+  // ~500 of the terminal's own vertices (world space): a tight fit, unlike a bounding box
+  // whose depth spreads out in perspective. The flat backplate on the wall (within 10 cm of
+  // it; the terminal faces +X) is left out: it's wider than the terminal and barely visible.
+  const cueCorners = [];
+  const wallX = termBox.min.x + 0.1;
+  {
+    const all = terminalMeshes.reduce((n, m) => n + m.geometry.attributes.position.count, 0);
+    const step = Math.max(1, Math.floor(all / 500));
+    for (const m of terminalMeshes) {
+      m.updateWorldMatrix(true, false);
+      const pos = m.geometry.attributes.position;
+      for (let i = 0; i < pos.count; i += step) {
+        const v = new THREE.Vector3().fromBufferAttribute(pos, i).applyMatrix4(m.matrixWorld);
+        if (v.x > wallX) cueCorners.push(v);
+      }
+    }
   }
-  const cueLabel = root.querySelector("[data-gallery-cue]");
-  const cueAnchor = new THREE.Vector3((termBox.min.x + termBox.max.x) / 2, termBox.max.y, (termBox.min.z + termBox.max.z) / 2);
-  const cueScreen = new THREE.Vector3();
+  const cueP = new THREE.Vector3();
+  const CUE_PAD = 10;                 // px between the terminal and its brackets
   let cue = 0;
   function updateCue(dt, t) {
     const phase = (t % CUE_PERIOD) / CUE_LENGTH;
     const target = state === "hero" && phase < 1 ? Math.sin(Math.PI * phase) ** 2 : 0;
     cue += (target - cue) * (1 - Math.exp(-dt * 12));     // quick fade when you leave the hallway
-    outlineMat.uniforms.alpha.value = 0.85 * cue;
-    if (!cueLabel) return;
-    cueLabel.style.opacity = String(0.55 * cue);
+    if (!cueEl) return;
+    cueEl.style.opacity = String(cue);
     if (cue < 0.01) return;
-    cueScreen.copy(cueAnchor).project(camera);
     const r = renderer.domElement.getBoundingClientRect();
-    cueLabel.style.transform = `translate(${((cueScreen.x + 1) / 2) * r.width}px, ${((1 - cueScreen.y) / 2) * r.height}px) translate(-50%, calc(-100% - 10px))`;
+    let x0 = Infinity, y0 = Infinity, x1 = -Infinity, y1 = -Infinity;
+    for (const c of cueCorners) {
+      cueP.copy(c).project(camera);
+      const x = ((cueP.x + 1) / 2) * r.width, y = ((1 - cueP.y) / 2) * r.height;
+      x0 = Math.min(x0, x); x1 = Math.max(x1, x); y0 = Math.min(y0, y); y1 = Math.max(y1, y);
+    }
+    cueEl.style.transform = `translate(${x0 - CUE_PAD}px, ${y0 - CUE_PAD}px)`;
+    cueEl.style.width = `${x1 - x0 + 2 * CUE_PAD}px`;
+    cueEl.style.height = `${y1 - y0 + 2 * CUE_PAD}px`;
   }
 
   // ---------------------------------------------------------------- water
@@ -244,7 +260,7 @@ export async function initGallery(root, data, { assets = "/gallery/", onProgress
   const grainEl = root.querySelector(".gallery-grain");
   const grade = { renderer, scene, vignetteEl: root.querySelector(".gallery-vignette"), grainEl: grainEl && makeGrain(grainEl),
     lightmapMaterials, terminalLights, screenMaterial: screenMesh?.material, water, dust,
-    terminalMaterials, bodyMaterials, decalMaterials, captureEnv };
+    terminalMaterials, bodyMaterials, decalMaterials, captureEnv, audio };
   const regrade = () => applyGrade(GRADE, grade);
   regrade();
   maybeGradePanel(root, GRADE, regrade);
@@ -299,16 +315,15 @@ export async function initGallery(root, data, { assets = "/gallery/", onProgress
     if (state === "hero") flyIn();
     else if (state === "terminal" && screenMesh) {
       const hit = pick(e, [screenMesh]);
-      if (hit) terminal.click(hit.uv);
+      if (hit) { terminal.click(hit.uv); audio.click(); }
     }
   });
   renderer.domElement.addEventListener("wheel", (e) => {
     if (state === "terminal") { e.preventDefault(); terminal.wheel(e.deltaY); }
-    else if (state === "hero" && e.deltaY > 0) flyIn();   // "scroll to explore"
   }, { passive: false });
   addEventListener("keydown", (e) => {
     if (state !== "terminal") return;
-    if (terminal.key(e)) e.preventDefault();
+    if (terminal.key(e)) { e.preventDefault(); audio.click(); }
   });
 
   // ---------------------------------------------------------------- resize + loop
@@ -319,7 +334,6 @@ export async function initGallery(root, data, { assets = "/gallery/", onProgress
     renderer.setSize(w, h);
     water?.resize(w * renderer.getPixelRatio(), h * renderer.getPixelRatio());
     dust?.resize(camera, h * renderer.getPixelRatio(), renderer.getPixelRatio());
-    outlineMat.uniforms.pxPerMetre.value = h / (2 * Math.tan(THREE.MathUtils.degToRad(camera.fov) / 2));
     if (state === "terminal") { const p = terminalPose(); pos.copy(p.pos); target.copy(p.target); }
   };
   new ResizeObserver(resize).observe(host);
@@ -354,7 +368,7 @@ export async function initGallery(root, data, { assets = "/gallery/", onProgress
   });
 
   setState("hero");
-  const api = { flyIn, flyOut, get state() { return state; }, renderer, scene, camera, terminal, water, dust, GRADE, regrade, THREE };
+  const api = { flyIn, flyOut, get state() { return state; }, renderer, scene, camera, terminal, water, dust, audio, GRADE, regrade, THREE };
   root.gallery = api;                 // handy for tuning from the console
   return api;
 }

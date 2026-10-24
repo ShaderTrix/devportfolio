@@ -16,15 +16,15 @@ export const GRADE = {
   vignette: 1,
   vignetteSize: 40,
   noise: 0.1,          // film grain strength (overlay blend)
-  bakedLight: 0.23,     // multiplies every lightmap
+  bakedLight: 0.15,     // multiplies every lightmap
   terminalFill: 0.42,   // multiplies the terminal's real-time lights
   screenGlow: 1.5,     // CRT brightness
-  water: "#111818",     // deep water colour
-  waterReflect: 0.14,   // reflection seen straight down
+  water: "#1a2323",     // deep water colour
+  waterReflect: 0.5,   // reflection seen straight down
   waterFresnel: 1,      // extra reflection at grazing angles
-  waterRipple: 1,    // ripple height
-  waterRippleSize: 2.25,   // higher = smaller, busier ripples
-  waterDistort: 0.014,  // how far ripples bend the reflection
+  waterRipple: 0.53,    // ripple height
+  waterRippleSize: 1.45,   // higher = smaller, busier ripples
+  waterDistort: 0.029,  // how far ripples bend the reflection
   waterSpeed: 2,        // ripple animation speed
   terminalReflect: 1,   // how much the terminal's metal reflects the hall
   terminalMetal: 0,     // one flat metalness for the terminal body (no metal map)
@@ -35,6 +35,8 @@ export const GRADE = {
   dustBright: 0.75,
   dustRoom: 0.2,        // brightness of the room dust relative to the sun-shaft dust
   dustSpeed: 1,
+  ambience: 0.35,       // hallway ambience volume
+  clicks: 0.45,         // terminal key-click volume
 };
 
 const TONE_MAPPINGS = {
@@ -77,12 +79,14 @@ const FIELDS = [
   ["dustBright", "Dust bright", { min: 0, max: 6, step: 0.05 }],
   ["dustRoom", "Room dust", { min: 0, max: 1, step: 0.01 }],
   ["dustSpeed", "Dust speed", { min: 0, max: 4, step: 0.05 }],
+  ["ambience", "Ambience vol", { min: 0, max: 1, step: 0.01 }],
+  ["clicks", "Click vol", { min: 0, max: 1, step: 0.01 }],
 ];
 
 /**
  * hooks: { renderer, scene, vignetteEl, grainEl, lightmapMaterials: [{material, base}],
  *          terminalLights: [{light, base}], screenMaterial, water, dust,
- *          terminalMaterials, bodyMaterials, decalMaterials, captureEnv }
+ *          terminalMaterials, bodyMaterials, decalMaterials, captureEnv, audio }
  */
 export function applyGrade(g, hooks) {
   const { renderer, scene } = hooks;
@@ -121,6 +125,7 @@ export function applyGrade(g, hooks) {
     hooks.dust.set({ amount: g.dust, size: g.dustSize, brightness: g.dustBright, room: g.dustRoom });
     hooks.dust.speed = g.dustSpeed;
   }
+  hooks.audio?.setVolumes(g.ambience, g.clicks);
   for (const m of hooks.terminalMaterials ?? []) m.envMapIntensity = g.terminalReflect;
   for (const m of hooks.bodyMaterials ?? []) m.metalness = g.terminalMetal;
   for (const m of hooks.decalMaterials ?? []) m.color.set(g.decal).multiplyScalar(g.decalBright);

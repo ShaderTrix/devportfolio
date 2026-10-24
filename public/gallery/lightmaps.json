@@ -2,20 +2,20 @@
   "meshes": {
     "Gallery": {
       "lightmap": "lightmap_gallery.png",
-      "scale": 14.513662300109864
+      "scale": 14.51358111381531
     },
     "Terminal": {
       "realtime": true
     }
   },
   "materialIntensity": {
+    "Concrete_Wall": 2.799999952316284,
     "Concrete_Floor": 2.799999952316284,
     "Concrete_Block": 2.799999952316284,
-    "Concrete_Wall": 2.799999952316284,
-    "LightStrip": 1.0,
-    "Material": 1.0,
+    "Void": 1.0,
     "Water": 1.0,
-    "Void": 1.0
+    "Material": 1.0,
+    "LightStrip": 1.0
   },
   "materialTint": {
     "Material": [
@@ -39074,14 +39074,14 @@
   },
   "terminalView": {
     "position": [
-      4.939159393310547,
-      0.9725773930549622,
-      1.628509283065796
+      4.938098907470703,
+      0.9725641012191772,
+      1.6284955739974976
     ],
     "target": [
-      1.6959550380706787,
-      0.9725773930549622,
-      1.628509283065796
+      1.6958765983581543,
+      0.9725641012191772,
+      1.6284955739974976
     ],
     "frameFill": 0.72
   },
