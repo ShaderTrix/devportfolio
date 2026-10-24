@@ -1,13 +1,25 @@
 ---
 import Layout from "../layouts/Layout.astro";
-import ProjectGrid from "../components/ProjectGrid.astro";
-import { siteConfig, allProjects } from "../config";
+import { allProjects } from "../config";
 
 const projects = allProjects.filter(
   (project) => project.categoryKey === "professional" || project.categoryKey === "personal"
 );
 
-const accent = siteConfig.accentColor;
+const engineOf = (p: { engine?: string }) => (p.engine === "unreal" ? "unreal" : "unity");
+const engineName = (p: { engine?: string }) => (engineOf(p) === "unreal" ? "Unreal" : "Unity");
+// small label above each title, from real data: shipped vs personal, and the engine
+const kindOf = (p: { categoryKey?: string; engine?: string }) =>
+  `${p.categoryKey === "professional" ? "Production" : "Personal"} / ${engineName(p)}`;
+// engine first, then skills (skipping one that just repeats the engine)
+const tagsOf = (p: { engine?: string; skills?: string[] }) => {
+  const e = engineName(p);
+  return [e, ...(p.skills ?? []).filter((t) => t.toLowerCase() !== e.toLowerCase()).slice(0, 4)];
+};
+// extra stills beside the main image, only where the project really has them
+const thumbsOf = (p: { image?: string; inlineImage?: string; detailImage?: string }) =>
+  [...new Set([p.inlineImage, p.detailImage].filter((u): u is string => !!u && u !== p.image))].slice(0, 3);
+const pad = (n: number) => String(n).padStart(2, "0");
 
 // Engine badge icons (Simple Icons path data, rendered with currentColor)
 const ENGINE_ICONS: Record<string, string> = {
@@ -17,11 +29,10 @@ const ENGINE_ICONS: Record<string, string> = {
 ---
 
 <Layout title="Techart">
-  <section class="relative isolate overflow-hidden py-20 sm:py-24 px-6 sm:px-12 lg:px-16" style={{ backgroundColor: "var(--bg)" }}>
-    <div class="absolute inset-0 -z-10" style="background: radial-gradient(ellipse at top, var(--surface), var(--bg), var(--bg))"></div>
+  <section class="tx relative isolate overflow-hidden py-14 sm:py-16" style={{ backgroundColor: "var(--bg)" }}>
     <svg
       aria-hidden="true"
-      class="absolute inset-0 -z-10 size-full opacity-[0.35] [mask-image:radial-gradient(100%_100%_at_top_left,white,transparent)]"
+      class="absolute inset-0 -z-10 size-full opacity-[0.3] [mask-image:radial-gradient(100%_100%_at_top_left,white,transparent)]"
       style={{ stroke: "var(--grid-stroke)" }}
     >
       <defs>
@@ -31,97 +42,67 @@ const ENGINE_ICONS: Record<string, string> = {
       </defs>
       <rect fill="url(#techart-grid-pattern)" width="100%" height="100%" stroke-width={0}></rect>
     </svg>
-    <div class="max-w-7xl mx-auto">
-      <div class="max-w-2xl">
-        <h1 class="text-3xl sm:text-4xl md:text-5xl font-bold tracking-tight text-white animate-fade-in">
-          My Techart Stuff
-        </h1>
-        <div class="rule mt-4 animate-fade-in animation-delay-200"></div>
-        <div class="mt-6 text-base sm:text-lg text-gray-300 leading-relaxed animate-fade-in animation-delay-400 space-y-4">
-          <p>
-            A few of my techart stuff/projects — a mix of systems I've shipped on <span style={{ color: accent, fontStyle: 'italic' }}>production mobile games</span> and personal projects I built just to learn and mess around with.
-          </p>
-          <p>
-            Some of these were built for real teams with millions of players, others were <span style={{ color: accent, fontStyle: 'italic' }}>weekend experiments</span> that got a bit out of hand.
-          </p>
-          <p>
-            If anything here interests you or you want to chat about how something works, feel free to reach out.
-          </p>
-          <p>
-            Some of these also come with <span style={{ color: accent, fontStyle: 'italic' }}>write-ups or tutorials</span> breaking down how they work, others don't yet — I'm slowly adding them as I find the time, so check back if something looks interesting but is missing the deep-dive.
-          </p>
+
+    <div class="tx-wrap">
+      <!-- page header: title | amber rule + blurb | selected-works count; filters underneath -->
+      <header class="tx-head animate-fade-in">
+        <div class="tx-title-col">
+          <p class="tx-kicker"><span>//</span> Projects</p>
+          <h1 class="tx-title">Technical Art<br />Projects</h1>
         </div>
-      </div>
+        <div class="tx-blurb">
+          <p>A few of my techart stuff/projects — a mix of systems I've shipped on <em>production mobile games</em> and personal projects I built just to learn and mess around with.</p>
+          <p>Some of these were built for real teams with millions of players, others were <em>weekend experiments</em> that got a bit out of hand.</p>
+          <p>If anything here interests you or you want to chat about how something works, feel free to reach out.</p>
+        </div>
+        <a href="#works" class="tx-count" aria-label={`${projects.length} selected works`}>
+          <span class="tx-count-label">Selected<br />works</span>
+          <span class="tx-count-num">{String(projects.length).padStart(2, "0")}</span>
+        </a>
+      </header>
 
       {projects.length > 0 && (
-        <div class="mt-8 flex justify-center">
-          <div id="engine-filter" class="inline-flex items-center gap-1 p-1 rounded-sm border" style={{ borderColor: "var(--border)", backgroundColor: "var(--surface)" }}>
-            <button type="button" data-filter="all" class="filter-btn active flex items-center gap-1.5 px-4 py-1.5 rounded-sm text-xs font-mono font-medium uppercase tracking-[0.12em] transition-colors duration-300">
-              All Projects
-            </button>
-            <button type="button" data-filter="unity" class="filter-btn flex items-center gap-1.5 px-4 py-1.5 rounded-sm text-xs font-mono font-medium uppercase tracking-[0.12em] transition-colors duration-300">
-              <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d={ENGINE_ICONS.unity} /></svg>
-              Unity
-            </button>
-            <button type="button" data-filter="unreal" class="filter-btn flex items-center gap-1.5 px-4 py-1.5 rounded-sm text-xs font-mono font-medium uppercase tracking-[0.12em] transition-colors duration-300">
-              <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d={ENGINE_ICONS.unreal} /></svg>
-              Unreal
-            </button>
-          </div>
+        <div id="engine-filter" class="tx-filters animate-fade-in animation-delay-200" role="group" aria-label="Filter by engine">
+          <button type="button" data-filter="all" class="filter-btn active">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><rect x="3" y="3" width="7" height="7" /><rect x="14" y="3" width="7" height="7" /><rect x="3" y="14" width="7" height="7" /><rect x="14" y="14" width="7" height="7" /></svg>All Projects
+          </button>
+          <button type="button" data-filter="unity" class="filter-btn">
+            <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d={ENGINE_ICONS.unity} /></svg>Unity
+          </button>
+          <button type="button" data-filter="unreal" class="filter-btn">
+            <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d={ENGINE_ICONS.unreal} /></svg>Unreal
+          </button>
         </div>
       )}
 
       {projects.length > 0 ? (
-        <div class="mt-8 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+        <ol id="works" class="tx-list">
           {projects.map((project, index) => {
+            const thumbs = thumbsOf(project);
             return (
-              <a
-                href={`/projects/${project.slug}`}
-                data-engine={project.engine === "unreal" ? "unreal" : "unity"}
-                class="project-card group relative flex flex-col h-[420px] rounded-xl border overflow-hidden transition-all duration-300 hover:-translate-y-1"
-                style={{ backgroundColor: "var(--surface)", borderColor: "var(--border)" }}
-              >
-                <div class="h-[70%] w-full relative overflow-hidden bg-black/40 border-b border-white/[0.04]">
-                  <span class="card-num absolute top-4 left-4 z-20">{String(index + 1).padStart(2, "0")}</span>
-                  <div
-                    class="absolute top-4 right-4 w-8 h-8 z-20 flex items-center justify-center rounded-sm text-gray-400 group-hover:text-white transition-all border border-white/5"
-                    style={{ backgroundColor: "var(--surface)" }}
-                  >
-                    <svg class="w-3.5 h-3.5 transform transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 17L17 7M17 7H7M17 7V17" />
-                    </svg>
-                  </div>
-                  <div
-                    class="absolute inset-0 z-0 bg-cover bg-center transition-transform duration-700 ease-out group-hover:scale-[1.03]"
-                    style={`background-image: url('${project.image || ''}')`}
-                  />
-                  <div class="absolute inset-0 z-10 bg-gradient-to-t from-gray-950/80 via-transparent to-transparent pointer-events-none" />
-                </div>
-                <div class="relative h-[30%] px-5 py-4 flex flex-col justify-center" style={{ backgroundColor: "var(--surface)" }}>
-                  <h2 class="text-base font-bold text-white tracking-tight truncate">{project.name}</h2>
-                  {project.tagline && (
-                    <p class="text-xs text-gray-400 mt-1 line-clamp-1">{project.tagline}</p>
+              <li class={`project-card tx-row${index % 2 ? " is-flip" : ""}`} data-engine={engineOf(project)}>
+                <a href={`/projects/${project.slug}`} class={`tx-media${thumbs.length ? " has-thumbs" : ""}`} tabindex="-1" aria-hidden="true">
+                  <span class="tx-main" style={`background-image: url('${project.image || ""}')`}></span>
+                  {thumbs.length > 0 && (
+                    <span class="tx-thumbs">
+                      {thumbs.map((t) => <span style={`background-image: url('${t}')`}></span>)}
+                    </span>
                   )}
-
-                  <div class="flex flex-wrap items-center gap-1.5 mt-2 overflow-hidden max-h-[26px]">
-                    <svg class="w-6 h-6 text-white flex-shrink-0" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
-                      <path d={ENGINE_ICONS[project.engine === "unreal" ? "unreal" : "unity"]} />
-                    </svg>
-                    {project.skills && project.skills.slice(0, 3).map((tag) => (
-                      <span class="px-2.5 py-0.5 rounded text-[10px] font-mono text-gray-400 bg-gray-900/40 border border-gray-800 whitespace-nowrap">
-                        {tag}
-                      </span>
-                    ))}
+                </a>
+                <div class="tx-text">
+                  <span class="tx-num" aria-hidden="true">{pad(index + 1)}</span>
+                  <div class="tx-copy">
+                  <p class="tx-kind">{kindOf(project)}</p>
+                  <h2 class="tx-name"><a href={`/projects/${project.slug}`}>{project.name}</a></h2>
+                  <p class="tx-desc">{project.description || project.tagline}</p>
+                  <div class="tx-tags">{tagsOf(project).map((t) => <span>{t}</span>)}</div>
+                  <a href={`/projects/${project.slug}`} class="tx-cta">View project <span aria-hidden="true">→</span></a>
                   </div>
-
-                  <span class="absolute bottom-2 right-4 text-[10px] font-mono tracking-wide text-gray-400">
-                    Details --&gt;
-                  </span>
                 </div>
-              </a>
+              </li>
             );
           })}
-        </div>
+        </ol>
       ) : (
         <div class="mt-12 text-center text-gray-400">No projects yet.</div>
       )}
@@ -129,60 +110,240 @@ const ENGINE_ICONS: Record<string, string> = {
   </section>
 
   <style>
-    .filter-btn {
-      color: var(--text-secondary);
-      background-color: transparent;
-      border: none;
-      cursor: pointer;
-      white-space: nowrap;
+    /* Techart page, editorial list: one project per row, alternating sides; amber for the
+       numbers, selected filter and links */
+    .tx-wrap {
+      width: 100%;
+      max-width: 1360px;
+      margin-inline: auto;
+      padding-inline: clamp(22px, 6vw, 96px);
     }
-    .filter-btn:hover {
+
+    /* ---- page header ---- */
+    .tx-head {
+      display: grid;
+      grid-template-columns: auto minmax(0, 1fr) auto;
+      align-items: center;
+      gap: 1.5rem 2.25rem;
+    }
+    .tx-kicker {
+      margin: 0 0 0.75rem;
+      font: 500 12px var(--font-mono);
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      color: var(--text-secondary);
+    }
+    .tx-kicker span { color: var(--accent); margin-right: 0.4em; }
+    .tx-title {
+      margin: 0;
+      font-family: var(--font-display);
+      font-weight: 700;
+      font-size: clamp(48px, 5.6vw, 84px);
+      line-height: 0.9;
+      text-transform: uppercase;
       color: var(--text-primary);
     }
-    .filter-btn.active {
-      background-color: var(--accent);
-      color: var(--bg);
+    .tx-blurb {
+      align-self: end;
+      max-width: 640px;
+      margin: 0 0 0.4rem;
+      padding-left: 1.5rem;
+      border-left: 2px solid var(--accent);
+      font: 400 12.5px/1.7 var(--font-mono);
+      color: var(--text-secondary);
     }
-    .project-card {
-      transition: opacity 0.35s cubic-bezier(0.16, 1, 0.3, 1),
-                  transform 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+    .tx-blurb p { margin: 0; }
+    .tx-blurb p + p { margin-top: 0.55rem; }
+    .tx-blurb em { color: var(--accent); }
+    .tx-count {
+      align-self: stretch;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      gap: 0.9rem;
+      padding-left: 1.75rem;
+      border-left: 1px solid var(--border);
+      text-decoration: none;
     }
-    .project-card.card-hidden {
-      opacity: 0;
-      transform: scale(0.92);
-      pointer-events: none;
+    .tx-count-label {
+      font: 500 11px/1.6 var(--font-mono);
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      color: var(--text-secondary);
+    }
+    .tx-count-num {
+      font: 300 40px/1 var(--font-mono);
+      color: var(--text-primary);
+    }
+    .tx-count-num::after { content: ""; display: block; width: 30px; height: 2px; margin-top: 0.7rem; background: var(--accent); }
+
+    .tx-filters { display: flex; flex-wrap: wrap; gap: 0.75rem; margin-top: 1.75rem; }
+    .filter-btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.7rem;
+      min-width: 150px;
+      padding: 0.7rem 1.2rem;
+      font: 500 11px var(--font-mono);
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      color: var(--text-secondary);
+      background: transparent;
+      border: 1px solid var(--border);
+      cursor: pointer;
+      white-space: nowrap;
+      transition: color 0.2s, border-color 0.2s;
+    }
+    .filter-btn svg { width: 15px; height: 15px; }
+    .filter-btn:hover { color: var(--text-primary); border-color: var(--text-subtle); }
+    .filter-btn.active { color: var(--accent); border-color: var(--accent); }
+
+    /* ---- project rows: text | image, alternating; the number rides with the text ---- */
+    .tx-list { list-style: none; margin: 1.5rem 0 0; padding: 0; border-top: 1px solid var(--border); }
+    .tx-row {
+      display: grid;
+      grid-template-columns: minmax(0, 0.85fr) minmax(0, 1.3fr);
+      grid-template-areas: "text media";
+      align-items: center;
+      gap: 2.5rem;
+      padding: 1.75rem 0;
+      border-bottom: 1px solid var(--border);
+      transition: opacity 0.35s cubic-bezier(0.16, 1, 0.3, 1), transform 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    .tx-row.is-flip {
+      grid-template-columns: minmax(0, 1.3fr) minmax(0, 0.85fr);
+      grid-template-areas: "media text";
+    }
+    .tx-text {
+      grid-area: text;
+      align-self: start;
+      display: grid;
+      grid-template-columns: 56px minmax(0, 1fr);
+      gap: 0 0.75rem;
+      padding-top: 0.6rem;
+    }
+    .is-flip .tx-text { grid-template-columns: minmax(0, 1fr) 56px; }
+    .is-flip .tx-num { order: 2; text-align: right; }
+    .tx-num { font: 300 22px/1 var(--font-mono); color: var(--text-secondary); }
+    .tx-num::after { content: ""; display: block; width: 22px; height: 2px; margin-top: 0.6rem; background: var(--accent); }
+    .is-flip .tx-num::after { margin-left: auto; }
+
+    .tx-media { grid-area: media; display: flex; gap: 10px; text-decoration: none; }
+    .tx-main {
+      flex: 1;
+      aspect-ratio: 16 / 6.4;
+      background: #000 center / cover no-repeat;
+      border: 1px solid var(--border);
+      transition: filter 0.4s;
+    }
+    .tx-thumbs { display: flex; flex-direction: column; gap: 8px; width: 13%; }
+    .tx-thumbs span { flex: 1; background: #000 center / cover no-repeat; border: 1px solid var(--border); }
+    .tx-row:hover .tx-main { filter: brightness(1.08); }
+
+    .tx-kind {
+      margin: 0 0 0.5rem;
+      font: 400 11px var(--font-mono);
+      letter-spacing: 0.16em;
+      text-transform: uppercase;
+      color: var(--text-secondary);
+    }
+    .tx-name {
+      margin: 0;
+      font-family: var(--font-display);
+      font-weight: 700;
+      font-size: clamp(22px, 2vw, 30px);
+      line-height: 1.05;
+      text-transform: uppercase;
+    }
+    .tx-name a { color: var(--text-primary); text-decoration: none; transition: color 0.2s; }
+    .tx-name a:hover { color: var(--accent); }
+    .tx-desc {
+      margin: 0.75rem 0 0;
+      font: 400 12.5px/1.65 var(--font-mono);
+      color: var(--text-secondary);
+      display: -webkit-box;
+      -webkit-line-clamp: 3;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+    }
+    .tx-tags { display: flex; flex-wrap: wrap; gap: 0.45rem; margin-top: 0.95rem; }
+    .tx-tags span {
+      padding: 0.26rem 0.6rem;
+      font: 400 10.5px var(--font-mono);
+      color: var(--text-primary);
+      border: 1px solid var(--border);
+      white-space: nowrap;
+    }
+    .tx-cta {
+      display: inline-block;
+      margin-top: 1.1rem;
+      font: 600 11.5px var(--font-mono);
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      color: var(--accent);
+      text-decoration: none;
+    }
+    .tx-cta span { display: inline-block; margin-left: 0.5em; transition: transform 0.25s; }
+    .tx-row:hover .tx-cta span { transform: translateX(4px); }
+
+    .project-card.card-hidden { opacity: 0; transform: translateY(8px); pointer-events: none; }
+
+    /* ---- narrower screens: stack ---- */
+    @media (max-width: 1000px) {
+      .tx-head { grid-template-columns: minmax(0, 1fr) auto; }
+      .tx-blurb { grid-column: 1 / -1; grid-row: 2; }
+    }
+    @media (max-width: 860px) {
+      .tx-row, .tx-row.is-flip {
+        grid-template-columns: 1fr;
+        grid-template-areas: "media" "text";
+        gap: 1.1rem;
+        padding: 1.5rem 0;
+      }
+      .is-flip .tx-text { grid-template-columns: 44px minmax(0, 1fr); }
+      .is-flip .tx-num { order: 0; text-align: left; }
+      .is-flip .tx-num::after { margin-left: 0; }
+      .tx-text { grid-template-columns: 44px minmax(0, 1fr); padding-top: 0; }
+      .tx-thumbs { display: none; }
+    }
+    @media (max-width: 640px) {
+      .tx-count { display: none; }
+      .tx-head { grid-template-columns: 1fr; }
+      .tx-blurb { grid-column: auto; grid-row: auto; padding-left: 1rem; }
+      .filter-btn { flex: 1; min-width: 0; padding: 0.6rem 0.4rem; gap: 0.4rem; font-size: 10px; letter-spacing: 0.1em; }
     }
   </style>
 
   <script>
     const STORAGE_KEY = "techart-engine-filter";
     const buttons = document.querySelectorAll<HTMLButtonElement>(".filter-btn");
-    const cards = document.querySelectorAll<HTMLElement>(".project-card");
+    const rows = [...document.querySelectorAll<HTMLElement>(".project-card")];
 
-    // `animate` = false skips the fade/scale so re-applying a saved filter on
-    // load doesn't flash every card in and out.
-    function applyFilter(filter: string, animate = true) {
-      cards.forEach((card) => {
-        const matches = filter === "all" || card.dataset.engine === filter;
-        if (matches) {
-          card.style.display = "";
-          if (animate) {
-            requestAnimationFrame(() => card.classList.remove("card-hidden"));
-          } else {
-            card.classList.remove("card-hidden");
-          }
-        } else {
-          if (animate) {
-            card.classList.add("card-hidden");
-            setTimeout(() => {
-              if (card.classList.contains("card-hidden")) card.style.display = "none";
-            }, 350);
-          } else {
-            card.classList.add("card-hidden");
-            card.style.display = "none";
-          }
-        }
+    // After filtering, renumber the visible rows and keep their sides alternating.
+    function relayout() {
+      rows.filter((r) => r.style.display !== "none").forEach((r, i) => {
+        r.classList.toggle("is-flip", i % 2 === 1);
+        const num = r.querySelector(".tx-num");
+        if (num) num.textContent = String(i + 1).padStart(2, "0");
       });
+    }
+
+    // `animate` = false skips the fade so re-applying a saved filter on load doesn't flash.
+    function applyFilter(filter: string, animate = true) {
+      const show = (r: HTMLElement) => filter === "all" || r.dataset.engine === filter;
+      const swap = () => {
+        rows.forEach((r) => (r.style.display = show(r) ? "" : "none"));
+        relayout();
+        requestAnimationFrame(() => rows.forEach((r) => show(r) && r.classList.remove("card-hidden")));
+      };
+      if (!animate) {
+        rows.forEach((r) => r.classList.toggle("card-hidden", !show(r)));
+        swap();
+        return;
+      }
+      rows.forEach((r) => r.classList.add("card-hidden"));
+      setTimeout(swap, 250);
     }
 
     function setActive(filter: string) {
