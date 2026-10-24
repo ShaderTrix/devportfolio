@@ -1,6 +1,7 @@
 ---
 import Layout from "../../layouts/Layout.astro";
 import "../../styles/editorial.css";
+import { youtubeId } from "../../scripts/youtube-preview";
 import { allProjects } from "../../config";
 
 export function getStaticPaths() {
@@ -12,7 +13,11 @@ export function getStaticPaths() {
 
 const { project } = Astro.props;
 
-// Detail-page banner: prefer `detailImage`, fall back to the tile `image`.
+// Detail-page banner: the project's YouTube clip when it has one (same loop as the Techart list),
+// otherwise `detailImage`, falling back to the tile `image`.
+const ytId = youtubeId(project.demoLink);
+const bannerClip = !project.hideDetailBanner && ytId && project.previewClip
+  ? { id: ytId, start: project.previewClip[0], end: project.previewClip[1] } : null;
 const bannerImage = project.hideDetailBanner ? "" : (project.detailImage || project.image || "");
 
 const categoryHref =
@@ -56,9 +61,15 @@ const categoryBackLabel =
         )}
       </header>
 
-      {bannerImage && (
+      {(bannerClip || bannerImage) && (
         <div id="preview-banner" class="dp-banner corners">
-          <div id="preview-image" style={`background-image: url('${bannerImage}')`}></div>
+          {bannerClip ? (
+            <span class="tx-yt dp-yt" data-yt={bannerClip.id} data-start={bannerClip.start} data-end={bannerClip.end}>
+              <span class="tx-yt-clip"><span class="tx-yt-frame"></span></span>
+            </span>
+          ) : (
+            <div id="preview-image" style={`background-image: url('${bannerImage}')`}></div>
+          )}
           <button id="preview-toggle" type="button" aria-label="Toggle full preview" class="dp-toggle">
             <svg id="preview-toggle-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
@@ -164,6 +175,9 @@ const categoryBackLabel =
 </Layout>
 
 <script>
+  import { initYoutubePreviews } from "../../scripts/youtube-preview";
+  initYoutubePreviews();
+
   const banner = document.getElementById("preview-banner");
   const toggle = document.getElementById("preview-toggle");
   const label = document.getElementById("preview-toggle-label");
@@ -209,6 +223,7 @@ const categoryBackLabel =
     transition: height 0.4s ease;
   }
   #preview-image { position: absolute; inset: 0; background: center / cover no-repeat; }
+  .dp-yt { position: absolute; inset: 0; }
   .dp-banner.preview-expanded { height: 85vh; }
   .dp-banner.preview-expanded #preview-image { background-size: contain; }
   .dp-toggle {

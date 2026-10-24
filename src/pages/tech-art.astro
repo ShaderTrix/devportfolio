@@ -1,11 +1,19 @@
 ---
 import Layout from "../layouts/Layout.astro";
 import "../styles/editorial.css";
+import { youtubeId } from "../scripts/youtube-preview";
 import { allProjects } from "../config";
 
 const projects = allProjects.filter(
   (project) => project.categoryKey === "professional" || project.categoryKey === "personal"
 );
+
+// row order under the Unity / Unreal filters (slugs); unlisted projects follow in their usual
+// order, and "All projects" keeps the page order
+const FILTER_ORDER: Record<string, string[]> = {
+  unity: ["flow-field-agents", "gpu-pixelizer", "mass-spring-cloth", "rendering-optimization", "jump-flood-sdf"],
+  unreal: ["gpu-rain-system", "pcg-forest"],
+};
 
 const engineOf = (p: { engine?: string }) => (p.engine === "unreal" ? "unreal" : "unity");
 const engineName = (p: { engine?: string }) => (engineOf(p) === "unreal" ? "Unreal" : "Unity");
@@ -21,7 +29,11 @@ const tagsOf = (p: { engine?: string; skills?: string[] }) => {
 const thumbsOf = (p: { image?: string; inlineImage?: string; detailImage?: string }) =>
   [...new Set([p.inlineImage, p.detailImage].filter((u): u is string => !!u && u !== p.image))].slice(0, 3);
 const pad = (n: number) => String(n).padStart(2, "0");
-
+// list preview straight from YouTube: the demo video, looping over the project's previewClip range
+const clipOf = (p: { demoLink?: string; previewClip?: number[] }) => {
+  const id = youtubeId(p.demoLink);
+  return id && p.previewClip ? { id, start: p.previewClip[0], end: p.previewClip[1] } : null;
+};
 // Engine badge icons (Simple Icons path data, rendered with currentColor)
 const ENGINE_ICONS: Record<string, string> = {
   unity: "m12.9288 4.2939 3.7997 2.1929c.1366.077.1415.2905 0 .3675l-4.515 2.6076a.4192.4192 0 0 1-.4246 0L7.274 6.8543c-.139-.0745-.1415-.293 0-.3675l3.7972-2.193V0L1.3758 5.5977V16.793l3.7177-2.1456v-4.3858c-.0025-.1565.1813-.2682.318-.1838l4.5148 2.6076a.4252.4252 0 0 1 .2136.3676v5.2127c.0025.1565-.1813.2682-.3179.1838l-3.7996-2.1929-3.7178 2.1457L12 24l9.6954-5.5977-3.7178-2.1457-3.7996 2.1929c-.1341.082-.3229-.0248-.3179-.1838V13.053c0-.1565.087-.2956.2136-.3676l4.5149-2.6076c.134-.082.3228.0224.3179.1838v4.3858l3.7177 2.1456V5.5977L12.9288 0Z",
@@ -77,13 +89,20 @@ const ENGINE_ICONS: Record<string, string> = {
       )}
 
       {projects.length > 0 ? (
-        <ol id="works" class="tx-list">
+        <ol id="works" class="tx-list" data-order={JSON.stringify(FILTER_ORDER)}>
           {projects.map((project, index) => {
             const thumbs = thumbsOf(project);
+            const clip = clipOf(project);
             return (
-              <li class={`project-card tx-row${index % 2 ? " is-flip" : ""}`} data-engine={engineOf(project)}>
+              <li class={`project-card tx-row${index % 2 ? " is-flip" : ""}`} data-engine={engineOf(project)} data-slug={project.slug}>
                 <a href={`/projects/${project.slug}`} class={`tx-media${thumbs.length ? " has-thumbs" : ""}`} tabindex="-1" aria-hidden="true">
-                  <span class="tx-main corners" style={`background-image: url('${project.image || ""}')`}></span>
+                  {clip ? (
+                    <span class="tx-main corners tx-yt" data-yt={clip.id} data-start={clip.start} data-end={clip.end}>
+                      <span class="tx-yt-clip"><span class="tx-yt-frame"></span></span>
+                    </span>
+                  ) : (
+                    <span class="tx-main corners" style={`background-image: url('${project.image || ""}')`}></span>
+                  )}
                   {thumbs.length > 0 && (
                     <span class="tx-thumbs">
                       {thumbs.map((t) => <span style={`background-image: url('${t}')`}></span>)}
@@ -112,13 +131,28 @@ const ENGINE_ICONS: Record<string, string> = {
 
 
   <script>
+    import { initYoutubePreviews } from "../scripts/youtube-preview";
+    initYoutubePreviews();
+
     const STORAGE_KEY = "techart-engine-filter";
     const buttons = document.querySelectorAll<HTMLButtonElement>(".filter-btn");
+    const list = document.getElementById("works");
     const rows = [...document.querySelectorAll<HTMLElement>(".project-card")];
+    const order: Record<string, string[]> = JSON.parse(list?.dataset.order || "{}");
 
-    // After filtering, renumber the visible rows and keep their sides alternating.
+    // Each engine filter has its own row order (see FILTER_ORDER); "all" restores the page order.
+    function reorder(filter: string) {
+      const rank = order[filter] ?? [];
+      const pos = (r: HTMLElement) => {
+        const i = rank.indexOf(r.dataset.slug ?? "");
+        return i < 0 ? rank.length + rows.indexOf(r) : i;
+      };
+      [...rows].sort((a, b) => pos(a) - pos(b)).forEach((r) => list?.append(r));
+    }
+
+    // After filtering, renumber the visible rows (in their current order) and keep their sides alternating.
     function relayout() {
-      rows.filter((r) => r.style.display !== "none").forEach((r, i) => {
+      [...document.querySelectorAll<HTMLElement>(".project-card")].filter((r) => r.style.display !== "none").forEach((r, i) => {
         r.classList.toggle("is-flip", i % 2 === 1);
         const num = r.querySelector(".tx-num");
         if (num) num.textContent = String(i + 1).padStart(2, "0");
@@ -130,6 +164,7 @@ const ENGINE_ICONS: Record<string, string> = {
       const show = (r: HTMLElement) => filter === "all" || r.dataset.engine === filter;
       const swap = () => {
         rows.forEach((r) => (r.style.display = show(r) ? "" : "none"));
+        reorder(filter);
         relayout();
         requestAnimationFrame(() => rows.forEach((r) => show(r) && r.classList.remove("card-hidden")));
       };
