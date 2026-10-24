@@ -47,6 +47,8 @@ const pageTitle = title
       />
     </div>
 
+    <!-- hazard-stripe concrete strips down both page edges (global.css .page-strips) -->
+    <div class={`page-strips${flush ? " after-hero" : ""}`} aria-hidden="true"></div>
     <Header />
     <main class={flush ? "" : "pt-[100px] md:pt-[72px]"}>
       <slot />

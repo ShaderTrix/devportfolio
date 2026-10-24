@@ -131,6 +131,29 @@ h1, h2 { text-transform: uppercase; }
 
 ::selection { background: var(--accent); color: var(--bg); }
 
+/* Worn concrete + hazard-stripe strips tiled down both edges of the page (cut from the
+   "Industrial Tech Art Portfolio Interface" sheet). Only where the margin is wide enough to
+   hold them; on the home page they start below the full-screen gallery. */
+body { position: relative; }
+.page-strips {
+  position: absolute;
+  inset: 0;
+  z-index: 1;                 /* over the sections' backgrounds, under the grain and the header */
+  display: none;
+  pointer-events: none;
+  opacity: 0.5;               /* half strength over the black page, so the edges stay in the background */
+  background:
+    url("/bg/strip-left.webp") left top / 73px auto repeat-y,
+    url("/bg/strip-right.webp") right top / 88px auto repeat-y;
+}
+.page-strips.after-hero {
+  top: 100vh;
+  top: 100svh;
+  -webkit-mask-image: linear-gradient(to bottom, transparent, #000 220px);
+          mask-image: linear-gradient(to bottom, transparent, #000 220px);
+}
+@media (min-width: 1280px) { .page-strips { display: block; } }
+
 /* Amber corner brackets (top-left, bottom-right) on a faint frame set just off the image. */
 .corners {
   position: relative;
