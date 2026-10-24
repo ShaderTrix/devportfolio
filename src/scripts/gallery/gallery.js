@@ -20,6 +20,25 @@ const LIGHT_SCALE = { Fill: 0.0004, Terminal_ScreenGlow: 0.4 };
 // Blender is Z-up, glTF/three is Y-up: (x, y, z) -> (x, z, -y)
 const fromBlender = ([x, y, z]) => new THREE.Vector3(x, z, -y);
 const ease = (t) => (t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2);
+const CUE_PERIOD = 5;               // s between "click me" pulses on the terminal (hallway view)
+const CUE_LENGTH = 2;               // s each pulse lasts
+const CUE_PX = 1.5;                 // outline thickness, CSS pixels
+
+// Inverted hull: back faces pushed out along the normal by a fixed number of screen pixels,
+// drawn behind the terminal, so only a rim around its silhouette shows.
+const OutlineShader = {
+  uniforms: { alpha: { value: 0 }, px: { value: CUE_PX }, pxPerMetre: { value: 800 } },
+  vertexShader: /* glsl */ `
+    uniform float px, pxPerMetre;
+    void main() {
+      vec4 mv = modelViewMatrix * vec4(position, 1.0);
+      mv.xyz += normalize(normalMatrix * normal) * px * -mv.z / pxPerMetre;
+      gl_Position = projectionMatrix * mv;
+    }`,
+  fragmentShader: /* glsl */ `
+    uniform float alpha;
+    void main() { gl_FragColor = vec4(vec3(1.0), alpha); }`,
+};
 
 export async function initGallery(root, data, { assets = "/gallery/", onProgress = () => {} } = {}) {
   const host = root.querySelector("[data-gallery-canvas]");
@@ -158,6 +177,33 @@ export async function initGallery(root, data, { assets = "/gallery/", onProgress
   const termBox = new THREE.Box3();
   for (const m of terminalMeshes) termBox.expandByObject(m);
 
+  // ---------------------------------------------------------------- "clickable" cue
+  // Now and then the terminal gets a white rim and a faded "Click on it" above it.
+  const outlineMat = new THREE.ShaderMaterial({ ...OutlineShader, uniforms: THREE.UniformsUtils.clone(OutlineShader.uniforms),
+    side: THREE.BackSide, transparent: true, depthWrite: false });
+  for (const m of terminalMeshes) {
+    const rim = new THREE.Mesh(m.geometry, outlineMat);
+    rim.renderOrder = 1;
+    rim.raycast = () => {};
+    m.add(rim);
+  }
+  const cueLabel = root.querySelector("[data-gallery-cue]");
+  const cueAnchor = new THREE.Vector3((termBox.min.x + termBox.max.x) / 2, termBox.max.y, (termBox.min.z + termBox.max.z) / 2);
+  const cueScreen = new THREE.Vector3();
+  let cue = 0;
+  function updateCue(dt, t) {
+    const phase = (t % CUE_PERIOD) / CUE_LENGTH;
+    const target = state === "hero" && phase < 1 ? Math.sin(Math.PI * phase) ** 2 : 0;
+    cue += (target - cue) * (1 - Math.exp(-dt * 12));     // quick fade when you leave the hallway
+    outlineMat.uniforms.alpha.value = 0.85 * cue;
+    if (!cueLabel) return;
+    cueLabel.style.opacity = String(0.55 * cue);
+    if (cue < 0.01) return;
+    cueScreen.copy(cueAnchor).project(camera);
+    const r = renderer.domElement.getBoundingClientRect();
+    cueLabel.style.transform = `translate(${((cueScreen.x + 1) / 2) * r.width}px, ${((1 - cueScreen.y) / 2) * r.height}px) translate(-50%, calc(-100% - 10px))`;
+  }
+
   // ---------------------------------------------------------------- water
   // Rippled real-time mirror of the hall; its look is driven by the grade (grade.js).
   const water = waterMesh ? createWater(waterMesh, renderer) : null;
@@ -241,7 +287,7 @@ export async function initGallery(root, data, { assets = "/gallery/", onProgress
     const r = renderer.domElement.getBoundingClientRect();
     mouse.set(((e.clientX - r.left) / r.width) * 2 - 1, ((e.clientY - r.top) / r.height) * 2 - 1);
     let pointer = false;
-    if (state === "hero") pointer = !!pick(e, terminalMeshes);
+    if (state === "hero") pointer = true;            // anywhere in the hallway walks you to the terminal
     else if (state === "terminal" && screenMesh) {
       const hit = pick(e, [screenMesh]);
       pointer = hit ? terminal.pointer(hit.uv) : false;
@@ -249,7 +295,7 @@ export async function initGallery(root, data, { assets = "/gallery/", onProgress
     renderer.domElement.style.cursor = pointer ? "pointer" : "";
   });
   renderer.domElement.addEventListener("click", (e) => {
-    if (state === "hero" && pick(e, terminalMeshes)) flyIn();
+    if (state === "hero") flyIn();
     else if (state === "terminal" && screenMesh) {
       const hit = pick(e, [screenMesh]);
       if (hit) terminal.click(hit.uv);
@@ -257,6 +303,7 @@ export async function initGallery(root, data, { assets = "/gallery/", onProgress
   });
   renderer.domElement.addEventListener("wheel", (e) => {
     if (state === "terminal") { e.preventDefault(); terminal.wheel(e.deltaY); }
+    else if (state === "hero" && e.deltaY > 0) flyIn();   // "scroll to explore"
   }, { passive: false });
   addEventListener("keydown", (e) => {
     if (state !== "terminal") return;
@@ -271,6 +318,7 @@ export async function initGallery(root, data, { assets = "/gallery/", onProgress
     renderer.setSize(w, h);
     water?.resize(w * renderer.getPixelRatio(), h * renderer.getPixelRatio());
     dust?.resize(camera, h * renderer.getPixelRatio(), renderer.getPixelRatio());
+    outlineMat.uniforms.pxPerMetre.value = h / (2 * Math.tan(THREE.MathUtils.degToRad(camera.fov) / 2));
     if (state === "terminal") { const p = terminalPose(); pos.copy(p.pos); target.copy(p.target); }
   };
   new ResizeObserver(resize).observe(host);
@@ -298,6 +346,7 @@ export async function initGallery(root, data, { assets = "/gallery/", onProgress
     camera.position.y += Math.sin(t * 0.6) * 0.01;     // a breath of handheld drift
 
     terminal.update(dt, t);
+    updateCue(dt, t);
     water?.update(dt);
     dust?.update(dt);
     renderer.render(scene, camera);

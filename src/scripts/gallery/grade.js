@@ -10,7 +10,7 @@ export const GRADE = {
   exposure: 1.13,
   contrast: 0.98,
   brightness: 1.4,
-  saturation: 1.19,
+  saturation: 2,
   hue: -20,
   sepia: 0,
   vignette: 1,
@@ -27,11 +27,11 @@ export const GRADE = {
   waterSpeed: 1,        // ripple animation speed
   terminalReflect: 1,   // how much the terminal's metal reflects the hall
   terminalMetal: 0,     // one flat metalness for the terminal body (no metal map)
-  decal: "#e6b800",     // the "02" paint tint (multiplies the white stencil image)
+  decal: "#b9ad7e",     // the "02" paint tint (multiplies the white stencil image)
   decalBright: 1,
-  dust: 0.6,            // share of the dust motes shown in the sun shaft
-  dustSize: 0.035,      // mote size, metres (the shaft is 20-40 m from the hero camera)
-  dustBright: 3,
+  dust: 0.37,           // share of the dust motes shown (beam and room)
+  dustSize: 0.014,      // mote size, metres (the shaft is 20-40 m from the hero camera)
+  dustBright: 0.75,
   dustRoom: 0.2,        // brightness of the room dust relative to the sun-shaft dust
   dustSpeed: 1,
 };
