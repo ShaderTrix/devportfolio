@@ -67,17 +67,11 @@ const terminalData = {
           <p class="gallery-edition">{terminalData.role}<span class="gallery-dash" aria-hidden="true"></span></p>
         </div>
         <nav class="gallery-nav">
-          <a class="gallery-nav-item" href={s.social.github} target="_blank" rel="noopener noreferrer">
-            <svg class="gallery-nav-icon" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 19c-4.3 1.4 -4.3 -2.5 -6 -3m12 5v-3.5c0 -1 .1 -1.4 -.5 -2c2.8 -.3 5.5 -1.4 5.5 -6a4.6 4.6 0 0 0 -1.3 -3.2a4.2 4.2 0 0 0 -.1 -3.2s-1.1 -.3 -3.5 1.3a12.3 12.3 0 0 0 -6.2 0c-2.4 -1.6 -3.5 -1.3 -3.5 -1.3a4.2 4.2 0 0 0 -.1 3.2a4.6 4.6 0 0 0 -1.3 3.2c0 4.6 2.7 5.7 5.5 6c-.6 .6 -.6 1.2 -.5 2v3.5" /></svg>GitHub
+          <a class="gallery-nav-item" href="/">
+            <span class="gallery-nav-icon" aria-hidden="true">→</span>Go to Website
           </a>
-          <a class="gallery-nav-item" href={s.social.youtube} target="_blank" rel="noopener noreferrer">
-            <svg class="gallery-nav-icon" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 8a4 4 0 0 1 4 -4h12a4 4 0 0 1 4 4v8a4 4 0 0 1 -4 4h-12a4 4 0 0 1 -4 -4z" /><path d="M10 9l5 3l-5 3z" /></svg>YouTube
-          </a>
-          <a class="gallery-nav-item" href={s.social.artstation} target="_blank" rel="noopener noreferrer">
-            <svg class="gallery-nav-icon" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 17l2.5 3.5h11l-2 -3.5z" /><path d="M9.5 3.5h4.5l8 14l-2.5 3.5z" /><path d="M8.5 8l-4.5 7.5h9z" /></svg>ArtStation
-          </a>
-          <a class="gallery-nav-item" href={s.social.linkedin} target="_blank" rel="noopener noreferrer">
-            <svg class="gallery-nav-icon" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 11v5" /><path d="M8 8v.01" /><path d="M12 16v-5" /><path d="M16 16v-3a2 2 0 1 0 -4 0" /><path d="M3 7a4 4 0 0 1 4 -4h10a4 4 0 0 1 4 4v10a4 4 0 0 1 -4 4h-10a4 4 0 0 1 -4 -4z" /></svg>LinkedIn
+          <a class="gallery-nav-item" href={s.resumeUrl} download>
+            <svg class="gallery-nav-icon" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 17v2a2 2 0 0 0 2 2h12a2 2 0 0 0 2 -2v-2" /><path d="M7 11l5 5l5 -5" /><path d="M12 4l0 12" /></svg>Download CV
           </a>
           <button class="gallery-nav-item" data-gallery-help type="button">
             <span class="gallery-nav-icon" aria-hidden="true">?</span>Help
@@ -184,7 +178,7 @@ const terminalData = {
       .gallery-dash { width: 1.6em; height: 1px; background: currentColor; }
 
       .gallery-nav { margin-top: clamp(28px, 6vh, 64px); border-left: 2px solid var(--gallery-amber); }
-      .gallery-nav-item { display: flex; align-items: center; gap: 26px; width: 100%; padding: 0 22px; height: clamp(44px, 5.6vh, 60px);
+      .gallery-nav-item { display: flex; align-items: center; gap: 26px; width: 100%; padding: 0 22px; height: clamp(52px, 7.2vh, 72px);
         font: 500 14px "JetBrains Mono", monospace; letter-spacing: 0.14em; text-transform: uppercase; text-align: left;
         color: rgba(255,255,255,0.88); text-decoration: none; cursor: pointer; background: transparent; border: 0;
         border-bottom: 1px solid rgba(255,255,255,0.12); transition: background .2s, color .2s; }
@@ -278,7 +272,7 @@ const terminalData = {
         .gallery-top { padding: 16px 18px; } .gallery-contact { display: none; }
         .gallery-side { top: 40px; }
         .gallery-wordmark { font-size: 11vw; }
-        .gallery-nav-item { height: 42px; gap: 18px; font-size: 13px; }
+        .gallery-nav-item { height: 48px; gap: 18px; font-size: 13px; }
         .gallery-back { top: 70px; right: 16px; }
       }
     </style>
