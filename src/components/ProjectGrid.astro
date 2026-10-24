@@ -28,7 +28,7 @@ const blurbParagraphs = Array.isArray(blurb) ? blurb : blurb ? [blurb] : [];
       <h1 class="text-3xl sm:text-4xl md:text-5xl font-bold tracking-tight text-white animate-fade-in">
         {title}
       </h1>
-      <div class="w-[40px] h-[4px] mt-4 rounded-full animate-fade-in animation-delay-200" style={`background-color: ${accent}`}></div>
+      <div class="rule mt-4 animate-fade-in animation-delay-200"></div>
       {blurbParagraphs.map((paragraph) => (
         <p class="mt-6 text-base sm:text-lg text-gray-400 leading-relaxed animate-fade-in animation-delay-400">{paragraph}</p>
       ))}
@@ -45,17 +45,10 @@ const blurbParagraphs = Array.isArray(blurb) ? blurb : blurb ? [blurb] : [];
             >
               <div class="h-[70%] w-full relative overflow-hidden bg-black/40 border-b border-white/[0.04]">
                 
-                <span class="absolute top-4 left-4 z-20 px-2 py-0.5 rounded bg-gray-950/60 text-[10px] font-mono tracking-widest" style={{ color: accent }}>
-                  // 0{index + 1}
-                </span>
+                <span class="card-num absolute top-4 left-4 z-20">{String(index + 1).padStart(2, "0")}</span>
 
                 {project.categoryKey === "professional" && (
-                  <span
-                    class="absolute top-4 right-4 z-20 px-2 py-0.5 rounded bg-gray-950/60 text-[10px] font-mono tracking-widest border"
-                    style={{ color: accent, borderColor: accent }}
-                  >
-                    Live · Production Tested
-                  </span>
+                  <span class="status-badge absolute top-4 right-4 z-20">Live · Production Tested</span>
                 )}
 
                 {project.image && (

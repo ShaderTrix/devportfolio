@@ -113,12 +113,7 @@ const categoryBackLabel =
             // {project.categoryLabel}
           </span>
           {project.categoryKey === "professional" && (
-            <span
-              class="px-2 py-0.5 rounded bg-gray-950/60 text-[10px] font-mono tracking-widest border"
-              style={{ color: accent, borderColor: accent }}
-            >
-              Live · Production Tested
-            </span>
+            <span class="status-badge">Live · Production Tested</span>
           )}
         </div>
         <h1 class="text-3xl sm:text-4xl md:text-5xl font-bold tracking-tight text-white mt-2">
@@ -127,7 +122,7 @@ const categoryBackLabel =
         {project.tagline && (
           <p class="mt-3 text-lg font-mono text-gray-400">{project.tagline}</p>
         )}
-        <div class="w-[40px] h-[4px] mt-5 rounded-full" style={`background-color: ${accent}`}></div>
+        <div class="rule mt-5"></div>
       </header>
 
       <!-- Skills -->

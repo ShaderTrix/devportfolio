@@ -291,6 +291,7 @@ export async function initGallery(root, data, { assets = "/gallery/", onProgress
   terminal.onExit = flyOut;
 
   // ---------------------------------------------------------------- input
+  let onScreen = true;                 // false while scrolled out of view (see the loop below)
   const ray = new THREE.Raycaster();
   const ndc = new THREE.Vector2();
   const mouse = new THREE.Vector2();     // -1..1, for parallax
@@ -322,7 +323,7 @@ export async function initGallery(root, data, { assets = "/gallery/", onProgress
     if (state === "terminal") { e.preventDefault(); terminal.wheel(e.deltaY); }
   }, { passive: false });
   addEventListener("keydown", (e) => {
-    if (state !== "terminal") return;
+    if (state !== "terminal" || !onScreen) return;   // scrolled away: arrows scroll the page
     if (terminal.key(e)) { e.preventDefault(); audio.click(); }
   });
 
@@ -342,7 +343,7 @@ export async function initGallery(root, data, { assets = "/gallery/", onProgress
   const clock = new THREE.Clock();
   const look = new THREE.Vector3();
   const parallax = new THREE.Vector2();
-  renderer.setAnimationLoop(() => {
+  const frame = () => {
     const dt = Math.min(clock.getDelta(), 0.1);
     const t = clock.elapsedTime;
     if (flight) {
@@ -365,7 +366,15 @@ export async function initGallery(root, data, { assets = "/gallery/", onProgress
     water?.update(dt);
     dust?.update(dt);
     renderer.render(scene, camera);
-  });
+  };
+  // Embedded in a page, the gallery can scroll out of view: stop rendering and let the
+  // ambience fall silent until it's back.
+  renderer.setAnimationLoop(frame);
+  new IntersectionObserver(([entry]) => {
+    onScreen = entry.isIntersecting;
+    renderer.setAnimationLoop(onScreen ? frame : null);
+    audio.setActive(onScreen);
+  }).observe(root);
 
   setState("hero");
   const api = { flyIn, flyOut, get state() { return state; }, renderer, scene, camera, terminal, water, dust, audio, GRADE, regrade, THREE };

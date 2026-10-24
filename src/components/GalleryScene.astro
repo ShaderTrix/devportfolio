@@ -1,0 +1,299 @@
+---
+// The interactive 3D hallway + wall terminal (the gallery). Used two ways:
+//  - pages/gallery.astro: standalone, fixed full-screen; "Go to Website" opens the site.
+//  - pages/index.astro (embedded): the home page's first full-screen section; "Go to Website"
+//    scrolls down to the content, and the site header stays tucked away over it (Header.astro).
+import { siteConfig } from "../config";
+
+interface Props {
+  embedded?: boolean;
+}
+const { embedded = false } = Astro.props;
+const siteHref = embedded ? "#about" : "/";
+
+const s = siteConfig;
+const [firstName, ...rest] = s.name.split(" ");
+const lastName = rest.join(" ");
+const { professional, personal } = s.projectCategories;
+const terminalData = {
+  name: s.name,
+  role: s.title.split("|")[0].trim().replace(/\s+II$/, ""),   // gallery shows the plain discipline, no grade
+  about: s.aboutMe,
+  experience: s.experience,
+  projects: [...professional.projects, ...personal.projects].map((p) => ({
+    name: p.name,
+    tagline: p.tagline,
+    link: p.link || "",
+    demoLink: ("demoLink" in p && p.demoLink) || "",
+  })),
+  skills: s.skills,
+  resumeUrl: s.resumeUrl,
+  contact: [
+    s.social.email && { label: "Email", value: s.social.email, href: `mailto:${s.social.email}` },
+    s.social.linkedin && { label: "LinkedIn", value: "linkedin.com/in/shivanshu-chauhan", href: s.social.linkedin },
+    s.social.github && { label: "GitHub", value: "github.com/ShaderTrix", href: s.social.github },
+    s.social.artstation && { label: "ArtStation", value: "artstation.com/shivanshuchauhan", href: s.social.artstation },
+    s.social.youtube && { label: "YouTube", value: "@shivanshuchauhan3032", href: s.social.youtube },
+  ].filter(Boolean),
+};
+---
+
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600&family=Montserrat:wght@500;900&display=swap" rel="stylesheet" />
+<link rel="preload" href="/gallery/gallery.glb" as="fetch" crossorigin />
+
+<section class="gallery" data-gallery data-state="loading" data-embedded={embedded ? "" : undefined} id="gallery">
+  <div class="gallery-canvas" data-gallery-canvas></div>
+  <div class="gallery-vignette" aria-hidden="true"></div>
+  <div class="gallery-grain" aria-hidden="true"><div></div></div>
+  {embedded && <div class="gallery-fade" aria-hidden="true"></div>}
+
+  <!-- top-left: stacked name (solid / outlined), tracked role, then the vertical nav -->
+  <aside class="gallery-side">
+    <div class="gallery-title">
+      <h1 class="gallery-wordmark" aria-label={s.name}>
+        <span aria-hidden="true">{firstName}</span>
+        <!-- outline via a mask (filled+stroked text minus filled text), so only each letter's
+             outer edge is drawn; CSS text-stroke also traces the font's overlapping inner contours -->
+        <svg class="is-outline" aria-hidden="true">
+          <mask id="gallery-outline" maskUnits="userSpaceOnUse" x="-20" y="-100" width="3000" height="300">
+            <text x="1" y="0.86em" fill="#fff" stroke="#fff" stroke-width="3">{lastName.toUpperCase()}</text>
+            <text x="1" y="0.86em" fill="#000">{lastName.toUpperCase()}</text>
+          </mask>
+          <rect x="-20" y="-100" width="3000" height="300" fill="#fff" mask="url(#gallery-outline)" />
+        </svg>
+      </h1>
+      <p class="gallery-edition">{terminalData.role}<span class="gallery-dash" aria-hidden="true"></span></p>
+    </div>
+    <nav class="gallery-nav">
+      <a class="gallery-nav-item" href={siteHref} data-gallery-site>
+        <span class="gallery-nav-icon" aria-hidden="true">→</span>Go to Website
+      </a>
+      <a class="gallery-nav-item" href={s.resumeUrl} download>
+        <svg class="gallery-nav-icon" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 17v2a2 2 0 0 0 2 2h12a2 2 0 0 0 2 -2v-2" /><path d="M7 11l5 5l5 -5" /><path d="M12 4l0 12" /></svg>Download CV
+      </a>
+      <button class="gallery-nav-item" data-gallery-help type="button">
+        <span class="gallery-nav-icon" aria-hidden="true">?</span>Help
+      </button>
+    </nav>
+    <div class="gallery-help" data-gallery-help-panel hidden>
+      <p><b>Hallway</b> click anywhere to walk up to the terminal.</p>
+      <p><b>Terminal</b> click a line, or use ↑ ↓ Enter and number keys. Scroll for long pages.</p>
+      <p><b>Leave</b> Esc, Back, or [LOG OFF].</p>
+    </div>
+  </aside>
+
+  <!-- top bar -->
+  <header class="gallery-top">
+    <button class="gallery-sound" data-gallery-sound type="button" aria-pressed="true">
+      <span class="gallery-sound-bars" aria-hidden="true"><i></i><i></i><i></i></span><span data-gallery-sound-label>Sound on</span>
+    </button>
+    <div class="gallery-contact">
+      <a href={`mailto:${s.social.email}`}>{s.social.email}</a>
+    </div>
+  </header>
+
+  <!-- back control while at the terminal -->
+  <button class="gallery-back" data-gallery-back type="button" aria-label="Back to the hallway">
+    <span>BACK</span><kbd>ESC</kbd>
+  </button>
+
+  <!-- hint while in the hallway; on the home page it scrolls down into the site -->
+  <a class="gallery-hint" href={siteHref} data-gallery-site>Go to website <span aria-hidden="true">↓</span></a>
+  <!-- corner brackets that fade in around the terminal now and then (gallery.js updateCue) -->
+  <div class="gallery-cue" data-gallery-cue aria-hidden="true"><span>Click the terminal</span></div>
+
+  <div class="gallery-loading" data-gallery-loading>
+    <p>SHADERTRIX TERMINAL // LOADING <span data-gallery-pct>0</span>%</p>
+    <div class="gallery-bar"><div data-gallery-bar></div></div>
+  </div>
+</section>
+
+<script type="application/json" id="gallery-data" set:html={JSON.stringify(terminalData)} />
+
+<script>
+  import { initGallery } from "../scripts/gallery/gallery.js";
+
+  const root = document.querySelector<HTMLElement>("[data-gallery]")!;
+  const data = JSON.parse(document.getElementById("gallery-data")!.textContent!);
+  const pct = root.querySelector<HTMLElement>("[data-gallery-pct]")!;
+  const bar = root.querySelector<HTMLElement>("[data-gallery-bar]")!;
+  const loading = root.querySelector<HTMLElement>("[data-gallery-loading]")!;
+  const help = root.querySelector<HTMLElement>("[data-gallery-help-panel]")!;
+
+  // the terminal measures its character grid, so the font must be in first
+  await document.fonts.load('30px "JetBrains Mono"').catch(() => {});
+  const gallery = await initGallery(root, data, {
+    assets: "/gallery/",
+    onProgress: (p) => {
+      const v = Math.round(p * 100);
+      pct.textContent = String(v);
+      bar.style.width = v + "%";
+    },
+  });
+  loading.classList.add("is-done");
+
+  root.querySelector("[data-gallery-back]")!.addEventListener("click", () => gallery.flyOut());
+  const soundBtn = root.querySelector<HTMLButtonElement>("[data-gallery-sound]")!;
+  const showSound = () => {
+    soundBtn.setAttribute("aria-pressed", String(!gallery.audio.muted));
+    soundBtn.querySelector("[data-gallery-sound-label]")!.textContent = gallery.audio.muted ? "Sound off" : "Sound on";
+  };
+  showSound();
+  soundBtn.addEventListener("click", () => { gallery.audio.setMuted(!gallery.audio.muted); showSound(); });
+  root.querySelector("[data-gallery-help]")!.addEventListener("click", () => { help.hidden = !help.hidden; });
+  addEventListener("keydown", (e) => {
+    if (e.key === "Escape" && gallery.state === "hero") help.hidden = true;
+  });
+  // embedded on the home page: "Go to Website" glides down to the content below
+  if (root.hasAttribute("data-embedded")) {
+    for (const a of root.querySelectorAll<HTMLAnchorElement>("[data-gallery-site]")) {
+      a.addEventListener("click", (e) => {
+        const target = document.querySelector(a.getAttribute("href")!);
+        if (!target) return;
+        e.preventDefault();
+        target.scrollIntoView({ behavior: "smooth" });
+      });
+    }
+  }
+</script>
+
+<style is:global>
+  .gallery { position: fixed; inset: 0; color: var(--text-primary); font-family: "JetBrains Mono", monospace;
+    --gallery-amber: var(--accent); }
+  /* on the home page: the first full-screen section, with the site scrolling on below it */
+  .gallery[data-embedded] { position: relative; inset: auto; height: 100vh; height: 100svh; overflow: hidden; background: #050505; }
+  #about { scroll-margin-top: 72px; }
+  /* melt the scene into the page below: fade to the theme's background (dark or light), and
+     drop the section's top hairline so there's no seam */
+  .gallery-fade { position: absolute; left: 0; right: 0; bottom: 0; height: 90px; pointer-events: none;
+    background: linear-gradient(to bottom, transparent, var(--bg)); }
+  .gallery[data-embedded] ~ #about { border-top-width: 0 !important; }   /* light theme forces its colour with !important */
+  .gallery[data-embedded] .gallery-hint { bottom: clamp(96px, 12vh, 120px); }
+  .gallery-canvas, .gallery-canvas canvas { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
+  /* strength/size come from the colour grade (grade.js) */
+  .gallery-vignette { position: absolute; inset: 0; pointer-events: none;
+    background: radial-gradient(ellipse 75% 85% at 50% 50%, transparent var(--vig-size, 45%), rgba(0,0,0,var(--vig, 0.65)) 100%); }
+  /* film grain: grey noise in overlay mode pushes lights up and darks down, so it reads as
+     contrasty grain rather than a grey veil. Texture + strength come from grade.js. */
+  .gallery-grain { position: absolute; inset: 0; overflow: hidden; pointer-events: none; mix-blend-mode: overlay; opacity: 0; }
+  .gallery-grain div { position: absolute; inset: -50%; background-size: 256px 256px; animation: gallery-grain 0.6s steps(1) infinite; }
+  @keyframes gallery-grain {
+    0% { transform: translate(0, 0); } 16% { transform: translate(-7%, 4%); } 33% { transform: translate(5%, -9%); }
+    50% { transform: translate(-3%, 8%); } 66% { transform: translate(9%, 2%); } 83% { transform: translate(-6%, -5%); } }
+
+  /* top-left column: name, role, nav (mock-up "top left - vertical nav") */
+  .gallery-side { position: absolute; left: clamp(20px, 5vw, 96px); top: clamp(48px, 9vh, 110px);
+    width: min(340px, 80vw); transition: opacity .6s; }
+  .gallery-title { pointer-events: none; color: #fff; transition: opacity .6s, transform .6s; }
+  .gallery-wordmark .is-outline { display: block; width: 100%; height: 1em; overflow: visible; font: inherit;
+    letter-spacing: inherit; }
+  .gallery-wordmark { margin: 0; display: flex; flex-direction: column;
+    font: 900 clamp(34px, 3.6vw, 68px)/1 "Montserrat", sans-serif; text-transform: uppercase; letter-spacing: 0.01em; }
+  .gallery-edition { display: flex; align-items: center; gap: 0.9em; margin: 1.1em 0 0;
+    font: 500 clamp(12px, 1vw, 17px)/1 "Montserrat", sans-serif; text-transform: uppercase; letter-spacing: 0.32em;
+    color: rgba(255,255,255,0.85); }
+  .gallery-dash { width: 1.6em; height: 1px; background: currentColor; }
+
+  .gallery-nav { margin-top: clamp(28px, 6vh, 64px); border-left: 2px solid var(--gallery-amber); }
+  .gallery-nav-item { display: flex; align-items: center; gap: 26px; width: 100%; padding: 0 22px; height: clamp(52px, 7.2vh, 72px);
+    font: 500 14px "JetBrains Mono", monospace; letter-spacing: 0.14em; text-transform: uppercase; text-align: left;
+    color: rgba(255,255,255,0.88); text-decoration: none; cursor: pointer; background: transparent; border: 0;
+    border-bottom: 1px solid rgba(255,255,255,0.12); transition: background .2s, color .2s; }
+  .gallery-nav-item:last-child { border-bottom: 0; }
+  .gallery-nav-item:hover, .gallery-nav-item:focus-visible { color: var(--gallery-amber); outline: none;
+    background: linear-gradient(90deg, rgba(217,154,50,0.14), transparent); }
+  .gallery-nav-icon { width: 20px; height: 20px; flex: none; display: grid; place-items: center; font-size: 18px; }
+
+  .gallery-help { margin-top: 18px; padding: 14px 18px; font-size: 13px; line-height: 1.6; color: var(--text-secondary);
+    background: rgba(8,8,8,0.8); border: 1px solid rgba(255,255,255,0.12); border-left: 2px solid var(--gallery-amber);
+    backdrop-filter: blur(8px); }
+  .gallery-help p { margin: 0 0 6px; } .gallery-help b { color: var(--gallery-amber); font-weight: 600; margin-right: 6px; }
+
+  .gallery-hint { position: absolute; left: 50%; bottom: clamp(24px, 7vh, 64px); transform: translateX(-50%); margin: 0;
+    font-size: 13px; letter-spacing: 0.22em; text-transform: uppercase; white-space: nowrap;
+    color: rgba(255,255,255,0.75); text-decoration: none; transition: opacity .4s, color .2s;
+    animation: gallery-pulse 2.4s ease-in-out infinite; }
+  .gallery-hint:hover { color: var(--gallery-amber); animation: none; }
+  .gallery-hint span { display: inline-block; margin-left: 0.6em; }
+  @keyframes gallery-pulse { 50% { opacity: 0.35; } }
+  .gallery-cue { position: absolute; left: 0; top: 0; opacity: 0; pointer-events: none; --c: rgba(255,255,255,0.8);
+    /* four L-shaped corner brackets drawn with gradients */
+    background:
+      linear-gradient(var(--c), var(--c)) top left / 10px 1.5px, linear-gradient(var(--c), var(--c)) top left / 1.5px 10px,
+      linear-gradient(var(--c), var(--c)) top right / 10px 1.5px, linear-gradient(var(--c), var(--c)) top right / 1.5px 10px,
+      linear-gradient(var(--c), var(--c)) bottom left / 10px 1.5px, linear-gradient(var(--c), var(--c)) bottom left / 1.5px 10px,
+      linear-gradient(var(--c), var(--c)) bottom right / 10px 1.5px, linear-gradient(var(--c), var(--c)) bottom right / 1.5px 10px;
+    background-repeat: no-repeat; }
+  .gallery-cue span { position: absolute; left: 50%; bottom: 100%; transform: translate(-50%, -10px); white-space: nowrap;
+    font-size: 11px; letter-spacing: 0.24em; text-transform: uppercase; color: rgba(255,255,255,0.6); }
+
+  /* away from the hallway view the name goes, the nav stays reachable but quiet */
+  .gallery:not([data-state="hero"]) .gallery-title { opacity: 0; transform: translateY(-10px); }
+  .gallery:not([data-state="hero"]) .gallery-nav { opacity: 0.35; }
+  .gallery:not([data-state="hero"]) .gallery-nav:hover { opacity: 1; }
+  .gallery-nav { transition: opacity .4s; }
+
+  .gallery-top { position: absolute; top: 0; left: 0; right: 0; display: flex; justify-content: flex-end;
+    gap: 16px; padding: 22px 28px; pointer-events: none;
+    background: linear-gradient(rgba(0,0,0,0.45), transparent); }
+  .gallery-top a, .gallery-top button { pointer-events: auto; }
+  .gallery-top { align-items: center; }
+  .gallery-sound { display: flex; align-items: center; gap: 10px; padding: 0; background: none; border: 0; cursor: pointer;
+    font: 500 12px "JetBrains Mono", monospace; letter-spacing: 0.16em; text-transform: uppercase; color: var(--text-secondary); }
+  .gallery-sound:hover { color: var(--gallery-amber); }
+  /* three little level bars that bounce while sound is on */
+  .gallery-sound-bars { display: flex; align-items: flex-end; gap: 2px; height: 12px; }
+  .gallery-sound-bars i { width: 2px; height: 100%; background: currentColor; transform-origin: bottom;
+    animation: gallery-bars 1.1s ease-in-out infinite; }
+  .gallery-sound-bars i:nth-child(2) { animation-delay: -0.4s; } .gallery-sound-bars i:nth-child(3) { animation-delay: -0.75s; }
+  @keyframes gallery-bars { 0%, 100% { transform: scaleY(0.3); } 50% { transform: scaleY(1); } }
+  .gallery-sound[aria-pressed="false"] .gallery-sound-bars i { animation: none; transform: scaleY(0.25); }
+  .gallery-contact { text-align: right; font-size: 13px; }
+  .gallery-contact a { color: var(--text-secondary); text-decoration: underline; text-underline-offset: 3px; }
+  .gallery-contact a:hover { color: var(--accent); }
+
+  .gallery-back { position: absolute; top: 84px; right: 28px; display: flex; align-items: center; gap: 10px;
+    padding: 8px 10px 8px 14px; font: 600 13px "JetBrains Mono", monospace; letter-spacing: 0.15em; color: var(--text-primary);
+    background: rgba(8,8,8,0.6); border: 1px solid rgba(255,255,255,0.2); border-radius: 8px; cursor: pointer;
+    opacity: 0; pointer-events: none; transition: opacity .4s; }
+  .gallery-back kbd { padding: 2px 7px; border: 1px solid rgba(255,255,255,0.4); border-radius: 4px; font: inherit; }
+  .gallery-back:hover { border-color: var(--accent); color: var(--accent); }
+
+  .gallery[data-state="terminal"] .gallery-back { opacity: 1; pointer-events: auto; }
+  .gallery:not([data-state="hero"]) .gallery-hint { visibility: hidden; animation: none; opacity: 0; }
+
+  .gallery-loading { position: absolute; inset: 0; display: grid; place-content: center; gap: 14px; background: #050505;
+    color: var(--signal); font-size: 13px; letter-spacing: 0.15em; transition: opacity .8s; }
+  .gallery-loading.is-done { opacity: 0; pointer-events: none; }
+  .gallery-bar { width: min(320px, 70vw); height: 2px; background: rgba(139,169,110,0.2); }
+  .gallery-bar div { width: 0; height: 100%; background: var(--signal); transition: width .2s; }
+
+  .grade-panel { position: absolute; right: 18px; bottom: 18px; z-index: 5; width: 300px; max-height: calc(100vh - 140px);
+    overflow: auto; padding: 12px 14px; font: 12px/1.3 "JetBrains Mono", monospace; color: var(--text-primary);
+    background: rgba(8,8,8,0.82); border: 1px solid rgba(255,255,255,0.14); border-radius: 12px; backdrop-filter: blur(8px); }
+  .grade-panel.is-collapsed .grade-body, .grade-panel.is-collapsed .grade-actions { display: none; }
+  .grade-head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
+  .grade-head b { color: var(--accent); font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; }
+  .grade-panel button { font: inherit; color: inherit; background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.18);
+    border-radius: 6px; padding: 4px 10px; cursor: pointer; }
+  .grade-panel button:hover { border-color: var(--accent); color: var(--accent); }
+  .grade-row { display: grid; grid-template-columns: 96px 1fr 58px; align-items: center; gap: 6px; margin: 5px 0; }
+  .grade-row select, .grade-row input[type="color"] { grid-column: 2 / 4; }
+  .grade-row input[type="range"] { width: 100%; accent-color: var(--accent); }
+  .grade-row input[type="number"], .grade-row select { font: inherit; color: inherit; background: rgba(255,255,255,0.06);
+    border: 1px solid rgba(255,255,255,0.15); border-radius: 4px; padding: 2px 4px; }
+  .grade-row input[type="color"] { width: 100%; height: 24px; border: 0; background: none; padding: 0; }
+  .grade-actions { display: flex; justify-content: flex-end; gap: 8px; margin-top: 10px; }
+
+  @media (max-width: 640px) {
+    /* no room beside the terminal on a phone: the menu steps aside there (Back / Esc leaves) */
+    .gallery:not([data-state="hero"]) .gallery-side { opacity: 0; visibility: hidden; transition: opacity .4s, visibility 0s .4s; }
+    .gallery-top { padding: 16px 18px; } .gallery-contact { display: none; }
+    .gallery-side { top: 40px; }
+    .gallery-wordmark { font-size: 11vw; }
+    .gallery-nav-item { height: 48px; gap: 18px; font-size: 13px; }
+    .gallery-back { top: 70px; right: 16px; }
+  }
+</style>

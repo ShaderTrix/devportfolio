@@ -1,100 +1,189 @@
 @import "tailwindcss";
 
 /* ---------------------------------------------------------------------------
-   Color theme — adapted from codesavory.dev
-   Warm near-black background, cream text, sage-green accent + terracotta warm.
+   Industrial Concrete — the same world as the 3D landing scene (/ and /gallery):
+   near-black concrete, aged beige neutrals, hazard amber, a touch of terminal green.
+   Tailwind's own scales are retuned here, so every existing text-gray-*, bg-gray-*,
+   border-gray-* and rounded-* class across the site picks up the theme.
 --------------------------------------------------------------------------- */
-:root {
-  --bg: #0e0d0b;
-  --bg-secondary: #161410;
-  --surface: #1c1a17;
+@theme {
+  /* warm concrete neutrals in place of Tailwind's cool grays */
+  --color-white: #e8e3d9;
+  --color-gray-100: #e8e3d9;
+  --color-gray-200: #dcd5c8;
+  --color-gray-300: #cbc1ae;
+  --color-gray-400: #b7aa91;
+  --color-gray-500: #8e8471;
+  --color-gray-600: #6b6355;
+  --color-gray-700: #4a463e;
+  --color-gray-800: #34322d;
+  --color-gray-900: #191815;
+  --color-gray-950: #0b0b0a;
 
-  --text-primary: #f0ebe3;
-  --text-secondary: #9a9080;
-  --text-subtle: #4a4540;
+  /* machined, barely-rounded corners */
+  --radius-xs: 1px;
+  --radius-sm: 2px;
+  --radius-md: 2px;
+  --radius-lg: 3px;
+  --radius-xl: 3px;
+  --radius-2xl: 4px;
+  --radius-3xl: 6px;
 
-  --border: rgba(245, 240, 227, 0.07);
-
-  /* Sage-green accent */
-  --accent: #8ab870;
-  --accent-dim: #8ab8701f;
-  --accent-hover: #a0ce80;
-  --border-accent: #8ab87040;
-
-  /* Terracotta warm accent */
-  --accent-warm: #d88a68;
-  --accent-warm-hover: #ea9e7d;
-
-  --card-shadow-rest: 0 2px 8px #00000059;
-  --card-shadow-lift: 0 12px 32px #0000008c;
-
-  --grid-stroke: rgba(245, 240, 227, 0.1);
+  /* condensed display headings, clean body, monospaced technical labels */
+  --font-display: "Barlow Condensed", "Arial Narrow", sans-serif;
+  --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif;
+  --font-mono: "JetBrains Mono", ui-monospace, monospace;
 }
 
-/* ---- Light theme ---- */
+:root {
+  --bg: #0b0b0a;             /* near-black */
+  --bg-secondary: #121110;
+  --surface: #191815;        /* dark concrete: cards, panels */
+  --surface-raised: #211f1b;
+
+  --text-primary: #e8e3d9;   /* warm off-white */
+  --text-secondary: #b7aa91; /* aged concrete beige */
+  --text-subtle: #6b6355;
+
+  --border: #34322d;         /* charcoal */
+
+  /* hazard amber: active nav, section markers, numbers, selected states */
+  --accent: #d99a32;
+  --accent-dim: rgba(217, 154, 50, 0.14);
+  --accent-hover: #e8ae4c;
+  --border-accent: rgba(217, 154, 50, 0.45);
+
+  /* muted terminal green: small status indicators only */
+  --signal: #8ba96e;
+
+  --card-shadow-rest: 0 1px 0 rgba(0, 0, 0, 0.4);
+  --card-shadow-lift: 0 14px 30px rgba(0, 0, 0, 0.55);
+
+  --grid-stroke: rgba(232, 227, 217, 0.06);
+}
+
+/* ---- Light theme: switched off for now (the toggle is commented out in Header.astro) ----
 [data-theme="light"] {
   --bg: #f5f2ed;
   --bg-secondary: #ebe7e0;
   --surface: #ffffff;
-
   --text-primary: #1c1a17;
   --text-secondary: #6b6560;
   --text-subtle: #b0a8a0;
-
   --border: rgba(0, 0, 0, 0.1);
-
   --accent-dim: #8ab87030;
   --border-accent: #8ab87050;
-
   --card-shadow-rest: 0 2px 8px rgba(0, 0, 0, 0.06);
   --card-shadow-lift: 0 12px 32px rgba(0, 0, 0, 0.1);
-
   --grid-stroke: rgba(0, 0, 0, 0.06);
 }
-
-/* Tailwind text-color overrides for light mode */
 [data-theme="light"] .text-white { color: var(--text-primary) !important; }
 [data-theme="light"] .text-gray-200 { color: #3a3530 !important; }
 [data-theme="light"] .text-gray-300 { color: #4a4540 !important; }
 [data-theme="light"] .text-gray-400 { color: #6b6560 !important; }
 [data-theme="light"] .text-gray-500 { color: #8a8580 !important; }
 [data-theme="light"] .text-gray-600 { color: #aaa5a0 !important; }
-
-/* Tailwind bg overrides */
 [data-theme="light"] .bg-gray-950\/60,
 [data-theme="light"] .bg-gray-950\/70,
 [data-theme="light"] .bg-gray-950\/30 { background-color: rgba(0, 0, 0, 0.05) !important; }
 [data-theme="light"] .bg-gray-900\/40 { background-color: rgba(0, 0, 0, 0.04) !important; }
 [data-theme="light"] .bg-black\/40,
 [data-theme="light"] .bg-black\/30 { background-color: rgba(0, 0, 0, 0.05) !important; }
-
-/* Tailwind border overrides */
 [data-theme="light"] .border-white\/5,
 [data-theme="light"] .border-white\/\[0\.04\],
 [data-theme="light"] .border-white\/\[0\.05\],
 [data-theme="light"] .border-white\/10 { border-color: rgba(0, 0, 0, 0.08) !important; }
 [data-theme="light"] .border-gray-800 { border-color: rgba(0, 0, 0, 0.1) !important; }
-
-/* Fixed bg image — hide in light mode */
 [data-theme="light"] .fixed-bg-image { opacity: 0.03; }
+---- */
 
 html,
 body {
   background: var(--bg);
   color: var(--text-primary);
-  font-family: "JetBrains Mono", monospace;
+  font-family: var(--font-sans);
   min-height: 100%;
-
-  /* --- FONT SIZE REDUCTION ADDED HERE --- */
-  font-size: 14px; /* Default browser text is 16px. Dropping to 14px perfectly contracts all text layouts. */
+  font-size: 14px; /* the whole layout is sized around a 14px root */
 }
 
 font-mono, .font-mono, span.font-mono {
-  font-family: "JetBrains Mono", monospace !important;
+  font-family: var(--font-mono) !important;
 }
+
+/* condensed, heavy display headings (mono-labelled headings keep .font-mono) */
+h1, h2, h3 {
+  font-family: var(--font-display);
+  font-weight: 700;
+  letter-spacing: 0.01em;
+}
+h1, h2 { text-transform: uppercase; }
+
+/* the faint white hairlines become the charcoal separator colour */
+.border-white\/5,
+.border-white\/10,
+.border-white\/\[0\.04\],
+.border-white\/\[0\.05\],
+.border-white\/\[0\.06\] { border-color: var(--border); }
+
+::selection { background: var(--accent); color: var(--bg); }
+
+/* Section marker under titles: a short amber bar riding a charcoal tick ruler. */
+.rule {
+  width: min(320px, 100%);
+  height: 8px;
+  background:
+    linear-gradient(var(--accent), var(--accent)) left top / 44px 2px no-repeat,
+    linear-gradient(var(--border), var(--border)) left top / 100% 1px no-repeat,
+    repeating-linear-gradient(90deg, var(--border) 0 1px, transparent 1px 8px) left 2px / 100% 4px no-repeat;
+  -webkit-mask-image: linear-gradient(to right, #000 60%, transparent);
+          mask-image: linear-gradient(to right, #000 60%, transparent);
+}
+.text-center .rule, .rule.mx-auto { margin-left: auto; margin-right: auto; }
+
+/* Card index label ("01", "ART-02") and small status badge, set over project imagery. */
+.card-num {
+  padding: 3px 8px 3px 7px;
+  font: 500 10px/1.2 var(--font-mono);
+  letter-spacing: 0.22em;
+  color: var(--accent);
+  background: rgba(11, 11, 10, 0.8);
+  border-left: 2px solid var(--accent);
+}
+.status-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 3px 8px;
+  font: 500 10px/1.2 var(--font-mono);
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--signal);
+  background: rgba(11, 11, 10, 0.8);
+  border: 1px solid rgba(139, 169, 110, 0.4);
+}
+.status-badge::before {
+  content: "";
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: var(--signal);
+  box-shadow: 0 0 5px var(--signal);
+}
+
+/* Very fine film grain over the whole site, the same texture language as the 3D scene. */
+body::after {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: 40;              /* over content, under the header */
+  pointer-events: none;
+  opacity: 0.05;
+  mix-blend-mode: overlay;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 0.5 0 0 0 0 0.5 0 0 0 0 0.5 0 0 0 1.6 -0.3'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+}
+
 /* ---------------------------------------------------------------------------
-   Hover outlines — codesavory.dev signature.
-   Interactive cards/links lift slightly and gain a sage-green border on hover.
+   Interaction: cards lift a little and pick up an amber edge; amber focus ring.
 --------------------------------------------------------------------------- */
 a.group {
   transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1),
@@ -103,21 +192,19 @@ a.group {
 }
 
 a.group:hover {
-  border-color: var(--accent) !important;
-  box-shadow: var(--card-shadow-lift);
+  border-color: var(--border-accent) !important;
+  box-shadow: var(--card-shadow-lift), inset 0 0 0 1px var(--accent-dim);
 }
 
-/* Accent glow focus ring for keyboard users */
 :focus-visible {
-  box-shadow: 0 0 0 2px var(--bg), 0 0 0 4px var(--accent),
-    0 0 16px var(--accent-dim);
-  border-radius: 6px;
+  box-shadow: 0 0 0 2px var(--bg), 0 0 0 3px var(--accent);
+  border-radius: 2px;
   outline: none;
   transition: box-shadow 0.18s;
 }
 
 /* ---------------------------------------------------------------------------
-   Fade-in-up entrance animation — used for hero/page header content.
+   Fade-in-up entrance animation — used for page header content.
 --------------------------------------------------------------------------- */
 @keyframes fadeIn {
   from { opacity: 0; transform: translateY(10px); }

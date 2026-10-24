@@ -83,7 +83,7 @@ const games = [
         <h1 class="text-3xl sm:text-4xl md:text-5xl font-bold tracking-tight text-white animate-fade-in">
           Games I've Worked On
         </h1>
-        <div class="w-[40px] h-[4px] mt-4 rounded-full animate-fade-in animation-delay-200" style={`background-color: ${accent}`}></div>
+        <div class="rule mt-4 animate-fade-in animation-delay-200"></div>
         <div class="mt-6 text-base sm:text-lg text-gray-300 leading-relaxed animate-fade-in animation-delay-400 space-y-4">
           <p>
             A few <span style={{ color: accent, fontStyle: 'italic' }}>shipped, real-world titles</span> with my fingerprints on them — <span style={{ color: accent, fontStyle: 'italic' }}>millions of players</span>, occasional fires to put out, and a lot of <span style={{ color: accent, fontStyle: 'italic' }}>"why is the frame rate doing that" moments</span> along the way.
@@ -136,7 +136,7 @@ const games = [
                   <ul class="mt-2 space-y-1.5">
                     {game.contributions.map((bullet) => (
                       <li class="flex items-start gap-2.5 text-xs text-gray-300">
-                        <span class="mt-1.5 w-1 h-1 rounded-full flex-shrink-0" style={`background-color: ${accent}`}></span>
+                        <span class="mt-1.5 w-1 h-1 flex-shrink-0" style={`background-color: ${accent}`}></span>
                         <span class="leading-relaxed">{bullet}</span>
                       </li>
                     ))}

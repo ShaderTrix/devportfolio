@@ -4,7 +4,7 @@ export const siteConfig = {
   description:
     "Unity UI Systems, Rendering, Shaders, GPU-driven Systems and Tool Development",
 
-  accentColor: "#8ab870",
+  accentColor: "#D99A32",   // hazard amber (Industrial Concrete theme, src/styles/global.css)
 
   // Rotating roles shown under the hero name (animated typewriter)
   roles: [

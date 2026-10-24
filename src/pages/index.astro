@@ -1,13 +1,14 @@
 ---
 import Layout from "../layouts/Layout.astro";
-import Hero from "../components/Hero.astro";
+import GalleryScene from "../components/GalleryScene.astro";
 import About from "../components/About.astro";
 import Experience from "../components/Experience.astro";
 import Education from "../components/Education.astro";
 ---
 
-<Layout title="About Me">
-  <Hero />
+<!-- the 3D gallery is the opening screen; the site scrolls on below it -->
+<Layout title="About Me" flush>
+  <GalleryScene embedded />
   <About />
   <Experience />
   <Education />

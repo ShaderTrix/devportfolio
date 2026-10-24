@@ -2,21 +2,12 @@
 import { siteConfig } from "../config";
 
 const links = [
-  { href: "/tech-art", label: "Techart", icon: "code" },
-  { href: "/art", label: "Art", icon: "art" },
-  { href: "/pro-games", label: "Games", icon: "game" },
-  { href: "/", label: "About Me", icon: "user" },
-  { href: "/contact", label: "Contact", icon: "mail" },
+  { href: "/tech-art", label: "Techart" },
+  { href: "/art", label: "Art" },
+  { href: "/pro-games", label: "Games" },
+  { href: "/", label: "About Me" },
+  { href: "/contact", label: "Contact" },
 ];
-
-// Inline icon set (stroke = currentColor so it adapts to the tab text color)
-const ICONS: Record<string, string> = {
-  code: '<path d="M16 18l6-6-6-6"/><path d="M8 6l-6 6 6 6"/>',
-  art: '<path d="M12 20h9"/><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4z"/>',
-  game: '<rect x="2" y="6" width="20" height="12" rx="6"/><path d="M6 11h4"/><path d="M8 9v4"/><path d="M15.5 12h.01"/><path d="M18 10h.01"/>',
-  user: '<circle cx="12" cy="8" r="4"/><path d="M4 21v-1a6 6 0 0 1 6-6h4a6 6 0 0 1 6 6v1"/>',
-  mail: '<rect x="3" y="5" width="18" height="14" rx="2"/><path d="m3 7 9 6 9-6"/>',
-};
 
 // Normalize current path (strip trailing slash) for active-link matching.
 const current = Astro.url.pathname.replace(/\/+$/, "") || "/";
@@ -34,7 +25,7 @@ const isActive = (href: string) => {
 >
   <!-- Accent gradient hairline -->
   <div
-    class="absolute bottom-0 left-0 right-0 h-px opacity-60"
+    class="absolute bottom-0 left-0 right-0 h-px opacity-30"
     style={`background: linear-gradient(90deg, transparent, ${siteConfig.accentColor}, transparent)`}
   ></div>
 
@@ -58,58 +49,46 @@ const isActive = (href: string) => {
         href="/"
         class="group flex items-center gap-2.5 font-mono text-base sm:text-lg font-bold text-white whitespace-nowrap transition-opacity hover:opacity-80"
       >
-        <span
-          class="inline-block w-2.5 h-2.5 rounded-full animate-pulse"
-          style={`background-color: ${siteConfig.accentColor}; box-shadow: 0 0 8px ${siteConfig.accentColor}`}
-        ></span>
+        <span class="status-dot inline-block w-2 h-2 rounded-full" aria-hidden="true"></span>
         <span class="text-gray-500 transition-colors group-hover:text-white">&gt;</span>
         {siteConfig.name}
       </a>
 
       <div class="hidden md:flex items-center gap-6 lg:gap-8">
-        <ul class="flex items-center gap-6 lg:gap-8">
+        <ul class="nav-list flex items-center">
           {
-            links.map((link) => (
+            links.map((link, i) => (
               <li>
                 <a
                   href={link.href}
-                  class={`nav-link relative flex items-center gap-1.5 pb-1 font-mono text-sm font-medium transition-colors duration-300 ${
-                    isActive(link.href) ? "nav-link-active text-white" : "text-gray-400"
+                  aria-current={isActive(link.href) ? "page" : undefined}
+                  class={`nav-link relative flex items-center gap-2 py-1 font-mono text-xs uppercase tracking-[0.18em] transition-colors duration-300 ${
+                    isActive(link.href) ? "nav-link-active" : "text-gray-400"
                   }`}
                 >
-                  <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" set:html={ICONS[link.icon]} />
+                  <span class="nav-num">{String(i + 1).padStart(2, "0")}</span>
                   {link.label}
-                  <span class="nav-underline" style={`background-color: ${siteConfig.accentColor}`}></span>
+                  <span class="nav-underline"></span>
                 </a>
               </li>
             ))
           }
         </ul>
 
-        <button
-          id="theme-toggle"
-          type="button"
-          aria-label="Toggle theme"
-          class="theme-toggle"
-        >
-          <span class="theme-toggle-track">
-            <span class="theme-toggle-thumb"></span>
-          </span>
+        <!-- light mode is off for now
+        <button id="theme-toggle" type="button" aria-label="Toggle theme" class="theme-toggle">
+          <span class="theme-toggle-track"><span class="theme-toggle-thumb"></span></span>
         </button>
+        -->
       </div>
 
+      <!-- light mode is off for now
       <div class="flex md:hidden items-center gap-2">
-        <button
-          id="theme-toggle-mobile"
-          type="button"
-          aria-label="Toggle theme"
-          class="theme-toggle"
-        >
-          <span class="theme-toggle-track">
-            <span class="theme-toggle-thumb"></span>
-          </span>
+        <button id="theme-toggle-mobile" type="button" aria-label="Toggle theme" class="theme-toggle">
+          <span class="theme-toggle-track"><span class="theme-toggle-thumb"></span></span>
         </button>
       </div>
+      -->
     </div>
 
     <!-- Mobile sub-menu: same tabs as desktop, always visible, no hamburger needed -->
@@ -119,13 +98,13 @@ const isActive = (href: string) => {
           <li class="flex-shrink-0">
             <a
               href={link.href}
-              class={`nav-link relative inline-flex items-center gap-1.5 py-1 font-mono text-xs font-medium whitespace-nowrap transition-colors duration-300 ${
-                isActive(link.href) ? "nav-link-active text-white" : "text-gray-400"
+              aria-current={isActive(link.href) ? "page" : undefined}
+              class={`nav-link relative inline-flex items-center py-1 font-mono text-[11px] uppercase tracking-[0.14em] whitespace-nowrap transition-colors duration-300 ${
+                isActive(link.href) ? "nav-link-active" : "text-gray-400"
               }`}
             >
-              <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" set:html={ICONS[link.icon]} />
               {link.label}
-              <span class="nav-underline" style={`background-color: ${siteConfig.accentColor}`}></span>
+              <span class="nav-underline"></span>
             </a>
           </li>
         ))
@@ -135,20 +114,34 @@ const isActive = (href: string) => {
 </header>
 
 <script>
-  function toggleTheme() {
-    const current = document.documentElement.getAttribute("data-theme") || "dark";
-    const next = current === "dark" ? "light" : "dark";
-    document.documentElement.setAttribute("data-theme", next);
-    localStorage.setItem("theme", next);
-  }
+  // light mode is off for now (see Layout.astro / global.css)
+  // function toggleTheme() {
+  //   const current = document.documentElement.getAttribute("data-theme") || "dark";
+  //   const next = current === "dark" ? "light" : "dark";
+  //   document.documentElement.setAttribute("data-theme", next);
+  //   localStorage.setItem("theme", next);
+  // }
+  // document.getElementById("theme-toggle")?.addEventListener("click", toggleTheme);
+  // document.getElementById("theme-toggle-mobile")?.addEventListener("click", toggleTheme);
 
-  document.getElementById("theme-toggle")?.addEventListener("click", toggleTheme);
-  document.getElementById("theme-toggle-mobile")?.addEventListener("click", toggleTheme);
+  // Home page: the 3D gallery opens full screen with the header tucked away; it slides down
+  // once you scroll (or "Go to Website") past the gallery.
+  const gallery = document.querySelector("[data-gallery][data-embedded]");
+  const header = document.getElementById("header");
+  if (gallery && header) {
+    const update = () => header.classList.toggle("header-tucked", gallery.getBoundingClientRect().bottom > innerHeight * 0.5);
+    addEventListener("scroll", update, { passive: true });
+    addEventListener("resize", update);
+    update();
+  }
 </script>
 
 <style>
   html {
     scroll-behavior: smooth;
+  }
+  :global(#header.header-tucked) {
+    transform: translateY(-100%);
   }
   .mobile-subnav {
     scrollbar-width: none;
@@ -157,58 +150,50 @@ const isActive = (href: string) => {
   .mobile-subnav::-webkit-scrollbar {
     display: none;
   }
+  /* minimal industrial nav: index numbers, hairline separators, amber for the active page */
+  .nav-list > li + li {
+    margin-left: 1.25rem;
+    padding-left: 1.25rem;
+    border-left: 1px solid var(--border);
+  }
+  .nav-num {
+    color: var(--text-subtle);
+    transition: color 0.3s;
+  }
   .nav-underline {
     position: absolute;
-    bottom: 0;
+    bottom: -2px;
     left: 0;
     right: 0;
     height: 2px;
+    background: var(--accent);
     transform: scaleX(0);
     transform-origin: left;
-    transition: transform 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+    transition: transform 0.5s cubic-bezier(0.16, 1, 0.3, 1);
   }
   .nav-link:hover .nav-underline,
   .nav-link-active .nav-underline {
     transform: scaleX(1);
   }
-  .nav-link:hover {
+  .nav-link:hover,
+  .nav-link-active,
+  .nav-link:hover .nav-num,
+  .nav-link-active .nav-num {
     color: var(--accent);
   }
+  /* terminal-green "online" lamp */
+  .status-dot {
+    background: var(--signal);
+    box-shadow: 0 0 6px var(--signal);
+    animation: status-blink 2.4s ease-in-out infinite;
+  }
+  @keyframes status-blink { 50% { opacity: 0.45; } }
 
-  .theme-toggle {
-    background: none;
-    border: none;
-    padding: 0;
-    cursor: pointer;
-    line-height: 0;
-  }
-  .theme-toggle-track {
-    position: relative;
-    display: block;
-    width: 48px;
-    height: 26px;
-    border-radius: 9999px;
-    background-color: rgba(255, 255, 255, 0.1);
-    border: 1px solid rgba(255, 255, 255, 0.08);
-    transition: background-color 0.3s, border-color 0.3s;
-  }
-  :global([data-theme="light"]) .theme-toggle-track {
-    background-color: rgba(0, 0, 0, 0.1);
-    border-color: rgba(0, 0, 0, 0.12);
-  }
-  .theme-toggle-thumb {
-    position: absolute;
-    top: 3px;
-    left: 3px;
-    width: 18px;
-    height: 18px;
-    border-radius: 9999px;
-    background-color: var(--accent);
-    box-shadow: 0 0 6px var(--accent-dim);
-    transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
-    z-index: 2;
-  }
-  :global([data-theme="light"]) .theme-toggle-thumb {
-    transform: translateX(22px);
-  }
+  /* light mode is off for now: theme toggle styles kept for when it comes back
+  .theme-toggle { background: none; border: none; padding: 0; cursor: pointer; line-height: 0; }
+  .theme-toggle-track { position: relative; display: block; width: 48px; height: 26px; border-radius: 9999px;
+    background-color: rgba(255, 255, 255, 0.1); border: 1px solid rgba(255, 255, 255, 0.08); transition: background-color 0.3s, border-color 0.3s; }
+  .theme-toggle-thumb { position: absolute; top: 3px; left: 3px; width: 18px; height: 18px; border-radius: 9999px;
+    background-color: var(--accent); box-shadow: 0 0 6px var(--accent-dim); transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1); z-index: 2; }
+  */
 </style>

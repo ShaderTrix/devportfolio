@@ -25,7 +25,7 @@ export function createAudio(assets, onProgress = () => {}) {
 
   let muted = false;
   try { muted = localStorage.getItem(MUTE_KEY) === "1"; } catch {}
-  let started = false;
+  let started = false, active = true;
   const volume = { ambience: 0.35, clicks: 0.45 };
   master.gain.value = muted ? 0 : 1;
 
@@ -40,7 +40,7 @@ export function createAudio(assets, onProgress = () => {}) {
       src.loop = true;
       src.connect(amb);
       src.start();
-      amb.gain.setTargetAtTime(volume.ambience, ctx.currentTime, 1.2);   // slow fade in
+      amb.gain.setTargetAtTime(active ? volume.ambience : 0, ctx.currentTime, 1.2);   // slow fade in
     });
   }
   for (const ev of ["pointerdown", "keydown", "wheel", "touchstart"]) addEventListener(ev, start, { once: true, passive: true });
@@ -62,7 +62,12 @@ export function createAudio(assets, onProgress = () => {}) {
     setVolumes(ambience, clicks) {
       volume.ambience = ambience;
       volume.clicks = clicks;
-      if (started) amb.gain.setTargetAtTime(ambience, ctx.currentTime, 0.1);
+      if (started && active) amb.gain.setTargetAtTime(ambience, ctx.currentTime, 0.1);
+    },
+    /** false while the gallery is scrolled out of view: the ambience fades out */
+    setActive(on) {
+      active = on;
+      if (started) amb.gain.setTargetAtTime(on ? volume.ambience : 0, ctx.currentTime, 0.4);
     },
     /** one key click, slightly varied so repeats don't sound mechanical */
     click() {

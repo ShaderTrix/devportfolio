@@ -36,7 +36,7 @@ const ENGINE_ICONS: Record<string, string> = {
         <h1 class="text-3xl sm:text-4xl md:text-5xl font-bold tracking-tight text-white animate-fade-in">
           My Techart Stuff
         </h1>
-        <div class="w-[40px] h-[4px] mt-4 rounded-full animate-fade-in animation-delay-200" style={`background-color: ${accent}`}></div>
+        <div class="rule mt-4 animate-fade-in animation-delay-200"></div>
         <div class="mt-6 text-base sm:text-lg text-gray-300 leading-relaxed animate-fade-in animation-delay-400 space-y-4">
           <p>
             A few of my techart stuff/projects — a mix of systems I've shipped on <span style={{ color: accent, fontStyle: 'italic' }}>production mobile games</span> and personal projects I built just to learn and mess around with.
@@ -55,15 +55,15 @@ const ENGINE_ICONS: Record<string, string> = {
 
       {projects.length > 0 && (
         <div class="mt-8 flex justify-center">
-          <div id="engine-filter" class="inline-flex items-center gap-1 p-1 rounded-full border" style={{ borderColor: "var(--border)", backgroundColor: "var(--surface)" }}>
-            <button type="button" data-filter="all" class="filter-btn active flex items-center gap-1.5 px-4 py-1.5 rounded-full text-xs font-mono font-medium transition-colors duration-300">
+          <div id="engine-filter" class="inline-flex items-center gap-1 p-1 rounded-sm border" style={{ borderColor: "var(--border)", backgroundColor: "var(--surface)" }}>
+            <button type="button" data-filter="all" class="filter-btn active flex items-center gap-1.5 px-4 py-1.5 rounded-sm text-xs font-mono font-medium uppercase tracking-[0.12em] transition-colors duration-300">
               All Projects
             </button>
-            <button type="button" data-filter="unity" class="filter-btn flex items-center gap-1.5 px-4 py-1.5 rounded-full text-xs font-mono font-medium transition-colors duration-300">
+            <button type="button" data-filter="unity" class="filter-btn flex items-center gap-1.5 px-4 py-1.5 rounded-sm text-xs font-mono font-medium uppercase tracking-[0.12em] transition-colors duration-300">
               <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d={ENGINE_ICONS.unity} /></svg>
               Unity
             </button>
-            <button type="button" data-filter="unreal" class="filter-btn flex items-center gap-1.5 px-4 py-1.5 rounded-full text-xs font-mono font-medium transition-colors duration-300">
+            <button type="button" data-filter="unreal" class="filter-btn flex items-center gap-1.5 px-4 py-1.5 rounded-sm text-xs font-mono font-medium uppercase tracking-[0.12em] transition-colors duration-300">
               <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d={ENGINE_ICONS.unreal} /></svg>
               Unreal
             </button>
@@ -82,11 +82,9 @@ const ENGINE_ICONS: Record<string, string> = {
                 style={{ backgroundColor: "var(--surface)", borderColor: "var(--border)" }}
               >
                 <div class="h-[70%] w-full relative overflow-hidden bg-black/40 border-b border-white/[0.04]">
-                  <span class="absolute top-4 left-4 z-20 px-2 py-0.5 rounded bg-gray-950/60 text-[10px] font-mono tracking-widest" style={{ color: accent }}>
-                    // 0{index + 1}
-                  </span>
+                  <span class="card-num absolute top-4 left-4 z-20">{String(index + 1).padStart(2, "0")}</span>
                   <div
-                    class="absolute top-4 right-4 w-8 h-8 z-20 flex items-center justify-center rounded-full text-gray-400 group-hover:text-white transition-all border border-white/5"
+                    class="absolute top-4 right-4 w-8 h-8 z-20 flex items-center justify-center rounded-sm text-gray-400 group-hover:text-white transition-all border border-white/5"
                     style={{ backgroundColor: "var(--surface)" }}
                   >
                     <svg class="w-3.5 h-3.5 transform transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -143,7 +141,7 @@ const ENGINE_ICONS: Record<string, string> = {
     }
     .filter-btn.active {
       background-color: var(--accent);
-      color: #0e0d0b;
+      color: var(--bg);
     }
     .project-card {
       transition: opacity 0.35s cubic-bezier(0.16, 1, 0.3, 1),

@@ -6,9 +6,11 @@ import "../styles/global.css";
 
 interface Props {
   title?: string;
+  /** content starts at the very top, under the (tucked) header: the home page's gallery */
+  flush?: boolean;
 }
 
-const { title } = Astro.props;
+const { title, flush = false } = Astro.props;
 const pageTitle = title
   ? `${title} - ${siteConfig.name}`
   : `${siteConfig.name} - ${siteConfig.title}`;
@@ -23,15 +25,18 @@ const pageTitle = title
     <meta name="description" content={siteConfig.description} />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <!-- Loading Geist Sans for Headings and Geist Mono for code tags -->
-  <link href="[https://fonts.googleapis.com/css2?family=JetBrains+Mono:ital,wght@0,100..800;1,100..800&display=swap](https://fonts.googleapis.com/css2?family=JetBrains+Mono:ital,wght@0,100..800;1,100..800&display=swap)">
+    <!-- Barlow Condensed: headings · Inter: body · JetBrains Mono: labels and code -->
+    <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet" />
     <title>{pageTitle}</title>
+    <!-- light mode is off for now; restore this (and the toggle in Header.astro) to bring it back
     <script is:inline>
       (function(){
         var t = localStorage.getItem("theme") || "dark";
         document.documentElement.setAttribute("data-theme", t);
       })();
     </script>
+    -->
+    <script is:inline>document.documentElement.setAttribute("data-theme", "dark");</script>
   </head>
   <body style={{ backgroundColor: "var(--bg)" }}>
     <div class="fixed inset-0 -z-10">
@@ -43,7 +48,7 @@ const pageTitle = title
     </div>
 
     <Header />
-    <main class="pt-16">
+    <main class={flush ? "" : "pt-16"}>
       <slot />
     </main>
     <Footer />
