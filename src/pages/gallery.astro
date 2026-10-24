@@ -8,7 +8,7 @@ const s = siteConfig;
 const { professional, personal } = s.projectCategories;
 const terminalData = {
   name: s.name,
-  role: s.title.split("|")[0].trim(),
+  role: s.title.split("|")[0].trim().replace(/\s+II$/, ""),   // gallery shows the plain discipline, no grade
   about: s.aboutMe,
   experience: s.experience,
   projects: [...professional.projects, ...personal.projects].map((p) => ({

@@ -26,9 +26,13 @@ export const GRADE = {
   waterDistort: 0.014,  // how far ripples bend the reflection
   waterSpeed: 1,        // ripple animation speed
   terminalReflect: 1,   // how much the terminal's metal reflects the hall
+  terminalMetal: 0,     // one flat metalness for the terminal body (no metal map)
+  decal: "#e6b800",     // the "02" paint tint (multiplies the white stencil image)
+  decalBright: 1,
   dust: 0.6,            // share of the dust motes shown in the sun shaft
   dustSize: 0.035,      // mote size, metres (the shaft is 20-40 m from the hero camera)
   dustBright: 3,
+  dustRoom: 0.2,        // brightness of the room dust relative to the sun-shaft dust
   dustSpeed: 1,
 };
 
@@ -63,16 +67,20 @@ const FIELDS = [
   ["waterDistort", "Distortion", { min: 0, max: 0.1, step: 0.001 }],
   ["waterSpeed", "Ripple speed", { min: 0, max: 4, step: 0.05 }],
   ["terminalReflect", "Terminal reflect", { min: 0, max: 3, step: 0.01 }],
+  ["terminalMetal", "Terminal metal", { min: 0, max: 1, step: 0.01 }],
+  ["decal", "02 colour", { color: true }],
+  ["decalBright", "02 bright", { min: 0, max: 3, step: 0.01 }],
   ["dust", "Dust amount", { min: 0, max: 1, step: 0.01 }],
   ["dustSize", "Dust size", { min: 0.002, max: 0.05, step: 0.001 }],
   ["dustBright", "Dust bright", { min: 0, max: 6, step: 0.05 }],
+  ["dustRoom", "Room dust", { min: 0, max: 1, step: 0.01 }],
   ["dustSpeed", "Dust speed", { min: 0, max: 4, step: 0.05 }],
 ];
 
 /**
  * hooks: { renderer, scene, vignetteEl, lightmapMaterials: [{material, base}],
  *          terminalLights: [{light, base}], screenMaterial, water, dust,
- *          terminalMaterials, captureEnv }
+ *          terminalMaterials, bodyMaterials, decalMaterials, captureEnv }
  */
 export function applyGrade(g, hooks) {
   const { renderer, scene } = hooks;
@@ -107,12 +115,12 @@ export function applyGrade(g, hooks) {
     hooks.water.speed = g.waterSpeed;
   }
   if (hooks.dust) {
-    hooks.dust.setAmount(g.dust);
-    hooks.dust.uniforms.size.value = g.dustSize;
-    hooks.dust.uniforms.brightness.value = g.dustBright;
+    hooks.dust.set({ amount: g.dust, size: g.dustSize, brightness: g.dustBright, room: g.dustRoom });
     hooks.dust.speed = g.dustSpeed;
   }
   for (const m of hooks.terminalMaterials ?? []) m.envMapIntensity = g.terminalReflect;
+  for (const m of hooks.bodyMaterials ?? []) m.metalness = g.terminalMetal;
+  for (const m of hooks.decalMaterials ?? []) m.color.set(g.decal).multiplyScalar(g.decalBright);
   // the terminal's reflections are a capture of the lightmapped hall: redo it when that changes
   if (hooks.captureEnv && hooks.envBakedLight !== g.bakedLight) {
     hooks.envBakedLight = g.bakedLight;

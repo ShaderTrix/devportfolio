@@ -43,13 +43,18 @@ export async function initGallery(root, data, { assets = "/gallery/", onProgress
     t.flipY = false;                     // glTF UV convention
     t.colorSpace = THREE.SRGBColorSpace; // stored sRGB-encoded, scaled by m.scale
     t.channel = 1;                       // TEXCOORD_1
+    // No mipmaps: thin faces seen edge-on from far away (the door jamb) would sample a tiny
+    // mip where neighbouring atlas islands, e.g. the white sunlit wall, have bled in.
+    // Baked light is smooth, so the full-res texture doesn't shimmer.
+    t.generateMipmaps = false;
+    t.minFilter = THREE.LinearFilter;
     lightmaps[name] = { tex: t, scale: m.scale };
   })));
   const gltf = await new GLTFLoader().loadAsync(assets + "gallery.glb", (e) => e.total && onProgress(e.loaded / e.total));
   scene.add(gltf.scene);
 
   const terminalMeshes = [];
-  const lightmapMaterials = [], terminalLights = [];
+  const lightmapMaterials = [], terminalLights = [], decalMaterials = [];
   let screenMesh = null, waterMesh = null;
   const maxAniso = renderer.capabilities.getMaxAnisotropy();
   gltf.scene.traverse((o) => {
@@ -82,6 +87,7 @@ export async function initGallery(root, data, { assets = "/gallery/", onProgress
       basic.color.copy(m.emissive).multiplyScalar(STRIP_GLOW);
     }
     else lightmapMaterials.push({ material: basic, base: basic.lightMapIntensity });
+    if (info.materialTint?.[m.name]) decalMaterials.push(basic);   // colour comes from the grade
     o.material = basic;
     m.dispose();
   });
@@ -158,7 +164,7 @@ export async function initGallery(root, data, { assets = "/gallery/", onProgress
   if (water) scene.add(water.mesh);
 
   // ---------------------------------------------------------------- dust in the sun shaft
-  const dust = info.sunShaft ? createDust(info.sunShaft, fromBlender) : null;
+  const dust = info.sunShaft || info.room ? createDust(info.sunShaft, info.room, fromBlender) : null;
   if (dust) scene.add(dust.mesh);
 
   // ---------------------------------------------------------------- terminal reflections
@@ -166,6 +172,9 @@ export async function initGallery(root, data, { assets = "/gallery/", onProgress
   // environment. Capture the (lightmapped) hall from just in front of the terminal and
   // prefilter it for rough surfaces. Re-captured when the baked light level changes.
   const terminalMaterials = terminalMeshes.map((m) => m.material).filter((m) => m.isMeshStandardMaterial);
+  // the baked paint has no metal map: one flat metalness for the whole body, set by the grade
+  const bodyMaterials = terminalMaterials.filter((m) => m.name === "T_Baked");
+  for (const m of bodyMaterials) { m.metalnessMap = null; m.needsUpdate = true; }
   const pmrem = new THREE.PMREMGenerator(renderer);
   let envTarget = null;
   const captureEnv = () => {
@@ -188,7 +197,7 @@ export async function initGallery(root, data, { assets = "/gallery/", onProgress
   // ---------------------------------------------------------------- grade
   const grade = { renderer, scene, vignetteEl: root.querySelector(".gallery-vignette"),
     lightmapMaterials, terminalLights, screenMaterial: screenMesh?.material, water, dust,
-    terminalMaterials, captureEnv };
+    terminalMaterials, bodyMaterials, decalMaterials, captureEnv };
   const regrade = () => applyGrade(GRADE, grade);
   regrade();
   maybeGradePanel(root, GRADE, regrade);
@@ -261,7 +270,7 @@ export async function initGallery(root, data, { assets = "/gallery/", onProgress
     camera.updateProjectionMatrix();
     renderer.setSize(w, h);
     water?.resize(w * renderer.getPixelRatio(), h * renderer.getPixelRatio());
-    dust?.resize(camera, h * renderer.getPixelRatio());
+    dust?.resize(camera, h * renderer.getPixelRatio(), renderer.getPixelRatio());
     if (state === "terminal") { const p = terminalPose(); pos.copy(p.pos); target.copy(p.target); }
   };
   new ResizeObserver(resize).observe(host);

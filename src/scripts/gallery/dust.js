@@ -1,9 +1,11 @@
-// Dust motes drifting in the sun shaft. The shaft's volume comes from the Blender export
-// (lightmaps.json "sunShaft": grid cells that see the sun and whose sun ray lands on the
-// sunlit wall), so motes only ever glow where the light actually is.
+// Dust motes. Two populations from the Blender export (lightmaps.json):
+//  - beam: grid cells of the sun shaft ("sunShaft": cells whose sun ray lands on the sunlit
+//    wall), bright, so the light reads as a shaft of glinting specks;
+//  - room: open air the camera path can see ("room"), dim, so the whole hall feels dusty.
 import * as THREE from "three";
 
-const MAX_MOTES = 3000;
+const BEAM_MOTES = 3000;
+const ROOM_MOTES = 6000;
 
 const DustShader = {
   uniforms: {
@@ -12,9 +14,10 @@ const DustShader = {
     brightness: { value: 1 },
     color: { value: new THREE.Color(1, 0.93, 0.8) },
     pxPerMetre: { value: 800 },    // viewport height / (2 tan(fov / 2)): metres at 1 m -> pixels
+    maxPx: { value: 6 },           // biggest a mote may get on screen (device pixels)
   },
   vertexShader: /* glsl */ `
-    uniform float time, size, pxPerMetre;
+    uniform float time, size, pxPerMetre, maxPx;
     attribute vec4 seed;
     attribute float lit;
     varying float vAlpha;
@@ -27,10 +30,10 @@ const DustShader = {
       vec4 mv = modelViewMatrix * vec4(p, 1.0);
       gl_Position = projectionMatrix * mv;
       float px = size * (0.4 + 1.2 * seed.w) * pxPerMetre / -mv.z;
-      gl_PointSize = max(px, 1.5);
+      gl_PointSize = clamp(px, 1.5, maxPx);   // motes right at the lens would be big soft blobs
       // glint as the flake turns in the light; motes far away fade rather than shrink
       float glint = 0.35 + 0.65 * pow(0.5 + 0.5 * sin(time * (0.7 + 1.6 * seed.z) + seed.x * 40.0), 3.0);
-      vAlpha = lit * glint * clamp(px / 1.5, 0.0, 1.0) * smoothstep(0.2, 0.8, -mv.z);
+      vAlpha = lit * glint * clamp(px / 1.5, 0.0, 1.0) * smoothstep(0.8, 2.5, -mv.z);
     }`,
   fragmentShader: /* glsl */ `
     uniform vec3 color;
@@ -46,24 +49,25 @@ const DustShader = {
     }`,
 };
 
-/** shaft: { cell, cells: [x, y, z, litFraction, ...] (Blender coords), color }. */
-export function createDust(shaft, fromBlender) {
+/** Scatter `count` motes through grid cells [x, y, z(, weight)...] (Blender coords),
+ *  picking cells in proportion to their weight (how much of the cell is lit). */
+function scatter(flat, stride, cellSize, count, fromBlender) {
   const cells = [];
   let total = 0;
-  for (let i = 0; i < shaft.cells.length; i += 4) {
-    total += shaft.cells[i + 3];
-    cells.push({ c: fromBlender(shaft.cells.slice(i, i + 3)), lit: shaft.cells[i + 3], acc: total });
+  for (let i = 0; i < flat.length; i += stride) {
+    const w = stride > 3 ? flat[i + 3] : 1;
+    total += w;
+    cells.push({ c: fromBlender(flat.slice(i, i + 3)), w, acc: total });
   }
-  // spread motes by volume: pick cells weighted by how much of each is lit
-  const pos = new Float32Array(MAX_MOTES * 3), seed = new Float32Array(MAX_MOTES * 4), lit = new Float32Array(MAX_MOTES);
-  for (let n = 0; n < MAX_MOTES; n++) {
+  const pos = new Float32Array(count * 3), seed = new Float32Array(count * 4), lit = new Float32Array(count);
+  for (let n = 0; n < count; n++) {
     const r = Math.random() * total;
     let lo = 0, hi = cells.length - 1;
     while (lo < hi) { const mid = (lo + hi) >> 1; if (cells[mid].acc < r) lo = mid + 1; else hi = mid; }
     const cell = cells[lo];
-    for (let k = 0; k < 3; k++) pos[n * 3 + k] = cell.c.getComponent(k) + (Math.random() - 0.5) * shaft.cell;
+    for (let k = 0; k < 3; k++) pos[n * 3 + k] = cell.c.getComponent(k) + (Math.random() - 0.5) * cellSize;
     for (let k = 0; k < 4; k++) seed[n * 4 + k] = Math.random();
-    lit[n] = cell.lit;
+    lit[n] = cell.w;
   }
   const geo = new THREE.BufferGeometry();
   geo.setAttribute("position", new THREE.BufferAttribute(pos, 3));
@@ -76,18 +80,38 @@ export function createDust(shaft, fromBlender) {
     depthWrite: false,
     blending: THREE.AdditiveBlending,
   });
-  if (shaft.color) mat.uniforms.color.value.setRGB(...shaft.color, THREE.LinearSRGBColorSpace);
   const points = new THREE.Points(geo, mat);
   points.frustumCulled = false;
-  const u = mat.uniforms;
+  return points;
+}
+
+/** shaft: { cell, cells: [x, y, z, litFraction, ...], color }; room: { cell, cells: [x, y, z, ...] }. */
+export function createDust(shaft, room, fromBlender) {
+  const group = new THREE.Group();
+  const beam = shaft ? scatter(shaft.cells, 4, shaft.cell, BEAM_MOTES, fromBlender) : null;
+  const air = room ? scatter(room.cells, 3, room.cell, ROOM_MOTES, fromBlender) : null;
+  const layers = [beam, air].filter(Boolean);
+  for (const p of layers) {
+    if (shaft?.color) p.material.uniforms.color.value.setRGB(...shaft.color, THREE.LinearSRGBColorSpace);
+    group.add(p);
+  }
+  const each = (fn) => layers.forEach((p) => fn(p.material.uniforms, p));
   return {
-    mesh: points,
-    uniforms: u,
+    mesh: group,
     speed: 1,
-    setAmount(a) { geo.setDrawRange(0, Math.round(MAX_MOTES * THREE.MathUtils.clamp(a, 0, 1))); },
-    update(dt) { u.time.value += dt * this.speed; },
-    resize(camera, heightPx) {
-      u.pxPerMetre.value = heightPx / (2 * Math.tan(THREE.MathUtils.degToRad(camera.fov) / 2));
+    /** amount 0..1 (both layers), size in metres, brightness of the beam, room = room/beam ratio */
+    set({ amount, size, brightness, room: roomGlow }) {
+      each((u, p) => {
+        const max = p === beam ? BEAM_MOTES : ROOM_MOTES;
+        p.geometry.setDrawRange(0, Math.round(max * THREE.MathUtils.clamp(amount, 0, 1)));
+        u.size.value = size;
+        u.brightness.value = p === beam ? brightness : brightness * roomGlow;
+      });
+    },
+    update(dt) { each((u) => (u.time.value += dt * this.speed)); },
+    resize(camera, heightPx, pixelRatio = 1) {
+      const k = heightPx / (2 * Math.tan(THREE.MathUtils.degToRad(camera.fov) / 2));
+      each((u) => { u.pxPerMetre.value = k; u.maxPx.value = 6 * pixelRatio; });
     },
   };
 }
