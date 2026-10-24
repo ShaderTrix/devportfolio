@@ -282,9 +282,15 @@ export async function initGallery(root, data, { assets = "/gallery/", onProgress
     return { pos: new THREE.Vector3(screenBox.max.x + dist, c.y, c.z), target: c };
   }
 
+  // mouse parallax is strong in the hallway and nearly off at the terminal; it blends across
+  // the flight (switching it at the start made the camera jerk toward the cursor on the way back)
+  const PARALLAX = { hero: 0.35, terminal: 0.04 };
+  let parallaxAmount = PARALLAX.hero;
   function fly(to, next) {
-    flight = { from: { pos: pos.clone(), target: target.clone() }, to, t: 0, next };
+    const toAmount = to === hero ? PARALLAX.hero : PARALLAX.terminal;
+    flight = { from: { pos: pos.clone(), target: target.clone(), amount: parallaxAmount }, to, toAmount, t: 0, next };
     setState("flying");
+    audio.swoosh();
   }
   const flyIn = () => { if (state === "hero") fly(terminalPose(), () => { setState("terminal"); terminal.boot(); }); };
   const flyOut = () => { if (state === "terminal") { terminal.idle(); fly(hero, () => setState("hero")); } };
@@ -351,13 +357,13 @@ export async function initGallery(root, data, { assets = "/gallery/", onProgress
       const k = ease(flight.t);
       pos.lerpVectors(flight.from.pos, flight.to.pos, k);
       target.lerpVectors(flight.from.target, flight.to.target, k);
+      parallaxAmount = THREE.MathUtils.lerp(flight.from.amount, flight.toAmount, k);
       if (flight.t >= 1) { const next = flight.next; flight = null; next(); }
     }
     // gentle mouse parallax (much smaller once you're at the terminal)
     parallax.lerp(mouse, 1 - Math.exp(-dt * 3));
-    const amount = state === "terminal" ? 0.04 : 0.35;
     camera.position.copy(pos);
-    look.copy(target).add(new THREE.Vector3(0, -parallax.y * amount, parallax.x * amount));
+    look.copy(target).add(new THREE.Vector3(0, -parallax.y * parallaxAmount, parallax.x * parallaxAmount));
     camera.lookAt(look);
     camera.position.y += Math.sin(t * 0.6) * 0.01;     // a breath of handheld drift
 

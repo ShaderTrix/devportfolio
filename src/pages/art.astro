@@ -91,7 +91,7 @@ const kindOf = (tags: string[]) => `3D Art / ${tags.find((t) => iconKeyFor(t)) ?
       <header class="tx-head animate-fade-in">
         <div class="tx-title-col">
           <p class="tx-kicker"><span>//</span> Art</p>
-          <h1 class="tx-title">Art<br />Projects</h1>
+          <h1 class="tx-title">Art<br /><span class="tx-outline">Projects</span></h1>
         </div>
         <div class="tx-blurb">
           <p>A few <em>3D and environment art pieces</em> I made purely because <em>I enjoyed making them</em>.</p>
@@ -110,7 +110,7 @@ const kindOf = (tags: string[]) => `3D Art / ${tags.find((t) => iconKeyFor(t)) ?
           return (
             <li class={`tx-row${index % 2 ? " is-flip" : ""}`}>
               <a href={art.demoLink} target="_blank" rel="noopener noreferrer" class="tx-media" tabindex="-1" aria-hidden="true">
-                <span class="tx-main" style={`background-image: url('${art.image}')`}></span>
+                <span class="tx-main corners" style={`background-image: url('${art.image}')`}></span>
               </a>
               <div class="tx-text">
                 <span class="tx-num" aria-hidden="true">{pad(index + 1)}</span>

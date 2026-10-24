@@ -199,7 +199,7 @@ export const siteConfig = {
           slug: "tmp-instancing",
           name: "UI TextMeshPro Instancing System",
           tagline: "Hundreds of uniquely styled UI texts, one draw call",
-          image: "/projects/tmp-instanced.png",
+          image: "/projects/tmp-instanced.webp",
           detailImage: "",
           hideDetailBanner: true,
           description:

@@ -1,4 +1,4 @@
-// Hallway ambience (seamless loop) and terminal key clicks, through Web Audio.
+// Hallway ambience (seamless loop), terminal key clicks and the camera swoosh, through Web Audio.
 // Browsers only allow sound after a user gesture, so the ambience fades in on the first
 // click, key or scroll. A mute toggle is remembered per browser.
 import { fetchProgress } from "./load.js";
@@ -15,18 +15,20 @@ export function createAudio(assets, onProgress = () => {}) {
   fx.connect(master);
   master.connect(ctx.destination);
 
-  let ambBuf = null, keyBuf = null;
+  let ambBuf = null, keyBuf = null, swooshBuf = null;
+  const small = (name) => fetch(assets + "audio/" + name).then((r) => r.arrayBuffer()).then((b) => ctx.decodeAudioData(b));
   const ready = Promise.all([
     fetchProgress(assets + "audio/ambience.m4a", onProgress).then((b) => ctx.decodeAudioData(b)),
-    fetch(assets + "audio/key.m4a").then((r) => r.arrayBuffer()).then((b) => ctx.decodeAudioData(b)),
+    small("key.m4a"),
+    small("swoosh.m4a"),
   ])
-    .then(([a, k]) => { ambBuf = a; keyBuf = k; })
+    .then(([a, k, s]) => { ambBuf = a; keyBuf = k; swooshBuf = s; })
     .catch(() => onProgress(1));            // no sound is fine; the page works without it
 
   let muted = false;
   try { muted = localStorage.getItem(MUTE_KEY) === "1"; } catch {}
   let started = false, active = true;
-  const volume = { ambience: 0.35, clicks: 0.45 };
+  const volume = { ambience: 0.35, clicks: 0.45, swoosh: 0.5 };
   master.gain.value = muted ? 0 : 1;
 
   function start() {
@@ -59,15 +61,26 @@ export function createAudio(assets, onProgress = () => {}) {
       master.gain.setTargetAtTime(m ? 0 : 1, ctx.currentTime, 0.08);
       if (!m) start();
     },
-    setVolumes(ambience, clicks) {
+    setVolumes(ambience, clicks, swoosh = volume.swoosh) {
       volume.ambience = ambience;
       volume.clicks = clicks;
+      volume.swoosh = swoosh;
       if (started && active) amb.gain.setTargetAtTime(ambience, ctx.currentTime, 0.1);
     },
     /** false while the gallery is scrolled out of view: the ambience fades out */
     setActive(on) {
       active = on;
       if (started) amb.gain.setTargetAtTime(on ? volume.ambience : 0, ctx.currentTime, 0.4);
+    },
+    /** the camera rushing to or from the terminal */
+    swoosh() {
+      if (!swooshBuf || muted) return;
+      const src = ctx.createBufferSource();
+      src.buffer = swooshBuf;
+      const g = ctx.createGain();
+      g.gain.value = volume.swoosh;
+      src.connect(g).connect(fx);
+      src.start();
     },
     /** one key click, slightly varied so repeats don't sound mechanical */
     click() {

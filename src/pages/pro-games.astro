@@ -95,7 +95,7 @@ const pad = (n: number) => String(n).padStart(2, "0");
         {games.map((game, index) => (
           <li class={`tx-row${index % 2 ? " is-flip" : ""}`}>
             <div class="tx-media">
-              <span class="tx-main" style={`background-image: url('${game.image}')`}></span>
+              <span class="tx-main corners" style={`background-image: url('${game.image}')`}></span>
             </div>
             <div class="tx-text">
               <span class="tx-num" aria-hidden="true">{pad(index + 1)}</span>

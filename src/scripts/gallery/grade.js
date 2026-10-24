@@ -37,6 +37,7 @@ export const GRADE = {
   dustSpeed: 1,
   ambience: 0.35,       // hallway ambience volume
   clicks: 0.45,         // terminal key-click volume
+  swoosh: 0.5,          // camera fly in/out swoosh volume
 };
 
 const TONE_MAPPINGS = {
@@ -81,6 +82,7 @@ const FIELDS = [
   ["dustSpeed", "Dust speed", { min: 0, max: 4, step: 0.05 }],
   ["ambience", "Ambience vol", { min: 0, max: 1, step: 0.01 }],
   ["clicks", "Click vol", { min: 0, max: 1, step: 0.01 }],
+  ["swoosh", "Swoosh vol", { min: 0, max: 1, step: 0.01 }],
 ];
 
 /**
@@ -125,7 +127,7 @@ export function applyGrade(g, hooks) {
     hooks.dust.set({ amount: g.dust, size: g.dustSize, brightness: g.dustBright, room: g.dustRoom });
     hooks.dust.speed = g.dustSpeed;
   }
-  hooks.audio?.setVolumes(g.ambience, g.clicks);
+  hooks.audio?.setVolumes(g.ambience, g.clicks, g.swoosh);
   for (const m of hooks.terminalMaterials ?? []) m.envMapIntensity = g.terminalReflect;
   for (const m of hooks.bodyMaterials ?? []) m.metalness = g.terminalMetal;
   for (const m of hooks.decalMaterials ?? []) m.color.set(g.decal).multiplyScalar(g.decalBright);

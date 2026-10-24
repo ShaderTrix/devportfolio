@@ -49,7 +49,7 @@ const ENGINE_ICONS: Record<string, string> = {
       <header class="tx-head animate-fade-in">
         <div class="tx-title-col">
           <p class="tx-kicker"><span>//</span> Projects</p>
-          <h1 class="tx-title">Technical Art<br />Projects</h1>
+          <h1 class="tx-title">Technical Art<br /><span class="tx-outline">Projects</span></h1>
         </div>
         <div class="tx-blurb">
           <p>A few of my techart stuff/projects — a mix of systems I've shipped on <em>production mobile games</em> and personal projects I built just to learn and mess around with.</p>
@@ -83,7 +83,7 @@ const ENGINE_ICONS: Record<string, string> = {
             return (
               <li class={`project-card tx-row${index % 2 ? " is-flip" : ""}`} data-engine={engineOf(project)}>
                 <a href={`/projects/${project.slug}`} class={`tx-media${thumbs.length ? " has-thumbs" : ""}`} tabindex="-1" aria-hidden="true">
-                  <span class="tx-main" style={`background-image: url('${project.image || ""}')`}></span>
+                  <span class="tx-main corners" style={`background-image: url('${project.image || ""}')`}></span>
                   {thumbs.length > 0 && (
                     <span class="tx-thumbs">
                       {thumbs.map((t) => <span style={`background-image: url('${t}')`}></span>)}

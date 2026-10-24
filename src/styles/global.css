@@ -131,6 +131,24 @@ h1, h2 { text-transform: uppercase; }
 
 ::selection { background: var(--accent); color: var(--bg); }
 
+/* Amber corner brackets (top-left, bottom-right) on a faint frame set just off the image. */
+.corners {
+  position: relative;
+  outline: 1px solid rgba(232, 227, 217, 0.1);
+  outline-offset: 5px;
+}
+.corners::before,
+.corners::after {
+  content: "";
+  position: absolute;
+  z-index: 1;
+  width: 20px;
+  height: 20px;
+  pointer-events: none;
+}
+.corners::before { top: -6px; left: -6px; border-top: 2px solid var(--accent); border-left: 2px solid var(--accent); }
+.corners::after { right: -6px; bottom: -6px; border-right: 2px solid var(--accent); border-bottom: 2px solid var(--accent); }
+
 .page-wrap {
   width: 100%;
   max-width: var(--page-max);

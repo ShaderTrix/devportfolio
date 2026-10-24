@@ -31,6 +31,11 @@
   text-transform: uppercase;
   color: var(--text-primary);
 }
+/* second title line drawn as an outline, like the name on the gallery landing */
+.tx-outline {
+  color: transparent;
+  -webkit-text-stroke: 1.5px var(--text-primary);
+}
 .tx-blurb {
   align-self: end;
   max-width: 640px;
