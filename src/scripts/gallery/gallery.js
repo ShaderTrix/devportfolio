@@ -308,21 +308,25 @@ export async function initGallery(root, data, { assets = "/gallery/", onProgress
     ray.setFromCamera(ndc, camera);
     return ray.intersectObjects(meshes, false)[0];
   };
-  // phones/tablets: drag on the terminal to scroll long pages (the canvas has touch-action: none
-  // in terminal mode, so the page doesn't pan); a drag doesn't count as a tap on a line
+  // phones/tablets: swipe on the terminal to scroll long pages. Touch events (not pointer events,
+  // which mobile browsers cancel once they start their own scrolling); touchmove is non-passive so
+  // the page itself stays put. A swipe doesn't count as a tap on a line.
   let drag = null;
-  renderer.domElement.addEventListener("pointerdown", (e) => {
-    drag = state === "terminal" && e.pointerType !== "mouse" ? { y: e.clientY, moved: 0 } : null;
-  });
-  renderer.domElement.addEventListener("pointercancel", () => { drag = null; });
+  renderer.domElement.addEventListener("touchstart", (e) => {
+    drag = state === "terminal" && e.touches.length === 1 ? { y: e.touches[0].clientY, moved: 0 } : null;
+  }, { passive: true });
+  renderer.domElement.addEventListener("touchmove", (e) => {
+    if (!drag || state !== "terminal") return;
+    e.preventDefault();
+    const y = e.touches[0].clientY;
+    const dy = drag.y - y;                            // finger up = scroll down, like a phone list
+    drag.y = y;
+    drag.moved += Math.abs(dy);
+    terminal.wheel(dy * TOUCH_SCROLL);
+  }, { passive: false });
+  renderer.domElement.addEventListener("touchcancel", () => { drag = null; });
   renderer.domElement.addEventListener("pointermove", (e) => {
-    if (drag && e.pointerType !== "mouse") {
-      const dy = drag.y - e.clientY;                  // finger up = scroll down, like a phone list
-      drag.y = e.clientY;
-      drag.moved += Math.abs(dy);
-      terminal.wheel(dy * TOUCH_SCROLL);
-      return;
-    }
+    if (drag && e.pointerType !== "mouse") return;   // mid-swipe
     const r = renderer.domElement.getBoundingClientRect();
     mouse.set(((e.clientX - r.left) / r.width) * 2 - 1, ((e.clientY - r.top) / r.height) * 2 - 1);
     let pointer = false;
