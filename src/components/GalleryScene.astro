@@ -4,6 +4,7 @@
 //  - pages/index.astro (embedded): the home page's first full-screen section; "Go to Website"
 //    scrolls down to the content, and the site header stays tucked away over it (Header.astro).
 import { siteConfig } from "../config";
+import { orderProjects } from "../scripts/techart-filter";
 
 interface Props {
   embedded?: boolean;
@@ -12,6 +13,8 @@ const { embedded = false } = Astro.props;
 const siteHref = embedded ? "#projects" : "/";
 // the CV's pages as images (rendered from the PDF at 2.4x) for the in-scene preview
 const CV_PAGES = ["/gallery/cv/cv-1.webp", "/gallery/cv/cv-2.webp"];
+// the Unreal showreel on YouTube (each Unreal project page links its own chapter of it)
+const SHOWREEL = "https://www.youtube.com/watch?v=KQElCqW_DWI";
 
 const s = siteConfig;
 const [firstName, ...rest] = s.name.split(" ");
@@ -22,7 +25,7 @@ const terminalData = {
   role: s.title.split("|")[0].trim().replace(/\s+II$/, ""),   // gallery shows the plain discipline, no grade
   about: s.aboutMe,
   experience: s.experience,
-  projects: [...professional.projects, ...personal.projects].map((p) => ({
+  projects: orderProjects([...professional.projects, ...personal.projects]).map((p) => ({   // same order as the Techart page
     name: p.name,
     tagline: p.tagline,
     link: p.link || "",
@@ -70,16 +73,19 @@ const terminalData = {
     </div>
     <nav class="gallery-nav">
       <button class="gallery-nav-item" data-gallery-terminal type="button">
-        <span class="gallery-nav-icon" aria-hidden="true">→</span>Go to Terminal
+        <svg class="gallery-nav-icon" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 7l5 5l-5 5" /><path d="M12 19h7" /></svg>Go to Terminal
       </button>
       <a class="gallery-nav-item" href={siteHref} data-gallery-site>
-        <span class="gallery-nav-icon" aria-hidden="true">↓</span>Go to Website
+        <svg class="gallery-nav-icon" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9" /><path d="M3.6 9h16.8" /><path d="M3.6 15h16.8" /><path d="M11.5 3a17 17 0 0 0 0 18" /><path d="M12.5 3a17 17 0 0 1 0 18" /></svg>Go to Website
       </a>
       <a class="gallery-nav-item" href={s.resumeUrl} download data-gallery-cv-open>
         <svg class="gallery-nav-icon" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 17v2a2 2 0 0 0 2 2h12a2 2 0 0 0 2 -2v-2" /><path d="M7 11l5 5l5 -5" /><path d="M12 4l0 12" /></svg>Download CV
       </a>
+      <a class="gallery-nav-item" href={SHOWREEL} target="_blank" rel="noopener">
+        <svg class="gallery-nav-icon" viewBox="0 0 24 24" aria-hidden="true" fill="currentColor"><path d="M7 4.5v15l12.5-7.5z" /></svg>Watch Showreel
+      </a>
       <button class="gallery-nav-item" data-gallery-help type="button">
-        <span class="gallery-nav-icon" aria-hidden="true">?</span>Help
+        <span class="gallery-nav-icon" aria-hidden="true">?</span><span class="gallery-nav-short">Help</span>
       </button>
     </nav>
     <div class="gallery-help" data-gallery-help-panel hidden>
@@ -240,9 +246,9 @@ const terminalData = {
     color: rgba(255,255,255,0.85); }
   .gallery-dash { width: 1.6em; height: 1px; background: currentColor; }
 
-  .gallery-nav { margin-top: clamp(28px, 6vh, 64px); border-left: 2px solid var(--gallery-amber); }
-  .gallery-nav-item { display: flex; align-items: center; gap: 26px; width: 100%; padding: 0 22px; height: clamp(52px, 7.2vh, 72px);
-    font: 500 14px "JetBrains Mono", monospace; letter-spacing: 0.14em; text-transform: uppercase; text-align: left;
+  .gallery-nav { width: 290px; max-width: 100%; margin-top: clamp(28px, 6vh, 64px); border-left: 2px solid var(--gallery-amber); }
+  .gallery-nav-item { display: flex; align-items: center; gap: 20px; width: 100%; padding: 0 18px; height: clamp(50px, 6.8vh, 66px);
+    font: 500 12.5px "JetBrains Mono", monospace; letter-spacing: 0.14em; text-transform: uppercase; text-align: left;
     color: rgba(255,255,255,0.88); text-decoration: none; cursor: pointer; background: transparent; border: 0;
     border-bottom: 1px solid rgba(255,255,255,0.12); transition: background .2s, color .2s; }
   .gallery-nav-item:last-child { border-bottom: 0; }
@@ -250,7 +256,7 @@ const terminalData = {
     background: linear-gradient(90deg, rgba(217,154,50,0.14), transparent); }
   /* already there: "Go to Terminal" steps out of the menu (and the phone bottom bar) */
   .gallery:not([data-state="hero"]) [data-gallery-terminal] { display: none; }
-  .gallery-nav-icon { width: 20px; height: 20px; flex: none; display: grid; place-items: center; font-size: 18px; }
+  .gallery-nav-icon { width: 17px; height: 17px; flex: none; display: grid; place-items: center; font-size: 15px; }
 
   .gallery-help { margin-top: 18px; padding: 14px 18px; font-size: 13px; line-height: 1.6; color: var(--text-secondary);
     background: rgba(8,8,8,0.8); border: 1px solid rgba(255,255,255,0.12); border-left: 2px solid var(--gallery-amber);
@@ -378,7 +384,7 @@ const terminalData = {
       display: flex; flex-direction: column-reverse; }
     .gallery:not([data-state="hero"]) .gallery-title { display: none; }
     .gallery:not([data-state="hero"]) .gallery-nav,
-    .gallery:not([data-state="hero"]) .gallery-nav:hover { display: flex; margin: 0; opacity: 0.92; border-left: 0;
+    .gallery:not([data-state="hero"]) .gallery-nav:hover { display: flex; width: auto; margin: 0; opacity: 0.92; border-left: 0;
       border-top: 2px solid var(--gallery-amber); background: rgba(8,8,8,0.78); backdrop-filter: blur(8px); }
     .gallery:not([data-state="hero"]) .gallery-nav-item { flex: 1; justify-content: center; gap: 10px; height: 48px;
       padding: 0 8px; font-size: 11px; letter-spacing: 0.1em; border-bottom: 0; border-right: 1px solid rgba(255,255,255,0.12); }
@@ -390,6 +396,19 @@ const terminalData = {
   }
   @media (max-width: 640px) {
     .gallery:not([data-state="hero"]) .gallery-nav-item { gap: 6px; padding: 0 4px; font-size: 10px; letter-spacing: 0.04em; white-space: nowrap; }
+    /* five buttons in the bottom bar: Help shows just its "?" so the rest fit */
+    .gallery:not([data-state="hero"]) .gallery-nav-short { display: none; }
+    .gallery:not([data-state="hero"]) [data-gallery-help] { flex: none; width: auto; padding: 0 14px; }
+  }
+  @media (max-width: 440px) {
+    /* narrow phones: text-only buttons in the bottom bar, so "Watch Showreel" fits in full */
+    .gallery:not([data-state="hero"]) .gallery-nav-item:not([data-gallery-help]) .gallery-nav-icon { display: none; }
+  }
+  @media (max-width: 360px) {
+    .gallery:not([data-state="hero"]) .gallery-nav-item { letter-spacing: 0; }
+    .gallery:not([data-state="hero"]) [data-gallery-help] { padding: 0 10px; }
+  }
+  @media (max-width: 640px) {
     .gallery-top { padding: 16px 18px; } .gallery-contact { display: none; }
     .gallery-credits { right: 14px; bottom: 12px; font-size: 8.5px; letter-spacing: 0.02em; left: 14px; line-height: 1.6; }
     .gallery-credits span { white-space: nowrap; }   /* wrap between the two credits, not inside one */

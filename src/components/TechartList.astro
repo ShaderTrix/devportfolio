@@ -5,7 +5,7 @@
 // Wire it up with initTechartFilter() from src/scripts/techart-filter.ts.
 import "../styles/editorial.css";
 import { youtubeId } from "../scripts/youtube-preview";
-import { FILTER_ORDER } from "../scripts/techart-filter";
+import { FILTER_ORDER, orderProjects } from "../scripts/techart-filter";
 
 interface Props {
   projects: any[];
@@ -16,7 +16,8 @@ interface Props {
   /** projects after `limit` shown as a cropped, fading strip, so it's clear there's more */
   peek?: number;
 }
-const { projects, grid = false, limit = Infinity, peek = 0 } = Astro.props;
+const { grid = false, limit = Infinity, peek = 0 } = Astro.props;
+const projects = orderProjects(Astro.props.projects);
 
 const engineOf = (p: { engine?: string }) => (p.engine === "unreal" ? "unreal" : "unity");
 const engineName = (p: { engine?: string }) => (engineOf(p) === "unreal" ? "Unreal" : "Unity");
@@ -45,13 +46,13 @@ const ENGINE_ICONS: Record<string, string> = {
 ---
 
 <div id="engine-filter" class="tx-filters animate-fade-in animation-delay-200" role="group" aria-label="Filter by engine">
-  <button type="button" data-filter="all" class="filter-btn active">
+  <button type="button" data-filter="all" class="filter-btn">
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><rect x="3" y="3" width="7" height="7" /><rect x="14" y="3" width="7" height="7" /><rect x="3" y="14" width="7" height="7" /><rect x="14" y="14" width="7" height="7" /></svg>All Projects
   </button>
   <button type="button" data-filter="unity" class="filter-btn">
     <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d={ENGINE_ICONS.unity} /></svg>Unity
   </button>
-  <button type="button" data-filter="unreal" class="filter-btn">
+  <button type="button" data-filter="unreal" class="filter-btn active">
     <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d={ENGINE_ICONS.unreal} /></svg>Unreal
   </button>
 </div>

@@ -28,7 +28,7 @@ export const siteConfig = {
   },
 
   aboutMe:
-    "Hey, I'm Shivanshu Chauhan — a Technical Artist who lives somewhere between art and engineering. I spend most of my time building shaders, rendering features, and tools that help artists and designers bring their ideas to life without fighting the engine to do it. I care a lot about making things look good while still running smoothly, especially on mobile, where every bit of performance counts. Outside of production work I'm usually sculpting, texturing, or tinkering with rendering tricks just for fun.",
+    "Hey, I'm Shivanshu Chauhan — a Technical Artist working in Unreal Engine 5 and Unity. I spend most of my time building shaders, VFX, procedural tools and editor automation, and profiling what I build so it holds its frame budget. Performance is the part I'm best at. Right now most of my own work is in Unreal 5 — a Lumen scene I took from 22 fps to 43, a data-driven PCG forest tool with a custom C++ editor window, and a Nanite tessellation sand system. At work I own the CPU/GPU frame budget on live mobile titles. Outside of production work I'm usually sculpting, texturing, or tinkering with rendering tricks just for fun.",
 
   skills: [
     "Unity (Built-in / URP / HDRP)",
@@ -56,8 +56,8 @@ export const siteConfig = {
     {
       category: "Engines",
       items: [
-        { name: "Unity", icon: "unity" },
         { name: "Unreal Engine", icon: "unrealengine" },
+        { name: "Unity", icon: "unity" },
       ],
     },
     {
@@ -81,9 +81,7 @@ export const siteConfig = {
       items: [
         { name: "Blender", icon: "blender" },
         { name: "Maya", icon: "autodeskmaya" },
-        { name: "3ds Max", icon: "autodesk" },
         { name: "ZBrush" },
-        { name: "Mudbox" },
       ],
     },
     {
@@ -91,8 +89,6 @@ export const siteConfig = {
       items: [
         { name: "Substance" },
         { name: "Marmoset" },
-        { name: "V-Ray" },
-        { name: "Arnold" },
       ],
     },
     {
@@ -110,12 +106,12 @@ export const siteConfig = {
       title: "Technical Artist II",
       dateRange: "Jul 2024 - Present",
       description:
-        "I work on Sorry! World by Hasbro and Backgammon Friends Online, building the UI performance systems and GPU tooling that keep these titles running smoothly on low-end mobile hardware.",
+        "I work on Sorry! World by Hasbro, where I own the CPU/GPU frame budget and build the shaders, VFX and editor tools that go into the game.",
       highlights: [
-        "Designed and shipped three production UI performance systems now live in Sorry! World by Hasbro — occlusion culling, TextMeshPro instancing, and tiled image rendering — reducing UI draw calls to a single batch and recovering significant FPS on UI-heavy screens",
-        "Owned the CPU-GPU performance budget across two live mobile titles, eliminating overdraw hotspots and redundant state changes to maintain stable 60fps on mid-range and low-end devices",
-        "Built GPU-driven VFX using compute shaders, removing CPU instancing bottlenecks for high-density particle and destruction effects",
-        "Developed custom Unity Editor tools — batch validators, atlas auditors, debug overlays, custom inspectors — to reduce iteration time between art and engineering",
+        "Keep two live titles at 60 fps on low and mid-range Android and iOS. I set the art budgets and find the overdraw, state changes and draw call spikes before they ship.",
+        "Built three rendering systems that are live in Sorry! World: quadtree occlusion culling, SDF text instancing and a tiled image shader. All three cut draw calls on the heaviest screens.",
+        "Rebuilt the particle and destruction VFX on the GPU using compute shaders. CPU instancing had been the limit on how many effects we could run at once.",
+        "Wrote the Unity editor tools the art team uses day to day: batch validators, atlas auditors, debug overlays, custom inspectors.",
       ],
     },
 
@@ -124,7 +120,7 @@ export const siteConfig = {
       title: "3D Artist",
       dateRange: "Mar 2021 - Jul 2024",
       description:
-        "I worked on Gamestarz, modeling and texturing 3D environments while picking up lighting, rigging, and rendering work in Unity along the way.",
+        "I worked on Gamestarz, modelling and texturing 3D environments and handling the lighting, rigging and rendering setup in Unity.",
       highlights: [
         "Created and optimised 3D models, textures, and materials for real-time Unity environments within strict polygon and texture budgets",
         "Implemented PBR lighting and rendering setups balancing visual quality against performance on Android and iOS targets",

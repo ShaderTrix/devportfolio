@@ -141,7 +141,7 @@ body { position: relative; }
   z-index: 1;                 /* over the sections' backgrounds, under the grain and the header */
   display: none;
   pointer-events: none;
-  opacity: 0.35;              /* faint over the black page, so the edges stay in the background */
+  opacity: 0.45;              /* faint over the black page, so the edges stay in the background */
   background:
     url("/bg/strip-left.webp") left top / 73px auto repeat-y,
     url("/bg/strip-right.webp") right top / 88px auto repeat-y;

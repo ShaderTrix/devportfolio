@@ -1,15 +1,28 @@
 // All / Unity / Unreal switch for the Techart project list (src/components/TechartList.astro),
 // used on the Techart page and, capped to a few rows, in the home page's Projects section.
 
-// row order under the Unity / Unreal filters (slugs); unlisted projects follow in their usual
-// order, and "All projects" keeps the page order
+// row order under each filter (slugs); unlisted projects follow in their usual order.
+// "all" is also the page order (orderProjects), so the home grid and the gallery terminal match.
 export const FILTER_ORDER: Record<string, string[]> = {
+  all: ["scene-optimization", "pcg-forest", "sand-trail-system", "mecha-scorpion", "niagara-powers", "rendering-optimization", "tmp-instancing", "ui-tiled-image"],
   unity: ["flow-field-agents", "gpu-pixelizer", "mass-spring-cloth", "rendering-optimization", "jump-flood-sdf"],
-  unreal: ["sand-trail-system", "scene-optimization", "pcg-forest", "mecha-scorpion", "niagara-powers", "material-instance-editor", "level-mesh-instancer", "flashbang-post-process", "gpu-rain-system"],
+  unreal: ["scene-optimization", "pcg-forest", "sand-trail-system", "mecha-scorpion", "niagara-powers", "material-instance-editor", "level-mesh-instancer", "flashbang-post-process", "gpu-rain-system"],
 };
+
+/** `projects` sorted into a filter's order (listed slugs first, the rest as they came). */
+export function orderProjects<T extends { slug?: string }>(projects: T[], filter = "all"): T[] {
+  const rank = FILTER_ORDER[filter] ?? [];
+  const pos = (p: T, i: number) => {
+    const r = rank.indexOf(p.slug ?? "");
+    return r < 0 ? rank.length + i : r;
+  };
+  return projects.map((p, i) => [p, pos(p, i)] as const).sort((a, b) => a[1] - b[1]).map(([p]) => p);
+}
 
 // shared by both lists, so "View all projects" opens the Techart page on the same filter
 export const FILTER_STORAGE_KEY = "techart-engine-filter";
+// the filter both lists open on until the visitor picks another
+export const DEFAULT_FILTER = "unreal";
 
 /** `root` holds the .filter-btn buttons and the .tx-list; `limit` caps how many rows each filter
  *  shows (the list gets .has-more when the filter has rows beyond it), and the `peek` rows after
@@ -76,10 +89,10 @@ export function initTechartFilter(root: HTMLElement, limit = Infinity, peek = 0)
     });
   });
 
-  // Restore the last-used filter (e.g. after going back from a project page).
-  let saved = "all";
+  // Restore the last-used filter (e.g. after going back from a project page); Unreal by default.
+  let saved = DEFAULT_FILTER;
   try {
-    saved = sessionStorage.getItem(FILTER_STORAGE_KEY) || "all";
+    saved = sessionStorage.getItem(FILTER_STORAGE_KEY) || DEFAULT_FILTER;
   } catch (e) {}
   setActive(saved);
   applyFilter(saved, false);
