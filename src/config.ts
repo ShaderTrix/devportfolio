@@ -28,7 +28,7 @@ export const siteConfig = {
   },
 
   aboutMe:
-    "Hey, I'm Shivanshu Chauhan — a Technical Artist working in Unreal Engine 5 and Unity. I spend most of my time building shaders, VFX, procedural tools and editor automation, and profiling what I build so it holds its frame budget. Performance is the part I'm best at. Right now most of my own work is in Unreal 5 — a Lumen scene I took from 22 fps to 43, a data-driven PCG forest tool with a custom C++ editor window, and a Nanite tessellation sand system. At work I own the CPU/GPU frame budget on live mobile titles. Outside of production work I'm usually sculpting, texturing, or tinkering with rendering tricks just for fun.",
+    "Hey, I'm Shivanshu Chauhan — a Technical Artist working in Unreal Engine 5 and Unity. I spend most of my time building shaders, VFX, procedural tools and editor automation, and profiling what I build so it holds its frame budget. Performance is the part I'm best at. Right now most of my own work is in Unreal 5 — a Lumen scene I took from 22 fps to 43, a data-driven PCG forest tool with a custom C++ editor window, and a Nanite tessellation sand system. At work I own the CPU/GPU frame budget on a live mobile title. Outside of production work I'm usually sculpting, texturing, or tinkering with rendering tricks just for fun.",
 
   skills: [
     "Unity (Built-in / URP / HDRP)",
