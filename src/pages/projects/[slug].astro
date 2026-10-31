@@ -47,7 +47,7 @@ const categoryBackLabel =
     </svg>
 
     <div class="page-wrap">
-      <a href={categoryHref} class="dp-back"><span aria-hidden="true">←</span> Back to {categoryBackLabel}</a>
+      <a href={categoryHref} class="dp-back" data-scroll-return><span aria-hidden="true">←</span> Back to {categoryBackLabel}</a>
 
       <!-- title block, same voice as the Techart page header -->
       <header class="dp-head animate-fade-in">
@@ -114,6 +114,44 @@ const categoryBackLabel =
         </div>
       </div>
 
+      {project.tables?.map((table) => (
+        <div class="hs-inner">
+          <div>
+            <h2 class="dp-h">{table.title}</h2>
+            <div class="rule mt-3"></div>
+          </div>
+          <div class={`dp-results${table.text ? " is-text" : ""}`}>
+            <div class="dp-table-wrap">
+              <table class="dp-table">
+                <thead><tr>{table.head.map((h) => <th>{h}</th>)}</tr></thead>
+                <tbody>
+                  {table.rows.map((row) => <tr>{row.map((cell) => <td>{cell}</td>)}</tr>)}
+                </tbody>
+              </table>
+            </div>
+            {table.caption && <p class="dp-caption">{table.caption}</p>}
+          </div>
+        </div>
+      ))}
+
+      {project.report && (
+        <div class="dp-report">
+          <div class="dp-report-head">
+            <div>
+              <h2 class="dp-h">Full breakdown</h2>
+              <div class="rule mt-3"></div>
+            </div>
+            <div class="dp-report-links">
+              <a href={project.report.html} target="_blank" rel="noopener" class="tx-btn">Open full page <span aria-hidden="true">↗</span></a>
+              {project.report.pdf && (
+                <a href={project.report.pdf} download class="tx-btn">Download PDF</a>
+              )}
+            </div>
+          </div>
+          <iframe src={project.report.html} title={`${project.name}: full breakdown`} class="dp-report-frame" loading="lazy" data-report-frame></iframe>
+        </div>
+      )}
+
       {project.usageNotes && (
         <div class="hs-inner">
           <div>
@@ -132,7 +170,7 @@ const categoryBackLabel =
       {(project.ndaProtected || project.codeBlocks || project.code) && (
         <div class="hs-inner">
           <div>
-            <h2 class="dp-h">{project.ndaProtected ? "Code under NDA" : "Code"}</h2>
+            <h2 class="dp-h">{project.ndaProtected ? "Code under NDA" : project.codeTitle || "Code"}</h2>
             <div class="rule mt-3"></div>
           </div>
           {project.ndaProtected ? (
@@ -181,6 +219,20 @@ const categoryBackLabel =
   const banner = document.getElementById("preview-banner");
   const toggle = document.getElementById("preview-toggle");
   const label = document.getElementById("preview-toggle-label");
+
+  // embedded report (same origin): grow the frame to its page's height so it scrolls with this page
+  const report = document.querySelector<HTMLIFrameElement>("[data-report-frame]");
+  if (report) {
+    const fit = () => {
+      const doc = report.contentDocument;
+      if (doc?.body) report.style.height = doc.documentElement.scrollHeight + "px";
+    };
+    report.addEventListener("load", () => {
+      fit();
+      const doc = report.contentDocument;
+      if (doc) new ResizeObserver(fit).observe(doc.body);
+    });
+  }
 
   toggle?.addEventListener("click", () => {
     const expanded = banner?.classList.toggle("preview-expanded");
@@ -270,6 +322,28 @@ const categoryBackLabel =
   .dp-step-num { font: 300 20px/1.2 var(--font-mono); color: var(--text-secondary); }
   .dp-step-num::after { content: ""; display: block; width: 18px; height: 2px; margin-top: 0.45rem; background: var(--accent); }
   .dp-steps p { font: 400 13.5px/1.8 var(--font-mono); color: var(--text-secondary); }
+
+  .dp-results { min-width: 0; max-width: 78ch; }
+  .dp-table-wrap { overflow-x: auto; border: 1px solid var(--border); }
+  .dp-table { width: 100%; border-collapse: collapse; font: 400 13px/1.4 var(--font-mono); white-space: nowrap; }
+  .dp-table th, .dp-table td { padding: 0.7rem 1rem; text-align: left; border-bottom: 1px solid var(--border); }
+  .dp-table th { font: 500 10.5px var(--font-mono); letter-spacing: 0.14em; text-transform: uppercase; color: var(--text-secondary); }
+  .dp-table td { color: var(--text-secondary); }
+  .dp-table td:first-child { color: var(--text-primary); }
+  .dp-results:not(.is-text) .dp-table td:nth-child(5) { color: var(--accent); }
+  /* prose tables (e.g. problem / cause / fix): full column width, cells wrap */
+  .dp-results.is-text { max-width: none; }
+  .is-text .dp-table { min-width: 560px; white-space: normal; line-height: 1.6; }
+  .is-text .dp-table td { vertical-align: top; font-size: 12.5px; }
+  .is-text .dp-table td:first-child { width: 24%; }
+  .is-text .dp-table td:last-child { color: var(--text-primary); }
+  .dp-table tbody tr:last-child td { border-bottom: 0; }
+  .dp-caption { margin-top: 0.75rem; font: 400 11.5px/1.6 var(--font-mono); color: var(--text-subtle); }
+
+  .dp-report { margin-top: 4rem; }
+  .dp-report-head { display: flex; flex-wrap: wrap; align-items: flex-end; justify-content: space-between; gap: 1.25rem 2rem; }
+  .dp-report-links { display: flex; flex-wrap: wrap; gap: 0.75rem; }
+  .dp-report-frame { display: block; width: 100%; height: 80vh; margin-top: 1.75rem; border: 1px solid var(--border); background: #0a0e13; }
 
   .dp-codes { display: grid; gap: 1.25rem; min-width: 0; }
   .dp-code {
