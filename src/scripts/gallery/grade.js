@@ -19,7 +19,7 @@ export const GRADE = {
   bakedLight: 0.15,     // multiplies every lightmap
   terminalFill: 0.42,   // multiplies the terminal's real-time lights
   screenGlow: 1.5,     // CRT brightness
-  water: "#1a2323",     // deep water colour
+  water: "#222525",     // deep water colour
   waterReflect: 0.5,   // reflection seen straight down
   waterFresnel: 1,      // extra reflection at grazing angles
   waterRipple: 0.53,    // ripple height
