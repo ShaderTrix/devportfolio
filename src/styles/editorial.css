@@ -219,6 +219,35 @@
 }
 .tx-btn svg { width: 15px; height: 15px; }
 .tx-btn:hover { color: var(--accent); border-color: var(--accent); }
+/* ---- preview grid (home page): previews only, the name shows on hover ---- */
+.tx-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 1.5rem;
+  padding-top: 1.75rem;
+}
+.tx-tile { transition: opacity 0.35s cubic-bezier(0.16, 1, 0.3, 1), transform 0.35s cubic-bezier(0.16, 1, 0.3, 1); }
+.tx-tile-link { position: relative; display: block; text-decoration: none; }
+.tx-tile .tx-main { display: block; aspect-ratio: 16 / 9; }
+.tx-tile:hover .tx-main { filter: brightness(1.08); }
+.tx-tile-cap {
+  position: absolute;
+  inset: auto 1px 1px;
+  padding: 2.75rem 1rem 0.9rem;
+  background: linear-gradient(to top, rgb(0 0 0 / 0.85), transparent);
+  opacity: 0;
+  transition: opacity 0.3s;
+  pointer-events: none;
+}
+.tx-tile-link:hover .tx-tile-cap, .tx-tile-link:focus-visible .tx-tile-cap { opacity: 1; }
+@media (hover: none) { .tx-tile-cap { opacity: 1; } }
+.tx-tile .tx-kind { display: block; margin-bottom: 0.35rem; color: rgb(255 255 255 / 0.7); }
+.tx-tile-name { display: block; font: 700 clamp(17px, 1.5vw, 21px)/1.05 var(--font-display); text-transform: uppercase; color: #fff; }
+/* the next projects: a cropped strip that fades out */
+.tx-tile.is-peek { pointer-events: none; -webkit-mask-image: linear-gradient(to bottom, rgb(0 0 0 / 0.5), transparent 90%); mask-image: linear-gradient(to bottom, rgb(0 0 0 / 0.5), transparent 90%); }
+.tx-tile.is-peek .tx-main { aspect-ratio: 16 / 4.5; }
+.tx-tile.is-peek .tx-tile-cap { display: none; }
+
 .project-card.card-hidden { opacity: 0; transform: translateY(8px); pointer-events: none; }
 
 /* ---- narrower screens: stack ---- */
@@ -238,6 +267,8 @@
   .is-flip .tx-num::after { margin-left: 0; }
   .tx-text { grid-template-columns: 44px minmax(0, 1fr); padding-top: 0; }
   .tx-thumbs { display: none; }
+  .tx-grid { grid-template-columns: 1fr; }
+  .tx-tile.is-peek ~ .tx-tile.is-peek { display: none; }
 }
 @media (max-width: 640px) {
   .tx-count { display: none; }

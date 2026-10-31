@@ -1,0 +1,53 @@
+---
+// Home page "Projects": previews of the first few Techart projects for the selected engine, right
+// below the gallery. A fading strip of the next ones shows there's more, and "View all projects"
+// opens the Techart page (on the same filter, which the two lists share).
+import TechartList from "./TechartList.astro";
+import { allProjects } from "../config";
+
+// rows shown per filter (each filter's order is FILTER_ORDER in src/scripts/techart-filter.ts)
+const LIMIT = 3;
+
+const projects = allProjects.filter(
+  (project) => project.categoryKey === "professional" || project.categoryKey === "personal"
+);
+---
+
+{projects.length > 0 && (
+  <section id="projects" class="hs hp" data-limit={LIMIT}>
+    <div class="hs-inner hs-first">
+      <div class="hs-head">
+        <h2 class="hs-title">Projects</h2>
+        <div class="rule mt-4"></div>
+      </div>
+      <div class="hp-list">
+        <TechartList projects={projects} grid limit={LIMIT} peek={LIMIT} />
+        <a href="/tech-art" class="hs-btn hp-more">View all projects <span aria-hidden="true">→</span></a>
+      </div>
+    </div>
+  </section>
+)}
+
+<style is:global>
+  /* the filters line up with the title; the rows run the full width below */
+  .hp .hs-inner { align-items: end; }
+  .hp-list { display: contents; }
+  .hp .tx-filters { margin-top: 0; justify-self: end; }
+  .hp .tx-list { grid-column: 1 / -1; margin-top: 0; }
+  /* sits on the fading peek strip */
+  .hp-more { grid-column: 1 / -1; justify-self: center; margin-top: -3rem; position: relative; background: var(--bg); }
+  .hp .tx-list:not(.has-more) + .hp-more { margin-top: 0.5rem; }
+  @media (max-width: 1023px) {
+    .hp .tx-filters { justify-self: start; }
+  }
+</style>
+
+<script>
+  import { initYoutubePreviews } from "../scripts/youtube-preview";
+  import { initTechartFilter } from "../scripts/techart-filter";
+  const root = document.getElementById("projects");
+  if (root) {
+    initYoutubePreviews();
+    initTechartFilter(root, Number(root.dataset.limit), Number(root.dataset.limit));
+  }
+</script>

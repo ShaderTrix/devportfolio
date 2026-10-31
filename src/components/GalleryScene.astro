@@ -9,7 +9,7 @@ interface Props {
   embedded?: boolean;
 }
 const { embedded = false } = Astro.props;
-const siteHref = embedded ? "#about" : "/";
+const siteHref = embedded ? "#projects" : "/";
 
 const s = siteConfig;
 const [firstName, ...rest] = s.name.split(" ");
@@ -107,7 +107,7 @@ const terminalData = {
   <!-- credits for the original Sketchfab models the scene is built from: "Fallout Terminal" by
        Daniele Cocchi (CC BY 4.0) and "VR Art Gallery" by carlcapu9 -->
   <p class="gallery-credits">
-    Credits to &mdash; Terminal: Daniele Cocchi (CC BY) <span aria-hidden="true">&middot;</span> Gallery: carlcapu9
+    <span>Credits to &mdash; Terminal 3D Model: Daniele Cocchi (CC BY)</span> <span class="gallery-credits-sep" aria-hidden="true">&middot;</span> <span>Gallery Concept: carlcapu9</span>
   </p>
 
   <!-- corner brackets that fade in around the terminal now and then (gallery.js updateCue) -->
@@ -174,12 +174,12 @@ const terminalData = {
     --gallery-amber: var(--accent); }
   /* on the home page: the first full-screen section, with the site scrolling on below it */
   .gallery[data-embedded] { position: relative; inset: auto; height: 100vh; height: 100svh; overflow: hidden; background: #050505; }
-  #about { scroll-margin-top: 84px; }
+  #projects { scroll-margin-top: 84px; }
   /* melt the scene into the page below: fade to the theme's background (dark or light), and
      drop the section's top hairline so there's no seam */
   .gallery-fade { position: absolute; left: 0; right: 0; bottom: 0; height: 90px; pointer-events: none;
     background: linear-gradient(to bottom, transparent, var(--bg)); }
-  .gallery[data-embedded] ~ #about { border-top-width: 0 !important; }   /* light theme forces its colour with !important */
+  .gallery[data-embedded] ~ #projects { border-top-width: 0 !important; }   /* light theme forces its colour with !important */
   .gallery[data-embedded] .gallery-hint { bottom: clamp(96px, 12vh, 120px); }
   .gallery-canvas, .gallery-canvas canvas { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
   .gallery[data-state="terminal"] .gallery-canvas canvas { touch-action: none; }   /* drags scroll the terminal */
@@ -322,7 +322,9 @@ const terminalData = {
   @media (max-width: 640px) {
     .gallery:not([data-state="hero"]) .gallery-nav-item { gap: 6px; padding: 0 4px; font-size: 10px; letter-spacing: 0.04em; white-space: nowrap; }
     .gallery-top { padding: 16px 18px; } .gallery-contact { display: none; }
-    .gallery-credits { right: 14px; bottom: 12px; font-size: 8.5px; letter-spacing: 0.02em; white-space: nowrap; }
+    .gallery-credits { right: 14px; bottom: 12px; font-size: 8.5px; letter-spacing: 0.02em; left: 14px; line-height: 1.6; }
+    .gallery-credits span { white-space: nowrap; }   /* wrap between the two credits, not inside one */
+    .gallery-credits-sep { display: none; }
     .gallery-side { top: 40px; }
     .gallery-wordmark { font-size: 11vw; }
     .gallery-nav-item { height: 48px; gap: 18px; font-size: 13px; }
