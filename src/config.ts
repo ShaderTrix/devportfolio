@@ -623,6 +623,25 @@ export const siteConfig = {
           galleryImages: ["/projects/level-mesh-instancer.webp"],
         },
         {
+          slug: "flashbang-post-process",
+          name: "Flashbang — Post-Process Material",
+          tagline: "A white-out, then the moment of the bang burned into your eyes.",
+          image: "/projects/flashbang-poster.webp",   // poster frame for the video
+          video: "/projects/flashbang.mp4",   // self-hosted preview (not on YouTube), 1280 px, 30 fps, no audio
+          detailImage: "",
+          engine: "unreal",
+          description:
+            "A flashbang screen effect as one post-process material in UE 5.7: the screen whites out, then a frozen snapshot of the moment of the bang lingers as a colour-shifting afterimage over a wobbling, double-vision view of the live scene, fading back to normal.",
+          link: "",
+          skills: ["Unreal Engine", "Post Process", "Materials", "HLSL", "Render Targets"],
+          longDescription: [
+            "Real flashbangs don't just make the screen white. What you remember is the afterimage: the scene at the instant of the bang, burned in and hanging over everything for a few seconds after. So the effect is built around a snapshot. When the flashbang goes off, the frame is captured into a render target and the detonation time is written into a material parameter (it sits at −100 the rest of the time, so the effect is fully off).",
+            "A Custom HLSL node does the timing and the afterimage. From the time since the bang it builds two fades: a short one for the white-out and a longer one for the afterimage, both scaled by a single Speed value. The captured frame is remapped and boosted so only its bright shapes survive, then tinted by a blue → green → red ramp that moves as it fades, with animated noise breaking it up, so it reads like a retinal burn rather than a static overlay.",
+            "Underneath, the live scene is sampled twice through the post-process input with UVs drifting on sine and cosine of time, which gives the dazed, doubled vision while you recover. The white-out, the afterimage and the doubled scene are added together as the material's emissive, so the whole thing is one post-process material with no extra passes.",
+          ],
+          galleryImages: ["/projects/flashbang-material.webp"],
+        },
+        {
           slug: "shader-experiments",
           name: "Shader SDF experiments",
           tagline: "SDFs, procedural rendering, research",

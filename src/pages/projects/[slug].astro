@@ -19,6 +19,8 @@ const ytId = youtubeId(project.demoLink);
 const bannerClip = !project.hideDetailBanner && ytId && project.previewClip
   ? { id: ytId, start: project.previewClip[0], end: project.previewClip[1] } : null;
 const bannerImage = project.hideDetailBanner ? "" : (project.detailImage || project.image || "");
+// self-hosted clip (`video`) for projects whose demo isn't on YouTube
+const bannerVideo = project.hideDetailBanner ? "" : (project.video || "");
 
 const categoryHref =
   project.categoryKey === "professional" || project.categoryKey === "personal"
@@ -61,9 +63,13 @@ const categoryBackLabel =
         )}
       </header>
 
-      {(bannerClip || bannerImage) && (
+      {(bannerVideo || bannerClip || bannerImage) && (
         <div id="preview-banner" class="dp-banner corners">
-          {bannerClip ? (
+          {bannerVideo ? (
+            <span class="tx-video dp-yt">
+              <video src={bannerVideo} poster={bannerImage || undefined} autoplay muted loop playsinline preload="auto" aria-hidden="true"></video>
+            </span>
+          ) : bannerClip ? (
             <span class="tx-yt dp-yt" data-yt={bannerClip.id} data-start={bannerClip.start} data-end={bannerClip.end}>
               <span class="tx-yt-clip"><span class="tx-yt-frame"></span></span>
             </span>
@@ -278,6 +284,7 @@ const categoryBackLabel =
   .dp-yt { position: absolute; inset: 0; }
   .dp-banner.preview-expanded { height: 85vh; }
   .dp-banner.preview-expanded #preview-image { background-size: contain; }
+  .dp-banner.preview-expanded .tx-video video { object-fit: contain; }
   .dp-toggle {
     position: absolute;
     right: 14px;

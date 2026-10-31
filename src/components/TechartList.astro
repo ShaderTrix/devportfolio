@@ -60,7 +60,11 @@ const ENGINE_ICONS: Record<string, string> = {
   {projects.map((project, index) => {
     const thumbs = thumbsOf(project);
     const clip = clipOf(project);
-    const media = clip ? (
+    const media = project.video ? (
+      <span class="tx-main corners tx-video">
+        <video src={project.video} poster={project.image || undefined} autoplay muted loop playsinline preload="metadata" aria-hidden="true"></video>
+      </span>
+    ) : clip ? (
       <span class="tx-main corners tx-yt" data-yt={clip.id} data-start={clip.start} data-end={clip.end}>
         <span class="tx-yt-clip"><span class="tx-yt-frame"></span></span>
       </span>

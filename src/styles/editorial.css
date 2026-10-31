@@ -150,6 +150,10 @@
 .tx-yt.is-playing .tx-yt-frame { opacity: 1; }
 .tx-yt.is-failed .tx-yt-clip { display: none; }
 .tx-yt-frame iframe { display: block; width: 100%; height: 100%; border: 0; }
+/* self-hosted preview video (`video` in config, for clips not on YouTube): same 16:9 panel, cover-cropped */
+.tx-video { position: relative; overflow: hidden; }
+.tx-main.tx-video { aspect-ratio: 16 / 9; }
+.tx-video video { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; pointer-events: none; }
 .tx-thumbs { display: flex; flex-direction: column; gap: 8px; width: 13%; }
 .tx-thumbs span { flex: 1; background: #000 center / cover no-repeat; border: 1px solid var(--border); }
 .tx-row:hover .tx-main { filter: brightness(1.08); }

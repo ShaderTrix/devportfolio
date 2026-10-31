@@ -5,7 +5,7 @@
 // order, and "All projects" keeps the page order
 export const FILTER_ORDER: Record<string, string[]> = {
   unity: ["flow-field-agents", "gpu-pixelizer", "mass-spring-cloth", "rendering-optimization", "jump-flood-sdf"],
-  unreal: ["sand-trail-system", "scene-optimization", "pcg-forest", "mecha-scorpion", "niagara-powers", "material-instance-editor", "level-mesh-instancer", "gpu-rain-system"],
+  unreal: ["sand-trail-system", "scene-optimization", "pcg-forest", "mecha-scorpion", "niagara-powers", "material-instance-editor", "level-mesh-instancer", "flashbang-post-process", "gpu-rain-system"],
 };
 
 // shared by both lists, so "View all projects" opens the Techart page on the same filter
