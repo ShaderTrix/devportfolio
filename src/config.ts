@@ -114,7 +114,7 @@ export const siteConfig = {
       highlights: [
         "Keep two live titles at 60 fps on low and mid-range Android and iOS. I set the art budgets and find the overdraw, state changes and draw call spikes before they ship.",
         "Built three rendering systems that are live in Sorry! World: quadtree occlusion culling, SDF text instancing and a tiled image shader. All three cut draw calls on the heaviest screens.",
-        "Rebuilt the particle and destruction VFX on the GPU using compute shaders. CPU instancing had been the limit on how many effects we could run at once.",
+        "Developed features and live-ops screens, handling their animations, shaders, VFX and audio. I also moved content onto Addressables and optimised the build size.",
         "Wrote the Unity editor tools the art team uses day to day: batch validators, atlas auditors, debug overlays, custom inspectors.",
       ],
     },
