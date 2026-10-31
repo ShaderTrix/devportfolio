@@ -112,7 +112,7 @@ export const siteConfig = {
       description:
         "I work on Sorry! World by Hasbro, where I own the CPU/GPU frame budget and build the shaders, VFX and editor tools that go into the game.",
       highlights: [
-        "Keep the live title at 60 fps on low and mid-range Android and iOS. I set the art budgets and find the overdraw, state changes and draw call spikes before they ship.",
+        "Keep the title live at 60 fps on low and mid-range Android and iOS. I set the art budgets and find the overdraw, state changes and draw call spikes before they ship.",
         "Built three rendering systems that are live in Sorry! World: quadtree occlusion culling, SDF text instancing and a tiled image shader. All three cut draw calls on the heaviest screens.",
         "Developed features and live-ops screens, handling their animations, shaders, VFX and audio. I also moved content onto Addressables and optimised the build size.",
         "Wrote the Unity editor tools the art team uses day to day: batch validators, atlas auditors, debug overlays, custom inspectors.",
