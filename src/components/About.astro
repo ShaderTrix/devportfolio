@@ -36,15 +36,13 @@ const ICONS: Record<string, string> = {
                 {group.items.map((item) => (
                   <li class="ts-item">
                     {item.icon && ICONS[item.icon] ? (
-                      <>
-                        <svg class="ts-icon" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
-                          <path d={ICONS[item.icon]} />
-                        </svg>
-                        <span class="ts-name">{item.name}</span>
-                      </>
+                      <svg class="ts-icon" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+                        <path d={ICONS[item.icon]} />
+                      </svg>
                     ) : (
-                      <span class="ts-mono">{item.name}</span>
+                      <span class="ts-mono" aria-hidden="true">{item.name.slice(0, 2)}</span>
                     )}
+                    <span class="ts-name">{item.name}</span>
                   </li>
                 ))}
               </ul>
@@ -157,19 +155,17 @@ const ICONS: Record<string, string> = {
   }
   .ts-item:hover { color: var(--accent); }
   .ts-icon { width: 38px; height: 38px; }
-  /* tools without a logo: a beige key-cap with the tool's name on it (no label underneath) */
+  /* tools without a logo: a beige key-cap monogram */
   .ts-mono {
     display: grid;
     place-items: center;
-    width: 100%;
+    width: 38px;
     height: 38px;
-    padding: 0 4px;
     border-radius: 3px;
     background: var(--text-primary);
     color: var(--bg);
-    font: 700 10.5px/1 var(--font-mono);
-    letter-spacing: 0.02em;
-    white-space: nowrap;
+    font: 800 17px/1 var(--font-display);
+    text-transform: uppercase;
     transition: background-color 0.2s;
   }
   .ts-item:hover .ts-mono { background: var(--accent); }

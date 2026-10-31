@@ -56,8 +56,8 @@ export const siteConfig = {
     {
       category: "Engines",
       items: [
-        { name: "Unreal Engine", icon: "unrealengine" },
         { name: "Unity", icon: "unity" },
+        { name: "Unreal Engine", icon: "unrealengine" },
       ],
     },
     {
@@ -81,7 +81,9 @@ export const siteConfig = {
       items: [
         { name: "Blender", icon: "blender" },
         { name: "Maya", icon: "autodeskmaya" },
+        { name: "3ds Max", icon: "autodesk" },
         { name: "ZBrush" },
+        { name: "Mudbox" },
       ],
     },
     {
@@ -89,6 +91,8 @@ export const siteConfig = {
       items: [
         { name: "Substance" },
         { name: "Marmoset" },
+        { name: "V-Ray" },
+        { name: "Arnold" },
       ],
     },
     {
