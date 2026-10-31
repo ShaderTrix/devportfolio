@@ -58,6 +58,12 @@ const ICONS: Record<string, string> = {
       <div class="hs-head">
         <h2 class="hs-title">About Me</h2>
         <div class="rule mt-4"></div>
+
+        <!-- square portrait: contrasty greyscale, fading into the page, in the site's corner-bracket frame -->
+        <figure class="ab-portrait corners">
+          <img src="/about/portrait.webp" alt="Shivanshu Chauhan" width="600" height="600" loading="lazy" decoding="async" />
+          <span class="ab-portrait-shade" aria-hidden="true"></span>
+        </figure>
       </div>
 
       <div>
@@ -89,6 +95,32 @@ const ICONS: Record<string, string> = {
 </section>
 
 <style>
+  /* About Me portrait: square, contrasty greyscale photo with a dark gradient (vignette plus a
+     fade at the bottom into the page), framed like the project tiles (.corners in global.css) */
+  .ab-portrait {
+    width: min(100%, 240px);
+    aspect-ratio: 1;
+    margin: 2.5rem 0 0;
+  }
+  .ab-portrait img {
+    display: block;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    filter: grayscale(1) contrast(1.35) brightness(0.88);
+  }
+  .ab-portrait-shade {
+    position: absolute;
+    inset: 0;
+    background:
+      radial-gradient(120% 95% at 50% 35%, transparent 45%, rgb(11 11 10 / 0.7) 100%),
+      linear-gradient(to bottom, transparent 55%, rgb(11 11 10 / 0.85) 100%);
+    pointer-events: none;
+  }
+  @media (max-width: 1023px) {
+    .ab-portrait { width: 200px; margin-top: 2rem; }
+  }
+
   /* tool groups in aligned columns, each behind a charcoal divider */
   .ts-groups {
     display: grid;
