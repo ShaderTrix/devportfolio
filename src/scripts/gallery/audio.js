@@ -1,9 +1,35 @@
-// Hallway ambience (seamless loop), terminal key clicks and the camera swoosh, through Web Audio.
+// Hallway ambience (looped, see AMBIENCE_LOOP), terminal key clicks and the camera swoosh, through Web Audio.
 // Browsers only allow sound after a user gesture, so the ambience fades in on the first
 // click, key or scroll. A mute toggle is remembered per browser.
 import { fetchProgress } from "./load.js";
 
 const MUTE_KEY = "gallery-muted";
+// The ambience recording swells in from silence and fades out at the end, so looping the whole
+// file goes quiet for a while every pass. Loop a cut from its middle instead (seconds), with the
+// cut's tail crossfaded into its head so the seam can't be heard.
+const AMBIENCE_LOOP = { start: 12, end: 96, fade: 6 };
+
+function makeLoop(ctx, buf) {
+  const sr = buf.sampleRate;
+  const s = Math.round(AMBIENCE_LOOP.start * sr);
+  const e = Math.min(Math.round(AMBIENCE_LOOP.end * sr), buf.length);
+  const f = Math.round(AMBIENCE_LOOP.fade * sr);
+  const len = e - s - f;
+  if (len <= f) return buf;                 // file shorter than expected: loop it as it is
+  const out = ctx.createBuffer(buf.numberOfChannels, len, sr);
+  for (let c = 0; c < buf.numberOfChannels; c++) {
+    const src = buf.getChannelData(c);
+    const dst = out.getChannelData(c);
+    dst.set(src.subarray(s, s + len));
+    // equal-power crossfade: the audio after the loop's end fades into its head, so the last
+    // sample flows on into the first
+    for (let i = 0; i < f; i++) {
+      const x = (i / f) * Math.PI * 0.5;
+      dst[i] = src[s + i] * Math.sin(x) + src[s + len + i] * Math.cos(x);
+    }
+  }
+  return out;
+}
 
 export function createAudio(assets, onProgress = () => {}) {
   const ctx = new (window.AudioContext || window.webkitAudioContext)();
@@ -22,7 +48,7 @@ export function createAudio(assets, onProgress = () => {}) {
     small("key.m4a"),
     small("swoosh.m4a"),
   ])
-    .then(([a, k, s]) => { ambBuf = a; keyBuf = k; swooshBuf = s; })
+    .then(([a, k, s]) => { ambBuf = makeLoop(ctx, a); keyBuf = k; swooshBuf = s; })
     .catch(() => onProgress(1));            // no sound is fine; the page works without it
 
   let muted = false;

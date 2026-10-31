@@ -10,6 +10,8 @@ interface Props {
 }
 const { embedded = false } = Astro.props;
 const siteHref = embedded ? "#projects" : "/";
+// the CV's pages as images (rendered from the PDF at 2.4x) for the in-scene preview
+const CV_PAGES = ["/gallery/cv/cv-1.webp", "/gallery/cv/cv-2.webp"];
 
 const s = siteConfig;
 const [firstName, ...rest] = s.name.split(" ");
@@ -73,7 +75,7 @@ const terminalData = {
       <a class="gallery-nav-item" href={siteHref} data-gallery-site>
         <span class="gallery-nav-icon" aria-hidden="true">↓</span>Go to Website
       </a>
-      <a class="gallery-nav-item" href={s.resumeUrl} download>
+      <a class="gallery-nav-item" href={s.resumeUrl} download data-gallery-cv-open>
         <svg class="gallery-nav-icon" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 17v2a2 2 0 0 0 2 2h12a2 2 0 0 0 2 -2v-2" /><path d="M7 11l5 5l5 -5" /><path d="M12 4l0 12" /></svg>Download CV
       </a>
       <button class="gallery-nav-item" data-gallery-help type="button">
@@ -101,6 +103,21 @@ const terminalData = {
   <button class="gallery-back" data-gallery-back type="button" aria-label="Back to the hallway">
     <span>BACK</span><kbd>ESC</kbd>
   </button>
+
+  <!-- CV preview: slides in over the dark wall on the right while the camera turns
+       (gallery.js openCv / closeCv). Page images are rendered from the PDF; they load on first open. -->
+  <aside class="gallery-cv" data-gallery-cv aria-label="CV preview" aria-hidden="true">
+    <div class="gallery-cv-bar">
+      <p class="gallery-cv-title"><span aria-hidden="true">//</span> Curriculum vitae</p>
+      <a class="gallery-cv-btn" href={s.resumeUrl} download>
+        <svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 17v2a2 2 0 0 0 2 2h12a2 2 0 0 0 2 -2v-2" /><path d="M7 11l5 5l5 -5" /><path d="M12 4l0 12" /></svg>Download PDF
+      </a>
+      <button class="gallery-cv-btn" data-gallery-cv-close type="button">Back <kbd>Esc</kbd></button>
+    </div>
+    <div class="gallery-cv-pages">
+      {CV_PAGES.map((src, i) => <img data-src={src} alt={`CV page ${i + 1}`} width="1428" height="2020" />)}
+    </div>
+  </aside>
 
   <!-- hint while in the hallway; on the home page it scrolls down into the site -->
   <a class="gallery-hint" href={siteHref} data-gallery-site>Scroll down <span aria-hidden="true">↓</span></a>
@@ -145,6 +162,19 @@ const terminalData = {
 
   root.querySelector("[data-gallery-back]")!.addEventListener("click", () => gallery.flyOut());
   root.querySelector("[data-gallery-terminal]")!.addEventListener("click", () => gallery.flyIn());
+  // Download CV: from the hallway, turn to the CV preview instead (anywhere else it just downloads)
+  const cvPanel = root.querySelector<HTMLElement>("[data-gallery-cv]")!;
+  root.querySelector("[data-gallery-cv-open]")!.addEventListener("click", (e) => {
+    if (gallery.state !== "hero") return;
+    e.preventDefault();
+    help.hidden = true;
+    for (const img of cvPanel.querySelectorAll<HTMLImageElement>("img[data-src]")) { img.src = img.dataset.src!; img.removeAttribute("data-src"); }
+    cvPanel.setAttribute("aria-hidden", "false");
+    gallery.openCv();
+    setTimeout(() => cvPanel.querySelector<HTMLElement>("[data-gallery-cv-close]")!.focus({ preventScroll: true }), 900);
+  });
+  root.querySelector("[data-gallery-cv-close]")!.addEventListener("click", () => gallery.closeCv());
+  root.addEventListener("gallery:state", () => cvPanel.setAttribute("aria-hidden", String(!root.hasAttribute("data-cv"))));
   const soundBtn = root.querySelector<HTMLButtonElement>("[data-gallery-sound]")!;
   const showSound = () => {
     soundBtn.setAttribute("aria-pressed", String(!gallery.audio.muted));
@@ -230,6 +260,7 @@ const terminalData = {
     animation: gallery-pulse 2.4s ease-in-out infinite; }
   .gallery-hint:hover { color: var(--gallery-amber); animation: none; }
   .gallery-hint span { display: inline-block; margin-left: 0.6em; }
+  .gallery-hint::before { content: ""; position: absolute; inset: -24px -40px; }   /* a bigger, invisible hit area */
   @keyframes gallery-pulse { 50% { opacity: 0.35; } }
   .gallery-cue { position: absolute; left: 0; top: 0; opacity: 0; pointer-events: none; --c: rgba(255,255,255,0.8);
     /* four L-shaped corner brackets drawn with gradients */
@@ -275,6 +306,40 @@ const terminalData = {
   .gallery-back:hover { border-color: var(--accent); color: var(--accent); }
 
   .gallery[data-state="terminal"] .gallery-back { opacity: 1; pointer-events: auto; }
+
+  /* CV preview (camera turned, see gallery.js CV_TURN): slides in from off the right edge and back
+     out to the right in step with the camera's turn — same length (--cv-seconds, from gallery.js
+     CV_SECONDS) and the same cubic ease-in-out. The menu slides off to the left meanwhile; the name stays. */
+  /* no frame: a soft dark glass over the wall, so the pages read as part of the room */
+  .gallery .gallery-cv { position: absolute; z-index: 5; top: 80px; bottom: 28px; right: clamp(20px, 3vw, 48px);
+    width: min(820px, 54vw); display: flex; flex-direction: column;
+    background: rgba(8,8,8,0.45); backdrop-filter: blur(4px);
+    border-right: 2px solid var(--gallery-amber);   /* mirrors the menu's amber edge on the left */
+    opacity: 0; transform: translateX(calc(100% + 80px)); pointer-events: none; visibility: hidden;
+    transition: transform var(--cv-seconds, 1.65s) cubic-bezier(0.65, 0, 0.35, 1), opacity .3s calc(var(--cv-seconds, 1.65s) - .3s),
+      visibility 0s var(--cv-seconds, 1.65s); }
+  .gallery[data-cv] .gallery-cv { opacity: 1; transform: none; pointer-events: auto; visibility: visible;
+    transition: transform var(--cv-seconds, 1.65s) cubic-bezier(0.65, 0, 0.35, 1), opacity .3s, visibility 0s; }
+  .gallery .gallery-nav { transition: opacity .4s, transform var(--cv-seconds, 1.65s) cubic-bezier(0.65, 0, 0.35, 1); }
+  .gallery[data-cv] .gallery-nav { opacity: 1; transform: translateX(calc(-100% - 140px)); pointer-events: none; }
+  .gallery[data-cv] .gallery-title { opacity: 1; transform: none; }
+  .gallery[data-cv] .gallery-credits { opacity: 0; }
+  .gallery-cv-bar { display: flex; align-items: center; gap: 10px; padding: 12px 16px 4px; }
+  .gallery-cv-title { flex: 1; margin: 0; font: 500 11px "JetBrains Mono", monospace; letter-spacing: 0.18em;
+    text-transform: uppercase; color: var(--text-primary); white-space: nowrap; }
+  .gallery-cv-title span { color: var(--accent); }
+  /* same build as the terminal's BACK / ESC button (.gallery-back) */
+  .gallery-cv-btn { display: inline-flex; align-items: center; gap: 10px; height: 40px; padding: 0 14px; cursor: pointer;
+    font: 600 13px "JetBrains Mono", monospace; letter-spacing: 0.15em; text-transform: uppercase; white-space: nowrap;
+    color: var(--text-primary); background: rgba(8,8,8,0.6); border: 1px solid rgba(255,255,255,0.2); border-radius: 8px;
+    transition: color .2s, border-color .2s; }
+  .gallery-cv-btn:has(kbd) { padding-right: 10px; }
+  .gallery-cv-btn svg { width: 15px; height: 15px; }
+  .gallery-cv-btn kbd { padding: 2px 7px; border: 1px solid rgba(255,255,255,0.4); border-radius: 4px; font: inherit; }
+  .gallery-cv-btn:hover { color: var(--accent); border-color: var(--accent); }
+  .gallery-cv-pages { flex: 1; overflow-y: auto; overscroll-behavior: contain; padding: 16px; display: grid; gap: 16px; align-content: start;
+    scrollbar-width: thin; scrollbar-color: rgba(255,255,255,0.25) transparent; }
+  .gallery-cv-pages img { display: block; width: 100%; height: auto; background: #fff; box-shadow: 0 8px 30px rgba(0,0,0,0.6); }
   .gallery:not([data-state="hero"]) .gallery-hint { visibility: hidden; animation: none; opacity: 0; }
 
   .gallery-credits { position: absolute; right: 28px; bottom: 18px; z-index: 4; margin: 0;
@@ -318,6 +383,7 @@ const terminalData = {
     .gallery:not([data-state="hero"]) .gallery-nav-icon { width: 16px; height: 16px; font-size: 14px; }
     .gallery:not([data-state="hero"]) .gallery-help { margin: 0 0 10px; }
     .gallery:not([data-state="hero"]) .gallery-credits { bottom: 72px; right: 16px; }   /* above the bottom bar */
+    .gallery .gallery-cv { top: 64px; bottom: 14px; left: 14px; right: 14px; width: auto; }
   }
   @media (max-width: 640px) {
     .gallery:not([data-state="hero"]) .gallery-nav-item { gap: 6px; padding: 0 4px; font-size: 10px; letter-spacing: 0.04em; white-space: nowrap; }
@@ -329,5 +395,7 @@ const terminalData = {
     .gallery-wordmark { font-size: 11vw; }
     .gallery-nav-item { height: 48px; gap: 18px; font-size: 13px; }
     .gallery-back { top: 70px; right: 16px; }
+    .gallery-cv-title, .gallery-cv-btn kbd { display: none; }
+    .gallery-cv-bar { justify-content: space-between; }
   }
 </style>

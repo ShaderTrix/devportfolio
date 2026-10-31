@@ -26,6 +26,12 @@ const fromBlender = ([x, y, z]) => new THREE.Vector3(x, z, -y);
 const ease = (t) => (t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2);
 const CUE_PERIOD = 8;               // s between "click the terminal" callouts (hallway view)
 const CUE_LENGTH = 4;               // s each callout takes to fade in and out (sin²)
+// CV view: from the hallway spot the camera turns (degrees, + = left) and moves along the new
+// heading (m). Turned right, the lit shaft and the terminal sit at the left under the name and
+// menu, and the dark wall fills the right, where the CV pages go (GalleryScene's .gallery-cv).
+const CV_TURN = -35;
+const CV_STEP = 0;
+const CV_SECONDS = 1.65;             // the turn is quicker than the walk to the terminal (FLY_SECONDS)
 
 export async function initGallery(root, data, { assets = "/gallery/", onProgress = () => {} } = {}) {
   const host = root.querySelector("[data-gallery-canvas]");
@@ -267,7 +273,7 @@ export async function initGallery(root, data, { assets = "/gallery/", onProgress
   maybeGradePanel(root, GRADE, regrade);
 
   // ---------------------------------------------------------------- camera states
-  // hero -> flying -> terminal -> flying -> hero
+  // hero -> flying -> terminal -> flying -> hero, and hero -> flying -> cv -> flying -> hero
   let state = "hero";
   const pos = hero.pos.clone(), target = hero.target.clone();
   let flight = null;
@@ -283,19 +289,46 @@ export async function initGallery(root, data, { assets = "/gallery/", onProgress
     return { pos: new THREE.Vector3(screenBox.max.x + dist, c.y, c.z), target: c };
   }
 
+  // the hallway view turned about the camera, moved CV_STEP along the new heading
+  function cvPose() {
+    const look = hero.target.clone().sub(hero.pos).applyAxisAngle(new THREE.Vector3(0, 1, 0), THREE.MathUtils.degToRad(CV_TURN));
+    const step = look.clone().setY(0).normalize().multiplyScalar(CV_STEP);
+    const p = hero.pos.clone().add(step);
+    return { pos: p, target: p.clone().add(look), view: "cv" };
+  }
+
   // mouse parallax is strong in the hallway and nearly off at the terminal; it blends across
   // the flight (switching it at the start made the camera jerk toward the cursor on the way back)
-  const PARALLAX = { hero: 0.35, terminal: 0.04 };
+  const PARALLAX = { hero: 0.35, terminal: 0.04, cv: 0.15 };
   let parallaxAmount = PARALLAX.hero;
-  function fly(to, next) {
-    const toAmount = to === hero ? PARALLAX.hero : PARALLAX.terminal;
-    flight = { from: { pos: pos.clone(), target: target.clone(), amount: parallaxAmount }, to, toAmount, t: 0, next };
+  // the CV turn is quiet (`swoosh` false) and quicker (`seconds`)
+  function fly(to, next, swoosh = true, seconds = FLY_SECONDS) {
+    const toAmount = to === hero ? PARALLAX.hero : PARALLAX[to.view ?? "terminal"];
+    flight = { from: { pos: pos.clone(), target: target.clone(), amount: parallaxAmount }, to, toAmount, t: 0, seconds, next };
     setState("flying");
-    audio.swoosh();
+    if (swoosh) audio.swoosh();
   }
-  const flyIn = () => { if (state === "hero") fly(terminalPose(), () => { setState("terminal"); terminal.boot(); }); };
+  const flyIn = () => {
+    if (state !== "hero" && state !== "cv") return;
+    delete root.dataset.cv;
+    fly(terminalPose(), () => { setState("terminal"); terminal.boot(); });
+  };
   const flyOut = () => { if (state === "terminal") { terminal.idle(); fly(hero, () => setState("hero")); } };
   terminal.onExit = flyOut;
+  // root[data-cv] is set from the start of the turn until you leave, so the CV pages slide in
+  // while the camera turns
+  // the CV panel slides with the camera: same length, same ease-in-out (GalleryScene's CSS)
+  root.style.setProperty("--cv-seconds", CV_SECONDS + "s");
+  const openCv = () => {
+    if (state !== "hero") return;
+    root.dataset.cv = "";
+    fly(cvPose(), () => setState("cv"), false, CV_SECONDS);
+  };
+  const closeCv = () => {
+    if (state !== "cv") return;
+    delete root.dataset.cv;
+    fly(hero, () => setState("hero"), false, CV_SECONDS);
+  };
 
   // ---------------------------------------------------------------- input
   let onScreen = true;                 // false while scrolled out of view (see the loop below)
@@ -330,7 +363,7 @@ export async function initGallery(root, data, { assets = "/gallery/", onProgress
     const r = renderer.domElement.getBoundingClientRect();
     mouse.set(((e.clientX - r.left) / r.width) * 2 - 1, ((e.clientY - r.top) / r.height) * 2 - 1);
     let pointer = false;
-    if (state === "hero") pointer = true;            // anywhere in the hallway walks you to the terminal
+    if (state === "hero" || state === "cv") pointer = true;   // the hallway walks you to the terminal; beside the CV, clicks go back
     else if (state === "terminal" && screenMesh) {
       const hit = pick(e, [screenMesh]);
       pointer = hit ? terminal.pointer(hit.uv) : false;
@@ -342,6 +375,7 @@ export async function initGallery(root, data, { assets = "/gallery/", onProgress
     drag = null;
     if (dragged) return;
     if (state === "hero") flyIn();
+    else if (state === "cv") closeCv();               // a click outside the CV pages turns back to the hallway
     else if (state === "terminal" && screenMesh) {
       const hit = pick(e, [screenMesh]);
       if (hit) { terminal.click(hit.uv); audio.click(); }
@@ -351,6 +385,7 @@ export async function initGallery(root, data, { assets = "/gallery/", onProgress
     if (state === "terminal") { e.preventDefault(); terminal.wheel(e.deltaMode === 1 ? e.deltaY * 40 : e.deltaY); }   // deltaMode 1 = lines
   }, { passive: false });
   addEventListener("keydown", (e) => {
+    if (state === "cv" && e.key === "Escape") { closeCv(); return; }
     if (state !== "terminal" || !onScreen) return;   // scrolled away: arrows scroll the page
     if (terminal.key(e)) { e.preventDefault(); audio.click(); }
   });
@@ -375,7 +410,7 @@ export async function initGallery(root, data, { assets = "/gallery/", onProgress
     const dt = Math.min(clock.getDelta(), 0.1);
     const t = clock.elapsedTime;
     if (flight) {
-      flight.t = Math.min(1, flight.t + dt / FLY_SECONDS);
+      flight.t = Math.min(1, flight.t + dt / flight.seconds);
       const k = ease(flight.t);
       pos.lerpVectors(flight.from.pos, flight.to.pos, k);
       target.lerpVectors(flight.from.target, flight.to.target, k);
@@ -405,7 +440,7 @@ export async function initGallery(root, data, { assets = "/gallery/", onProgress
   }).observe(root);
 
   setState("hero");
-  const api = { flyIn, flyOut, get state() { return state; }, renderer, scene, camera, terminal, water, dust, audio, GRADE, regrade, THREE };
+  const api = { flyIn, flyOut, openCv, closeCv, get state() { return state; }, renderer, scene, camera, terminal, water, dust, audio, GRADE, regrade, THREE };
   root.gallery = api;                 // handy for tuning from the console
   return api;
 }
