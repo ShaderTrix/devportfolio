@@ -59,7 +59,7 @@ const ICONS: Record<string, string> = {
         <h2 class="hs-title">About Me</h2>
         <div class="rule mt-4"></div>
 
-        <!-- square portrait: contrasty greyscale, fading into the page, in the site's corner-bracket frame -->
+        <!-- square portrait, fading into the page, in the site's corner-bracket frame -->
         <figure class="ab-portrait corners">
           <img src="/about/portrait.webp" alt="Shivanshu Chauhan" width="600" height="600" loading="lazy" decoding="async" />
           <span class="ab-portrait-shade" aria-hidden="true"></span>
@@ -95,7 +95,7 @@ const ICONS: Record<string, string> = {
 </section>
 
 <style>
-  /* About Me portrait: square, contrasty greyscale photo with a dark gradient (vignette plus a
+  /* About Me portrait: square photo with a dark gradient (vignette plus a
      fade at the bottom into the page), framed like the project tiles (.corners in global.css) */
   .ab-portrait {
     width: min(100%, 240px);
@@ -107,7 +107,6 @@ const ICONS: Record<string, string> = {
     width: 100%;
     height: 100%;
     object-fit: cover;
-    filter: grayscale(1) contrast(1.35) brightness(0.88);
   }
   .ab-portrait-shade {
     position: absolute;
