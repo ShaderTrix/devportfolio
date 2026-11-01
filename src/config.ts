@@ -594,7 +594,7 @@ export const siteConfig = {
             "A C++/Slate editor tool that opens any material's whole instance family as a spreadsheet: one row per Material Instance, one column per parameter, and every cell editable in place.",
           link: "",
           demoLink: "https://www.youtube.com/watch?v=gjhXO84hwq0&t=99s",
-          previewClip: [99, 102],   // Techart list preview: loop this range (s) of the demo video
+          previewClip: [99, 103],   // Techart list preview: loop this range (s) of the demo video
           skills: ["Unreal Engine", "C++", "Slate", "Editor Tools", "Materials"],
           longDescription: [
             "Tweaking one value across forty Material Instances normally means opening forty editors. This tool opens the whole family at once: right-click a material or instance and pick Edit Instances (or open it from the Tools menu), and every instance that inherits from it is listed as a row, found through the asset registry's Parent tag rather than by loading every asset.",
@@ -612,8 +612,8 @@ export const siteConfig = {
           description:
             "A C++/Slate editor tool that scans a level for repeated static meshes and converts each group into an instanced (ISM or HISM) prefab Blueprint, placed over the originals without deleting them.",
           link: "",
-          demoLink: "https://www.youtube.com/watch?v=gjhXO84hwq0&t=102s",
-          previewClip: [102, 108],   // Techart list preview: loop this range (s) of the demo video
+          demoLink: "https://www.youtube.com/watch?v=gjhXO84hwq0&t=103s",
+          previewClip: [103, 108],   // Techart list preview: loop this range (s) of the demo video
           skills: ["Unreal Engine", "C++", "Slate", "Editor Tools", "Instancing"],
           longDescription: [
             "Levels built by hand end up with hundreds of separate StaticMeshActors that are really the same few meshes, and each one costs its own draw call. Scan Level groups every plain StaticMeshActor by mesh and materials and shows the totals up front: distinct meshes, placed actors, how many are used only once, how many repeat, and how many actors could be instanced.",
