@@ -375,7 +375,7 @@ export const siteConfig = {
           description:
             "Deformable sand on a World Partition desert in UE 5.7: characters, enemies and physics props carve displaced trails with raised rims through Nanite tessellation, and the trails refill over time. One depth capture, two render targets and a C++ actor drive it, with Niagara wind and footstep FX tied in.",
           link: "",
-          demoLink: "https://www.youtube.com/watch?v=KQElCqW_DWI&t=9s",
+          demoLink: "https://www.youtube.com/watch?v=gjhXO84hwq0&t=9s",
           previewClip: [9, 27],   // Techart list preview: loop this range (s) of the demo video
           skills: ["Unreal Engine", "Nanite Tessellation", "Render Targets", "C++", "Niagara"],
           longDescription: [
@@ -435,8 +435,8 @@ export const siteConfig = {
           description:
             "A sci-fi corridor level in UE 5.7 optimized on an M3 Pro MacBook: hardware Lumen to tuned software Lumen, TSR to TAA, instanced Nanite geometry, fewer shadow casters and cheaper materials, plus baked Low/Medium tiers. Epic GPU time went from 43.9 ms to 22.2 ms.",
           link: "",
-          demoLink: "https://www.youtube.com/watch?v=KQElCqW_DWI&t=27s",
-          previewClip: [27, 48],   // Techart list preview: loop this range (s) of the demo video
+          demoLink: "https://www.youtube.com/watch?v=gjhXO84hwq0&t=27s",
+          previewClip: [27, 52],   // Techart list preview: loop this range (s) of the demo video
           skills: ["Unreal Engine", "Lumen", "Profiling", "Nanite", "C++"],
           longDescription: [
             "The starting point was a modular sci-fi level running hardware Lumen, TSR, thousands of separate static meshes and shadows on nearly every light. On an M3 Pro MacBook that came out at 22 fps on Epic. The goal: keep Lumen's look on the high end, ship a version that runs well on the low end, and prove every change with numbers from a packaged build, not the editor.",
@@ -515,8 +515,8 @@ export const siteConfig = {
           description:
             "A PCG forest where every layer (trees, rocks, grass, flowers, logs) lives in a data asset instead of the graph, and a custom C++ editor window, the PCG Cinematic Forest Designer, lets artists build and tune those layers with the forest regenerating live. A river spline cuts a clean path through it.",
           link: "",
-          demoLink: "https://www.youtube.com/watch?v=KQElCqW_DWI&t=48s",
-          previewClip: [48, 72],   // Techart list preview: loop this range (s) of the demo video
+          demoLink: "https://www.youtube.com/watch?v=gjhXO84hwq0&t=52s",
+          previewClip: [52, 77],   // Techart list preview: loop this range (s) of the demo video
           skills: ["Unreal Engine", "PCG Framework", "C++ / Slate", "Editor Tools", "Data Assets"],
           longDescription: [
             "PCG graphs turn into spaghetti fast when every forest is its own hand-tuned graph. Here the graph is generic and the forest is data: a Blueprint data asset holds an array of layers, each with its own meshes and weights, density, footprint and looseness, seed, scale, tilt and height-offset ranges, slope and noise culling, and how close it may get to the river. A new biome is a new data asset, not a new graph.",
@@ -555,8 +555,8 @@ export const siteConfig = {
           description:
             "A playable mech scorpion in UE 5.7, rigged in Blender and animated entirely by a procedural Control Rig: full-body IK plants the eight legs on the terrain as it walks, and the guns, tail and pincers aim and react to what the player does. A C++ pawn handles tank-style movement, aiming and the weapon FX.",
           link: "",
-          demoLink: "https://www.youtube.com/watch?v=KQElCqW_DWI&t=72s",
-          previewClip: [72, 84],   // Techart list preview: loop this range (s) of the demo video
+          demoLink: "https://www.youtube.com/watch?v=gjhXO84hwq0&t=77s",
+          previewClip: [77, 89],   // Techart list preview: loop this range (s) of the demo video
           skills: ["Unreal Engine", "Control Rig", "Full Body IK", "C++", "Blender"],
           longDescription: [
             "The scorpion started as a hard-surface model, rigged in Blender with Python scripts: rigid skinning (each mesh piece follows one bone), eight four-bone legs, two back gatlings with yaw, pitch and barrel bones, a four-bone tail ending in a stinger gun, and two pincers. Nothing is keyframed. Every pose comes from the Control Rig at runtime.",
@@ -574,8 +574,8 @@ export const siteConfig = {
           description:
             "A set of Niagara character powers in UE 5.7: smoke and neon, each with its own idle, dash and glide effects, switched on a third-person character from a power wheel and driven by the character's movement.",
           link: "",
-          demoLink: "https://www.youtube.com/watch?v=KQElCqW_DWI&t=84s",
-          previewClip: [84, 94],   // Techart list preview: loop this range (s) of the demo video
+          demoLink: "https://www.youtube.com/watch?v=gjhXO84hwq0&t=89s",
+          previewClip: [89, 99],   // Techart list preview: loop this range (s) of the demo video
           skills: ["Unreal Engine", "Niagara", "VFX", "Materials", "Blueprints"],
           longDescription: [
             "Each power is a family of Niagara systems rather than one effect: a static version that hangs around the character while idle, a dash that streaks along the move, and a glide that trails behind in the air. Switching powers swaps the whole family, so the character reads differently in every state.",
@@ -593,8 +593,8 @@ export const siteConfig = {
           description:
             "A C++/Slate editor tool that opens any material's whole instance family as a spreadsheet: one row per Material Instance, one column per parameter, and every cell editable in place.",
           link: "",
-          demoLink: "https://www.youtube.com/watch?v=KQElCqW_DWI&t=94s",
-          previewClip: [94, 98],   // Techart list preview: loop this range (s) of the demo video
+          demoLink: "https://www.youtube.com/watch?v=gjhXO84hwq0&t=99s",
+          previewClip: [99, 104],   // Techart list preview: loop this range (s) of the demo video
           skills: ["Unreal Engine", "C++", "Slate", "Editor Tools", "Materials"],
           longDescription: [
             "Tweaking one value across forty Material Instances normally means opening forty editors. This tool opens the whole family at once: right-click a material or instance and pick Edit Instances (or open it from the Tools menu), and every instance that inherits from it is listed as a row, found through the asset registry's Parent tag rather than by loading every asset.",
@@ -612,8 +612,8 @@ export const siteConfig = {
           description:
             "A C++/Slate editor tool that scans a level for repeated static meshes and converts each group into an instanced (ISM or HISM) prefab Blueprint, placed over the originals without deleting them.",
           link: "",
-          demoLink: "https://www.youtube.com/watch?v=KQElCqW_DWI&t=98s",
-          previewClip: [98, 102],   // Techart list preview: loop this range (s) of the demo video
+          demoLink: "https://www.youtube.com/watch?v=gjhXO84hwq0&t=104s",
+          previewClip: [104, 108],   // Techart list preview: loop this range (s) of the demo video
           skills: ["Unreal Engine", "C++", "Slate", "Editor Tools", "Instancing"],
           longDescription: [
             "Levels built by hand end up with hundreds of separate StaticMeshActors that are really the same few meshes, and each one costs its own draw call. Scan Level groups every plain StaticMeshActor by mesh and materials and shows the totals up front: distinct meshes, placed actors, how many are used only once, how many repeat, and how many actors could be instanced.",
