@@ -375,7 +375,7 @@ export const siteConfig = {
           description:
             "Deformable sand on a World Partition desert in UE 5.7: characters, enemies and physics props carve displaced trails with raised rims through Nanite tessellation, and the trails refill over time. One depth capture, two render targets and a C++ actor drive it, with Niagara wind and footstep FX tied in.",
           link: "",
-          demoLink: "https://www.youtube.com/watch?v=gjhXO84hwq0&t=9s",
+          demoLink: "https://www.youtube.com/watch?v=EwjOciaaK-A&t=9s",
           previewClip: [9, 27],   // Techart list preview: loop this range (s) of the demo video
           skills: ["Unreal Engine", "Nanite Tessellation", "Render Targets", "C++", "Niagara"],
           longDescription: [
@@ -435,7 +435,7 @@ export const siteConfig = {
           description:
             "A sci-fi corridor level in UE 5.7 optimized on an M3 Pro MacBook: hardware Lumen to tuned software Lumen, TSR to TAA, instanced Nanite geometry, fewer shadow casters and cheaper materials, plus baked Low/Medium tiers. Epic GPU time went from 43.9 ms to 22.2 ms.",
           link: "",
-          demoLink: "https://www.youtube.com/watch?v=gjhXO84hwq0&t=27s",
+          demoLink: "https://www.youtube.com/watch?v=EwjOciaaK-A&t=27s",
           previewClip: [27, 52],   // Techart list preview: loop this range (s) of the demo video
           skills: ["Unreal Engine", "Lumen", "Profiling", "Nanite", "C++"],
           longDescription: [
@@ -515,7 +515,7 @@ export const siteConfig = {
           description:
             "A PCG forest where every layer (trees, rocks, grass, flowers, logs) lives in a data asset instead of the graph, and a custom C++ editor window, the PCG Cinematic Forest Designer, lets artists build and tune those layers with the forest regenerating live. A river spline cuts a clean path through it.",
           link: "",
-          demoLink: "https://www.youtube.com/watch?v=gjhXO84hwq0&t=52s",
+          demoLink: "https://www.youtube.com/watch?v=EwjOciaaK-A&t=52s",
           previewClip: [52, 77],   // Techart list preview: loop this range (s) of the demo video
           skills: ["Unreal Engine", "PCG Framework", "C++ / Slate", "Editor Tools", "Data Assets"],
           longDescription: [
@@ -555,7 +555,7 @@ export const siteConfig = {
           description:
             "A playable mech scorpion in UE 5.7, rigged in Blender and animated entirely by a procedural Control Rig: full-body IK plants the eight legs on the terrain as it walks, and the guns, tail and pincers aim and react to what the player does. A C++ pawn handles tank-style movement, aiming and the weapon FX.",
           link: "",
-          demoLink: "https://www.youtube.com/watch?v=gjhXO84hwq0&t=77s",
+          demoLink: "https://www.youtube.com/watch?v=EwjOciaaK-A&t=77s",
           previewClip: [77, 89],   // Techart list preview: loop this range (s) of the demo video
           skills: ["Unreal Engine", "Control Rig", "Full Body IK", "C++", "Blender"],
           longDescription: [
@@ -574,7 +574,7 @@ export const siteConfig = {
           description:
             "A set of Niagara character powers in UE 5.7: smoke and neon, each with its own idle, dash and glide effects, switched on a third-person character from a power wheel and driven by the character's movement.",
           link: "",
-          demoLink: "https://www.youtube.com/watch?v=gjhXO84hwq0&t=89s",
+          demoLink: "https://www.youtube.com/watch?v=EwjOciaaK-A&t=89s",
           previewClip: [89, 99],   // Techart list preview: loop this range (s) of the demo video
           skills: ["Unreal Engine", "Niagara", "VFX", "Materials", "Blueprints"],
           longDescription: [
@@ -593,7 +593,7 @@ export const siteConfig = {
           description:
             "A C++/Slate editor tool that opens any material's whole instance family as a spreadsheet: one row per Material Instance, one column per parameter, and every cell editable in place.",
           link: "",
-          demoLink: "https://www.youtube.com/watch?v=gjhXO84hwq0&t=99s",
+          demoLink: "https://www.youtube.com/watch?v=EwjOciaaK-A&t=99s",
           previewClip: [99, 103],   // Techart list preview: loop this range (s) of the demo video
           skills: ["Unreal Engine", "C++", "Slate", "Editor Tools", "Materials"],
           longDescription: [
@@ -612,7 +612,7 @@ export const siteConfig = {
           description:
             "A C++/Slate editor tool that scans a level for repeated static meshes and converts each group into an instanced (ISM or HISM) prefab Blueprint, placed over the originals without deleting them.",
           link: "",
-          demoLink: "https://www.youtube.com/watch?v=gjhXO84hwq0&t=103s",
+          demoLink: "https://www.youtube.com/watch?v=EwjOciaaK-A&t=103s",
           previewClip: [103, 108],   // Techart list preview: loop this range (s) of the demo video
           skills: ["Unreal Engine", "C++", "Slate", "Editor Tools", "Instancing"],
           longDescription: [
