@@ -1,8 +1,13 @@
 export const siteConfig = {
   name: "Shivanshu Chauhan",
-  title: "Technical Artist II | UI Systems | Shaders | GPU Optimisation",
+  title: "Technical Artist II | Unreal Engine 5 | Unity 6 | Shaders | Optimisation",
+  // the home page's browser tab and link-preview title
+  siteTitle: "Shivanshu Chauhan — Technical Artist (Unreal Engine 5 & Unity 6)",
+  // search results and link previews (other pages override it, e.g. project pages use the tagline)
   description:
-    "Unity UI Systems, Rendering, Shaders, GPU-driven Systems and Tool Development",
+    "Technical Artist in Unreal Engine 5 and Unity 6: shaders, Niagara VFX, PCG tools and GPU optimisation. EU citizen (Portuguese passport), open to relocation or remote.",
+  siteUrl: "https://shadertrix.github.io",
+  ogImage: "/og-image.jpg",   // 1200×630 link-preview image
 
   accentColor: "#D99A32",   // hazard amber (Industrial Concrete theme, src/styles/global.css)
 
@@ -103,6 +108,16 @@ export const siteConfig = {
         { name: "GitHub", icon: "github" },
       ],
     },
+  ],
+  // "Latest Projects" panel on the right of the gallery hero, newest first. status "wip" shows an
+  // amber dot, "done" a green tick. An entry with a project slug takes that project's full name and
+  // links to its page; one without an image shows a dim "In progress" in place of the thumbnail. The last
+  // one fades out under a "View all projects" link.
+  latestUpdates: [
+    { title: "Wave Equation Interactive Water", meta: "UE5 · Nov 2026", status: "wip", image: "" },
+    { project: "sand-trail-system", meta: "Oct 2026", status: "done", image: "/gallery/updates/sand-system.webp" },
+    { project: "scene-optimization", meta: "Oct 2026", status: "done", image: "/gallery/updates/scene-optimization.webp" },
+    { project: "pcg-forest", meta: "Oct 2026", status: "done", image: "/gallery/updates/pcg-forest.webp" },
   ],
   experience: [
     {

@@ -5,7 +5,7 @@ import { siteConfig } from "../config";
 import "../styles/global.css";
 
 const s = siteConfig;
-const role = s.title.split("|")[0].trim().replace(/\s+II$/, "");
+const ogImage = new URL(s.ogImage, s.siteUrl).href;
 ---
 
 <html lang="en">
@@ -13,8 +13,17 @@ const role = s.title.split("|")[0].trim().replace(/\s+II$/, "");
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
-    <title>{s.name} - {role}</title>
+    <title>{s.siteTitle}</title>
     <meta name="description" content={s.description} />
+    <link rel="canonical" href={new URL("/gallery", s.siteUrl).href} />
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content={s.siteTitle} />
+    <meta property="og:description" content={s.description} />
+    <meta property="og:image" content={ogImage} />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:image" content={ogImage} />
   </head>
   <body class="gallery-body">
     <GalleryScene />
