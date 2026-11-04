@@ -112,7 +112,7 @@ export const siteConfig = {
   // "Latest Projects" panel on the right of the gallery hero, newest first. status "wip" shows an
   // amber dot, "done" a green tick. An entry with a project slug takes that project's full name and
   // links to its page; one without an image shows a dim "In progress" in place of the thumbnail. The last
-  // one fades out under a "View all projects" link.
+  // one fades out from below.
   latestUpdates: [
     { title: "Wave Equation Interactive Water", meta: "UE5 · Nov 2026", status: "wip", image: "" },
     { project: "sand-trail-system", meta: "Oct 2026", status: "done", image: "/gallery/updates/sand-system.webp" },
