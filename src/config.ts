@@ -115,6 +115,7 @@ export const siteConfig = {
   // one fades out from below.
   latestUpdates: [
     { title: "Wave Equation Interactive Water", meta: "UE5 · Nov 2026", status: "wip", image: "" },
+    { title: "Live Game Modding & Hotfixing with HybridCLR", meta: "Unity · Nov 2026", status: "wip", image: "" },
     { project: "sand-trail-system", meta: "Oct 2026", status: "done", image: "/gallery/updates/sand-system.webp" },
     { project: "scene-optimization", meta: "Oct 2026", status: "done", image: "/gallery/updates/scene-optimization.webp" },
     { project: "pcg-forest", meta: "Oct 2026", status: "done", image: "/gallery/updates/pcg-forest.webp" },

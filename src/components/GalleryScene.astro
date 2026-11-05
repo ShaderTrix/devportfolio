@@ -142,7 +142,7 @@ const terminalData = {
                     <span class="gallery-update-thumb">
                       {u.image
                         ? <img src={u.image} alt="" width="480" height="210" loading="lazy" decoding="async" />
-                        : <span class="gallery-update-wip">In progress</span>}
+                        : <span class="gallery-update-wip">In progress<small>Check back in a few days</small></span>}
                     </span>
                     <span class="gallery-update-line">
                       <span class="gallery-update-title">{u.title}</span>
@@ -374,7 +374,7 @@ const terminalData = {
   .gallery-updates ul { --gap: clamp(10px, 1.8vh, 14px); --mark: 15px; --mark-gap: 10px;
     display: grid; grid-template-columns: minmax(0, 1fr); gap: var(--gap); margin: 0; padding: 0; list-style: none; }
   .gallery-update { display: block; color: inherit; text-decoration: none; }
-  .gallery-update-thumb { position: relative; display: block; aspect-ratio: 16 / 7; overflow: hidden; border-radius: 5px;
+  .gallery-update-thumb { position: relative; display: block; aspect-ratio: 16 / 5; overflow: hidden; border-radius: 5px;
     background: #0b0d0f; border: 1px solid rgba(255,255,255,0.14); transition: border-color .2s; }
   .gallery-update-thumb img { display: block; width: 100%; height: 100%; object-fit: cover; filter: brightness(0.9);
     transition: filter .3s, transform .5s; }
@@ -405,8 +405,8 @@ const terminalData = {
      first mark to the last. Every row draws its own stretch of the line (through the gap below it too), the
      first item starts it at its mark and the last item ends it there; the marks sit on top. */
   .gallery-update-item { position: relative; display: grid; grid-template-columns: var(--mark) minmax(0, 1fr); column-gap: var(--mark-gap); }
-  /* cards: the thumbnail is 16:7 of the card's width (the item's width less the mark column) */
-  .gallery-update-item:not(.is-row) { container-type: inline-size; --mark-y: calc((100cqw - var(--mark) - var(--mark-gap)) * 7 / 32); }
+  /* cards: the thumbnail is 16:5 of the card's width (the item's width less the mark column) */
+  .gallery-update-item:not(.is-row) { container-type: inline-size; --mark-y: calc((100cqw - var(--mark) - var(--mark-gap)) * 5 / 32); }
   .gallery-update-item.is-row { --mark-y: 21px; }
   .gallery-update-mark { position: relative; z-index: 1; align-self: start; width: var(--mark); height: var(--mark);
     margin-top: calc(var(--mark-y) - var(--mark) / 2); border-radius: 50%; background: #0a0a09; }
@@ -425,11 +425,15 @@ const terminalData = {
   .gallery-update-mark.is-wip i { position: absolute; inset: 4px; border-radius: 50%; background: var(--gallery-amber);
     box-shadow: 0 0 6px var(--gallery-amber); animation: gallery-pulse 2.4s ease-in-out infinite; }
   /* no image yet (work in progress): a dim label in the empty frame */
-  .gallery-update-wip { position: absolute; inset: 0; display: grid; place-items: center;
+  .gallery-update-wip { position: absolute; inset: 0; display: grid; place-content: center; justify-items: center; gap: 5px;
     font: 500 9px "JetBrains Mono", monospace; letter-spacing: 0.24em; text-transform: uppercase; color: rgba(255,255,255,0.22); }
+  .gallery-update-wip small { font-size: 8.5px; letter-spacing: 0.04em; text-transform: none; color: rgba(255,255,255,0.3); }
   /* hallway view only: out of the way at the terminal, under the CV, and where there's no room */
   .gallery:not([data-state="hero"]) .gallery-updates, .gallery[data-cv] .gallery-updates {
     opacity: 0; transform: translateX(20px); pointer-events: none; }
+  /* shorter windows: scale the whole column down from its top-right corner so it clears the credits */
+  @media (max-height: 760px) { .gallery-updates { transform-origin: top right; scale: 0.88; } }
+  @media (max-height: 640px) { .gallery-updates { scale: 0.78; } }
   @media (max-width: 900px), (max-aspect-ratio: 1/1), (max-height: 560px) { .gallery-updates { display: none; } }
 
   .gallery-back { position: absolute; top: 84px; right: 28px; display: flex; align-items: center; gap: 10px;
