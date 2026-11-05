@@ -18,7 +18,7 @@ export const GRADE = {
   noise: 0.1,          // film grain strength (overlay blend)
   bakedLight: 0.15,     // multiplies every lightmap
   terminalFill: 0.42,   // multiplies the terminal's real-time lights
-  screenGlow: 1.5,     // CRT brightness
+  screenGlow: 1,       // CRT brightness
   water: "#222525",     // deep water colour
   waterReflect: 0.5,   // reflection seen straight down
   waterFresnel: 1,      // extra reflection at grazing angles

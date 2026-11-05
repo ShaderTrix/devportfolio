@@ -5,8 +5,10 @@
 import TechartList from "./TechartList.astro";
 import { allProjects } from "../config";
 
-// rows shown per filter (each filter's order is FILTER_ORDER in src/scripts/techart-filter.ts)
-const LIMIT = 3;
+// tiles shown per filter (two rows; each filter's order is FILTER_ORDER in src/scripts/techart-filter.ts),
+// then a fading row of the next ones
+const LIMIT = 6;
+const PEEK = 3;
 
 const projects = allProjects.filter(
   (project) => project.categoryKey === "professional" || project.categoryKey === "personal"
@@ -14,14 +16,14 @@ const projects = allProjects.filter(
 ---
 
 {projects.length > 0 && (
-  <section id="projects" class="hs hp" data-limit={LIMIT}>
+  <section id="projects" class="hs hp" data-limit={LIMIT} data-peek={PEEK}>
     <div class="hs-inner hs-first">
       <div class="hs-head">
         <h2 class="hs-title">Projects</h2>
         <div class="rule mt-4"></div>
       </div>
       <div class="hp-list">
-        <TechartList projects={projects} grid limit={LIMIT} peek={LIMIT} />
+        <TechartList projects={projects} grid limit={LIMIT} peek={PEEK} />
         <a href="/tech-art" class="hs-btn hp-more">View all projects <span aria-hidden="true">→</span></a>
       </div>
     </div>
@@ -48,6 +50,6 @@ const projects = allProjects.filter(
   const root = document.getElementById("projects");
   if (root) {
     initYoutubePreviews();
-    initTechartFilter(root, Number(root.dataset.limit), Number(root.dataset.limit));
+    initTechartFilter(root, Number(root.dataset.limit), Number(root.dataset.peek));
   }
 </script>
