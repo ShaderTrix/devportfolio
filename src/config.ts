@@ -21,6 +21,9 @@ export const siteConfig = {
     "Shader Artist",
   ],
 
+  // GoatCounter site code for visitor stats (dashboard: https://<code>.goatcounter.com); "" turns it off
+  goatcounter: "shadertrix",
+
   // CV / resume file (lives in /public)
   resumeUrl: "/Shivanshu_Chauhan_CV.pdf",
 

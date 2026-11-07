@@ -1,0 +1,61 @@
+---
+// GoatCounter visitor stats (no cookies, so no consent banner). Dashboard: https://<code>.goatcounter.com
+// Page views are counted by count.js. On top of that this sends a few "events", which show up in the
+// dashboard's page list with an event marker:
+//   time 30s+ /path, time 2m+ /path   the visitor kept that page open and visible for that long
+//   CV download, outbound <host>      link clicks (CV pdf, YouTube, LinkedIn, ArtStation, email...)
+//   gallery: terminal, gallery: CV    the 3D gallery hero's terminal / CV panel was opened
+// count.js ignores localhost, so local previews never count.
+import { siteConfig } from "../config";
+
+const code = siteConfig.goatcounter;
+---
+
+{code && (
+  <script is:inline async data-goatcounter={`https://${code}.goatcounter.com/count`} src="//gc.zgo.at/count.js"></script>
+)}
+
+<script>
+  type GC = { count?: (v: { path: string; title?: string; event?: boolean }) => void };
+  const sent = new Set<string>();
+  const track = (path: string) => {
+    if (sent.has(path)) return;   // once per page load
+    const gc = (window as unknown as { goatcounter?: GC }).goatcounter;
+    if (!gc?.count) return;   // script blocked or not loaded yet
+    sent.add(path);
+    gc.count({ path, title: path, event: true });
+  };
+
+  // time on page: only while the tab is visible, so a background tab doesn't count as reading
+  const page = location.pathname.replace(/\/$/, "") || "/";
+  const marks: [number, string][] = [[30, "30s+"], [120, "2m+"]];
+  let seen = 0;
+  setInterval(() => {
+    if (document.visibilityState !== "visible") return;
+    seen++;
+    for (const [s, label] of marks) if (seen === s) track(`time ${label} ${page}`);
+  }, 1000);
+
+  // link clicks: CV, other PDFs, and anything leaving the site
+  document.addEventListener("click", (e) => {
+    const a = (e.target as Element | null)?.closest?.("a[href]") as HTMLAnchorElement | null;
+    if (!a) return;
+    const url = new URL(a.href, location.href);
+    if (url.protocol === "mailto:") return track("outbound email");
+    if (url.origin === location.origin) {
+      if (/_CV\.pdf$/i.test(url.pathname)) track("CV download");
+      else if (/\.pdf$/i.test(url.pathname)) track(`pdf ${url.pathname}`);
+      return;
+    }
+    track(`outbound ${url.hostname.replace(/^www\./, "")}`);
+  }, { capture: true });
+
+  // the 3D gallery hero: did they use the terminal / open the CV panel?
+  const gallery = document.querySelector<HTMLElement>("[data-gallery]");
+  if (gallery) {
+    new MutationObserver(() => {
+      if (gallery.dataset.state === "terminal") track("gallery: terminal");
+      if (gallery.hasAttribute("data-cv")) track("gallery: CV");
+    }).observe(gallery, { attributes: true, attributeFilter: ["data-state", "data-cv"] });
+  }
+</script>

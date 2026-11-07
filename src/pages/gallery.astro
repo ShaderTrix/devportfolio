@@ -1,6 +1,7 @@
 ---
 // Standalone interactive 3D landing (the same scene the home page opens with).
 import GalleryScene from "../components/GalleryScene.astro";
+import Analytics from "../components/Analytics.astro";
 import { siteConfig } from "../config";
 import "../styles/global.css";
 
@@ -27,6 +28,7 @@ const ogImage = new URL(s.ogImage, s.siteUrl).href;
     <meta property="og:image:height" content="630" />
     <meta name="twitter:card" content="summary_large_image" />
     <meta name="twitter:image" content={ogImage} />
+    <Analytics />
   </head>
   <body class="gallery-body">
     <GalleryScene />
