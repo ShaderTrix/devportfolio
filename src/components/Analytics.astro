@@ -2,6 +2,7 @@
 // GoatCounter visitor stats (no cookies, so no consent banner). Dashboard: https://<code>.goatcounter.com
 // Page views are counted by count.js. On top of that this sends a few "events", which show up in the
 // dashboard's page list with an event marker:
+//   visitor                           once per session (new after 30 min away; last-seen time in localStorage)
 //   time 30s+ /path, time 2m+ /path   the visitor kept that page open and visible for that long
 //   CV download, outbound <host>      link clicks (CV pdf, YouTube, LinkedIn, ArtStation, email...)
 //   gallery: terminal, gallery: CV    the 3D gallery hero's terminal / CV panel was opened
@@ -26,6 +27,25 @@ const code = siteConfig.goatcounter;
     gc.count({ path, title: path, event: true });
   };
 
+  // "visitor": once per session, so that row reads as visits by people. A session ends after 30 min with
+  // the site not open and visible (closing the browser, or a phone tab left for later, both end it).
+  // Stored: only the time the site was last seen, no ID. count.js loads async, so wait for it (~15 s).
+  const SESSION_MS = 30 * 60 * 1000;
+  const KEY = "gc-last-seen";
+  const touch = () => { try { localStorage.setItem(KEY, String(Date.now())); } catch {} };
+  let last = 0;
+  try { last = Number(localStorage.getItem(KEY)) || 0; } catch {}
+  if (Date.now() - last > SESSION_MS) {
+    let tries = 0;
+    const tryVisitor = () => {
+      const gc = (window as unknown as { goatcounter?: GC }).goatcounter;
+      if (gc?.count) track("visitor");
+      else if (++tries < 30) setTimeout(tryVisitor, 500);
+    };
+    tryVisitor();
+  }
+  touch();
+
   // time on page: only while the tab is visible, so a background tab doesn't count as reading
   const page = location.pathname.replace(/\/$/, "") || "/";
   const marks: [number, string][] = [[30, "30s+"], [120, "2m+"]];
@@ -33,6 +53,7 @@ const code = siteConfig.goatcounter;
   setInterval(() => {
     if (document.visibilityState !== "visible") return;
     seen++;
+    if (seen % 15 === 0) touch();   // still reading: keep the session alive
     for (const [s, label] of marks) if (seen === s) track(`time ${label} ${page}`);
   }, 1000);
 
