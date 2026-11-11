@@ -403,6 +403,14 @@ export const siteConfig = {
             "A C++ actor (AWaterRipplesSim) ticks after the capture and runs fixed sub-steps from a capped time bank, 120 steps a second and at most 4 per frame, with the wave speed clamped to what the grid can carry stably. The surface material builds normals from the height channel, with no vertex displacement, and renders through Single Layer Water.",
             "Around it: foot splashes timed from the run cycle's sync markers (the Paragon animations have no foot notifies), staff splashes where the line between two staff sockets crosses the water plane, pooled Niagara for both, floating props whose bob and tilt come from the simulation through World Position Offset while Chaos handles drift, and duckweed that parts around the player.",
           ],
+          // detail page only: looping clips under the overview (self-hosted, no audio)
+          galleryVideos: [
+            {
+              src: "/projects/water-ripples.mp4",   // 1280 px, 30 fps, 9 s
+              poster: "/projects/water-ripples-poster.webp",
+              caption: "Test level on the M3 Pro with stat unit on: about 37–38 FPS, 24–25 ms GPU.",
+            },
+          ],
           tables: [
             {
               title: "Cost",
