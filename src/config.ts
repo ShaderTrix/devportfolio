@@ -117,8 +117,8 @@ export const siteConfig = {
   // links to its page; one without an image shows a dim "In progress" in place of the thumbnail. The last
   // one fades out from below.
   latestUpdates: [
-    { title: "Wave Equation Interactive Water", meta: "UE5 · Nov 2026", status: "wip", image: "" },
     { title: "Live Game Modding & Hotfixing with HybridCLR", meta: "Unity · Nov 2026", status: "wip", image: "" },
+    { project: "water-ripples", meta: "Nov 2026", status: "done", image: "/gallery/updates/water-ripples.webp" },
     { project: "sand-trail-system", meta: "Oct 2026", status: "done", image: "/gallery/updates/sand-system.webp" },
     { project: "scene-optimization", meta: "Oct 2026", status: "done", image: "/gallery/updates/scene-optimization.webp" },
     { project: "pcg-forest", meta: "Oct 2026", status: "done", image: "/gallery/updates/pcg-forest.webp" },
@@ -385,6 +385,77 @@ export const siteConfig = {
           ],
         },
         {
+          slug: "water-ripples",
+          name: "Water Ripples & Buoyancy — Height-Field Simulation",
+          tagline: "The depth capture that carves the sand also drives real-time water ripples, splashes and floating props.",
+          image: "",   // preview comes from the YouTube clip (previewClip)
+          detailImage: "",
+          engine: "unreal",
+          description:
+            "Real-time water in UE 5.7 that reuses the sand system's depth capture: a player-following 512 × 512 height-field simulation (Müller's wave equation) runs in render-target materials, so anything in the capture disturbs the water with no per-actor code. Foot and staff splashes, floating props and duckweed are tied in, for about 2.5 ms of GPU on top of the shared capture.",
+          link: "",
+          demoLink: "https://www.youtube.com/watch?v=s7aWxcrEGMg&t=10s",
+          previewClip: [10, 21],   // Techart list preview: loop this range (s) of the demo video
+          skills: ["Unreal Engine", "Render Targets", "HLSL", "C++", "Niagara"],
+          longDescription: [
+            "This takes the sand system into water. Same Black Myth: Wukong–style goal: wade through a pond and the surface reacts around the legs, the staff and anything else in it. Same rule too: no per-actor stamping. The orthographic depth capture under the player that records sand contacts is reused, so whatever reaches into the water already shows up in it, and the capture's cost is paid once for both surfaces.",
+            "The water is Matthias Müller's height-field method, run on the GPU in a material. Two 512 × 512 RGBA16f render targets ping-pong the state: height, velocity, and the submerged body height from the last step. Each step adds the change in submerged height (strong at the front of a moving body, weak behind it, with a small dead zone so tiny jitters don't ripple), applies the wave equation over the four neighbours, damps, and clamps. A cubic sponge towards the grid edges lets waves fade out instead of bouncing back. The grid covers 2000 units around the player at 3.9 cm per cell and scrolls its history as the player moves.",
+            "A C++ actor (AWaterRipplesSim) ticks after the capture and runs fixed sub-steps from a capped time bank, 120 steps a second and at most 4 per frame, with the wave speed clamped to what the grid can carry stably. The surface material builds normals from the height channel, with no vertex displacement, and renders through Single Layer Water.",
+            "Around it: foot splashes timed from the run cycle's sync markers (the Paragon animations have no foot notifies), staff splashes where the line between two staff sockets crosses the water plane, pooled Niagara for both, floating props whose bob and tilt come from the simulation through World Position Offset while Chaos handles drift, and duckweed that parts around the player.",
+          ],
+          tables: [
+            {
+              title: "Cost",
+              caption: "M3 Pro, Metal, Play In Editor, 87% screen percentage. GPU time from stat unit and GPU Visualizer.",
+              head: ["Pass", "GPU"],
+              rows: [
+                ["Depth capture (shared with the sand)", "2.3–2.4 ms"],
+                ["Simulation: 4 render-target draws (2 steps)", "≈ 0.12 ms"],
+                ["Water surface (Single Layer Water + prepass)", "≈ 2.4 ms"],
+              ],
+            },
+            {
+              title: "Against Niagara Fluids",
+              caption: "Same scene, frame GPU time. Niagara's shallow-water pool template needed a 1024 grid to cover the 70 m pool.",
+              head: ["Setup", "Cell size", "Frame GPU"],
+              rows: [
+                ["No water simulation", "–", "17.0–19.6 ms"],
+                ["This simulation: 512 grid following the player", "3.9 cm", "≈ 23 ms"],
+                ["Niagara Grid2D_SW_Pool: 1024 grid over 7000 units", "6.8 cm", "23.6–24.2 ms"],
+              ],
+            },
+            {
+              title: "Problems and fixes",
+              text: true,
+              head: ["Problem", "Cause", "Fix"],
+              rows: [
+                ["Running left a weak, broken wake", "The character runs faster than the waves travel", "Body coupling scales from 0.15 to 1.0 with speed, and a moving body pushes hard at its front (gain 1.0) and barely behind (0.05)."],
+                ["Instability when the step rate drops", "An explicit wave step blows up once a wave crosses more than about half a cell per step", "Wave speed clamped to 0.5 · cellSize / dt, with fixed sub-steps from a capped time bank."],
+                ["Waves bounced off the grid edge", "The simulation grid ends around the player", "A cubic sponge damps height and velocity towards the edges."],
+                ["No foot-plant events", "Paragon's LeftPlant and RightPlant are sync markers, not notifies", "C++ polls HasMarkerBeenHitThisFrame on the Jog sync group and splashes when the foot bone is near the water height."],
+                ["Negative heights lost in the render targets", "Unreal clamps emissive to ≥ 0", "Allow Negative Emissive Color on the simulation materials."],
+                ["14–18 FPS looking over water with sand nearby", "Nanite tessellation on the sand, confirmed with r.Nanite.Tessellation 0", "Lower Displacement Magnitude on the sand material: frame GPU 54–76 ms → 32.7–33.9 ms."],
+                ["First Niagara comparison looked too good", "Hiding this simulation in the Outliner only hid it in the editor; it kept running", "Removed it for real before measuring."],
+              ],
+            },
+          ],
+          codeTitle: "The math",
+          codeBlocks: [
+            {
+              label: "One simulation step (per cell)",
+              code: "h += gain * (body - bodyPrev)      // gain 1.0 in front, 0.05 behind\nv += dt * waveK * (hL + hR + hU + hD - 4h)\nh *= posDamp; v *= velDamp\nh += v * dt",
+            },
+            {
+              label: "Stable wave speed for the grid",
+              code: "c = min(waveSpeed, 0.5 * cellSize / dt)",
+            },
+            {
+              label: "Staff tip crossing the water plane",
+              code: "t = hA / (hA - hB)\nhit = A + t * (B - A)",
+            },
+          ],
+        },
+        {
           slug: "sand-trail-system",
           name: "Sand System — Nanite Tessellation Material",
           tagline: "Anything that touches the sand leaves a real trail, and the dunes slowly fill it back in.",
@@ -394,8 +465,8 @@ export const siteConfig = {
           description:
             "Deformable sand on a World Partition desert in UE 5.7: characters, enemies and physics props carve displaced trails with raised rims through Nanite tessellation, and the trails refill over time. One depth capture, two render targets and a C++ actor drive it, with Niagara wind and footstep FX tied in.",
           link: "",
-          demoLink: "https://www.youtube.com/watch?v=EwjOciaaK-A&t=9s",
-          previewClip: [9, 27],   // Techart list preview: loop this range (s) of the demo video
+          demoLink: "https://www.youtube.com/watch?v=s7aWxcrEGMg&t=21s",
+          previewClip: [21, 41],   // Techart list preview: loop this range (s) of the demo video
           skills: ["Unreal Engine", "Nanite Tessellation", "Render Targets", "C++", "Niagara"],
           longDescription: [
             "The target was Black Myth: Wukong–style sand: walk through it and you leave a real dent with a little berm of sand pushed up around it, not a decal. And it shouldn't only work for the player. Enemies, physics cubes, anything with geometry should carve it too, without any of them knowing the sand exists.",
@@ -454,8 +525,8 @@ export const siteConfig = {
           description:
             "A sci-fi corridor level in UE 5.7 optimized on an M3 Pro MacBook: hardware Lumen to tuned software Lumen, TSR to TAA, instanced Nanite geometry, fewer shadow casters and cheaper materials, plus baked Low/Medium tiers. Epic GPU time went from 43.9 ms to 22.2 ms.",
           link: "",
-          demoLink: "https://www.youtube.com/watch?v=EwjOciaaK-A&t=27s",
-          previewClip: [27, 52],   // Techart list preview: loop this range (s) of the demo video
+          demoLink: "https://www.youtube.com/watch?v=s7aWxcrEGMg&t=41s",
+          previewClip: [41, 66],   // Techart list preview: loop this range (s) of the demo video
           skills: ["Unreal Engine", "Lumen", "Profiling", "Nanite", "C++"],
           longDescription: [
             "The starting point was a modular sci-fi level running hardware Lumen, TSR, thousands of separate static meshes and shadows on nearly every light. On an M3 Pro MacBook that came out at 22 fps on Epic. The goal: keep Lumen's look on the high end, ship a version that runs well on the low end, and prove every change with numbers from a packaged build, not the editor.",
@@ -534,8 +605,8 @@ export const siteConfig = {
           description:
             "A PCG forest where every layer (trees, rocks, grass, flowers, logs) lives in a data asset instead of the graph, and a custom C++ editor window, the PCG Cinematic Forest Designer, lets artists build and tune those layers with the forest regenerating live. A river spline cuts a clean path through it.",
           link: "",
-          demoLink: "https://www.youtube.com/watch?v=EwjOciaaK-A&t=52s",
-          previewClip: [52, 77],   // Techart list preview: loop this range (s) of the demo video
+          demoLink: "https://www.youtube.com/watch?v=s7aWxcrEGMg&t=66s",
+          previewClip: [66, 91],   // Techart list preview: loop this range (s) of the demo video
           skills: ["Unreal Engine", "PCG Framework", "C++ / Slate", "Editor Tools", "Data Assets"],
           longDescription: [
             "PCG graphs turn into spaghetti fast when every forest is its own hand-tuned graph. Here the graph is generic and the forest is data: a Blueprint data asset holds an array of layers, each with its own meshes and weights, density, footprint and looseness, seed, scale, tilt and height-offset ranges, slope and noise culling, and how close it may get to the river. A new biome is a new data asset, not a new graph.",
@@ -574,8 +645,8 @@ export const siteConfig = {
           description:
             "A playable mech scorpion in UE 5.7, rigged in Blender and animated entirely by a procedural Control Rig: full-body IK plants the eight legs on the terrain as it walks, and the guns, tail and pincers aim and react to what the player does. A C++ pawn handles tank-style movement, aiming and the weapon FX.",
           link: "",
-          demoLink: "https://www.youtube.com/watch?v=EwjOciaaK-A&t=77s",
-          previewClip: [77, 89],   // Techart list preview: loop this range (s) of the demo video
+          demoLink: "https://www.youtube.com/watch?v=s7aWxcrEGMg&t=91s",
+          previewClip: [91, 103],   // Techart list preview: loop this range (s) of the demo video
           skills: ["Unreal Engine", "Control Rig", "Full Body IK", "C++", "Blender"],
           longDescription: [
             "The scorpion started as a hard-surface model, rigged in Blender with Python scripts: rigid skinning (each mesh piece follows one bone), eight four-bone legs, two back gatlings with yaw, pitch and barrel bones, a four-bone tail ending in a stinger gun, and two pincers. Nothing is keyframed. Every pose comes from the Control Rig at runtime.",
@@ -593,8 +664,8 @@ export const siteConfig = {
           description:
             "A set of Niagara character powers in UE 5.7: smoke and neon, each with its own idle, dash and glide effects, switched on a third-person character from a power wheel and driven by the character's movement.",
           link: "",
-          demoLink: "https://www.youtube.com/watch?v=EwjOciaaK-A&t=89s",
-          previewClip: [89, 99],   // Techart list preview: loop this range (s) of the demo video
+          demoLink: "https://www.youtube.com/watch?v=s7aWxcrEGMg&t=103s",
+          previewClip: [103, 113],   // Techart list preview: loop this range (s) of the demo video
           skills: ["Unreal Engine", "Niagara", "VFX", "Materials", "Blueprints"],
           longDescription: [
             "Each power is a family of Niagara systems rather than one effect: a static version that hangs around the character while idle, a dash that streaks along the move, and a glide that trails behind in the air. Switching powers swaps the whole family, so the character reads differently in every state.",
@@ -612,8 +683,8 @@ export const siteConfig = {
           description:
             "A C++/Slate editor tool that opens any material's whole instance family as a spreadsheet: one row per Material Instance, one column per parameter, and every cell editable in place.",
           link: "",
-          demoLink: "https://www.youtube.com/watch?v=EwjOciaaK-A&t=99s",
-          previewClip: [99, 103],   // Techart list preview: loop this range (s) of the demo video
+          demoLink: "https://www.youtube.com/watch?v=s7aWxcrEGMg&t=113s",
+          previewClip: [113, 117],   // Techart list preview: loop this range (s) of the demo video
           skills: ["Unreal Engine", "C++", "Slate", "Editor Tools", "Materials"],
           longDescription: [
             "Tweaking one value across forty Material Instances normally means opening forty editors. This tool opens the whole family at once: right-click a material or instance and pick Edit Instances (or open it from the Tools menu), and every instance that inherits from it is listed as a row, found through the asset registry's Parent tag rather than by loading every asset.",
@@ -631,8 +702,8 @@ export const siteConfig = {
           description:
             "A C++/Slate editor tool that scans a level for repeated static meshes and converts each group into an instanced (ISM or HISM) prefab Blueprint, placed over the originals without deleting them.",
           link: "",
-          demoLink: "https://www.youtube.com/watch?v=EwjOciaaK-A&t=103s",
-          previewClip: [103, 108],   // Techart list preview: loop this range (s) of the demo video
+          demoLink: "https://www.youtube.com/watch?v=s7aWxcrEGMg&t=117s",
+          previewClip: [117, 121],   // Techart list preview: loop this range (s) of the demo video
           skills: ["Unreal Engine", "C++", "Slate", "Editor Tools", "Instancing"],
           longDescription: [
             "Levels built by hand end up with hundreds of separate StaticMeshActors that are really the same few meshes, and each one costs its own draw call. Scan Level groups every plain StaticMeshActor by mesh and materials and shows the totals up front: distinct meshes, placed actors, how many are used only once, how many repeat, and how many actors could be instanced.",
