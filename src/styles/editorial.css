@@ -133,7 +133,7 @@
 /* YouTube preview: list panels take the video's own 16:9 shape so nothing is cropped (wider panels,
    like the project banner, still cover-crop it); not clickable so the row still opens the project;
    fades in once it's playing */
-.tx-yt { position: relative; }
+.tx-yt { position: relative; background: #000 center / cover no-repeat; }   /* the still, set by youtube-preview.ts */
 .tx-main.tx-yt { aspect-ratio: 16 / 9; }
 .tx-yt-clip { position: absolute; inset: 0; overflow: hidden; }
 .tx-yt-frame {
@@ -149,6 +149,27 @@
 }
 .tx-yt.is-playing .tx-yt-frame { opacity: 1; }
 .tx-yt.is-failed .tx-yt-clip { display: none; }
+/* loading spinner (span added by youtube-preview.ts) over the still until the video fades in (and again if it stalls); none once it fails */
+.tx-yt-spin {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  z-index: 1;
+  width: 34px;
+  height: 34px;
+  margin: -17px 0 0 -17px;
+  border-radius: 50%;
+  border: 3px solid rgba(255, 255, 255, 0.22);
+  border-top-color: var(--accent);
+  background: rgba(0, 0, 0, 0.35);
+  box-shadow: 0 0 0 6px rgba(0, 0, 0, 0.35);
+  pointer-events: none;
+  animation: tx-yt-spin 0.9s linear infinite;
+  transition: opacity 0.4s;
+}
+.tx-yt.is-playing .tx-yt-spin, .tx-yt.is-failed .tx-yt-spin { opacity: 0; animation: none; }
+@keyframes tx-yt-spin { to { transform: rotate(360deg); } }
+@media (prefers-reduced-motion: reduce) { .tx-yt-spin { animation-duration: 2.4s; } }
 .tx-yt-frame iframe { display: block; width: 100%; height: 100%; border: 0; }
 /* self-hosted preview video (`video` in config, for clips not on YouTube): same 16:9 panel, cover-cropped */
 .tx-video { position: relative; overflow: hidden; }

@@ -1,8 +1,9 @@
 // Looping, muted YouTube clips used as work previews (Techart and Art pages).
 // Markup: <span class="tx-yt" data-yt={id} data-start={s} data-end={s} data-fallback={img?}>
 // <span class="tx-yt-clip"><span class="tx-yt-frame"></span></span></span>; styles in
-// src/styles/editorial.css. data-fallback is an image shown only if the video can't play (removed,
-// made private or unembeddable, or YouTube blocked), so it isn't downloaded otherwise.
+// src/styles/editorial.css. Each clip shows a still straight away while YouTube loads: data-fallback
+// if given, else /yt-posters/<id>-<start>.webp (a frame grabbed ~3.5 s into the clip, where the video
+// fades in, so the swap is close to seamless). The still stays if the video can't play.
 
 /** The 11-character video id from a youtube.com/watch?v=… or youtu.be/… link. */
 export const youtubeId = (url?: string) => url?.match(/(?:[?&]v=|youtu\.be\/)([\w-]{11})/)?.[1];
@@ -20,10 +21,11 @@ export const youtubeStart = (url?: string) => {
 const REVEAL_DELAY = 3500;   // ms of playing before the video is shown
 const FALLBACK_AFTER = 12000; // ms without playback before the fallback image is shown
 
-/** show the backup still (once) when the video can't play */
+/** the still for a clip: its own data-fallback, or the grabbed frame for this id and start time */
+const posterOf = (el: HTMLElement) => el.dataset.fallback || `/yt-posters/${el.dataset.yt}-${el.dataset.start}.webp`;
+/** put the still up (once); `failed` also drops the player when the video can't play */
 function showFallback(el: HTMLElement, failed = false) {
-  const img = el.dataset.fallback;
-  if (img && !el.style.backgroundImage) el.style.backgroundImage = `url("${img}")`;
+  if (!el.style.backgroundImage) el.style.backgroundImage = `url("${posterOf(el)}")`;
   if (failed) el.classList.add("is-failed");
 }
 export function initYoutubePreviews() {
@@ -41,6 +43,14 @@ export function initYoutubePreviews() {
     }));
   const players = new Map<HTMLElement, any>();
   const visible = new Set<HTMLElement>();
+
+  // warm up the connections and fetch the player API now, so the first clip doesn't wait on them
+  for (const href of ["https://www.youtube-nocookie.com", "https://www.youtube.com", "https://i.ytimg.com"]) {
+    const l = document.createElement("link");
+    l.rel = "preconnect"; l.href = href; l.crossOrigin = "";
+    document.head.append(l);
+  }
+  loadApi();
 
   const create = async (el: HTMLElement) => {
     players.set(el, null);
@@ -86,6 +96,20 @@ export function initYoutubePreviews() {
       if (player.getPlayerState?.() === YT.PlayerState.PLAYING && player.getCurrentTime() >= end - 0.4) player.seekTo(start, true);
     }, 200);
   };
+
+  // a spinner over each still until its video fades in (styled in editorial.css)
+  for (const el of clips) {
+    const spin = document.createElement("span");
+    spin.className = "tx-yt-spin";
+    spin.setAttribute("aria-hidden", "true");
+    el.append(spin);
+  }
+
+  // stills load a little before the clip scrolls in, so it's never a black box
+  const posters = new IntersectionObserver((entries) => {
+    for (const e of entries) if (e.isIntersecting) { showFallback(e.target as HTMLElement); posters.unobserve(e.target); }
+  }, { rootMargin: "800px 0px" });
+  clips.forEach((el) => posters.observe(el));
 
   const io = new IntersectionObserver((entries) => {
     for (const e of entries) {
