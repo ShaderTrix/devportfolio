@@ -147,7 +147,7 @@
   opacity: 0;
   transition: opacity 0.6s;
 }
-.tx-yt.is-playing .tx-yt-frame { opacity: 1; }
+.tx-yt.is-playing .tx-yt-frame, .tx-yt.is-paused .tx-yt-frame { opacity: 1; }
 .tx-yt.is-failed .tx-yt-clip { display: none; }
 /* loading spinner (span added by youtube-preview.ts) over the still until the video fades in (and again if it stalls); none once it fails */
 .tx-yt-spin {
@@ -167,10 +167,15 @@
   animation: tx-yt-spin 0.9s linear infinite;
   transition: opacity 0.4s;
 }
-.tx-yt.is-playing .tx-yt-spin, .tx-yt.is-failed .tx-yt-spin { opacity: 0; animation: none; }
+.tx-yt.is-playing .tx-yt-spin, .tx-yt.is-paused .tx-yt-spin, .tx-yt.is-failed .tx-yt-spin { opacity: 0; animation: none; }
 @keyframes tx-yt-spin { to { transform: rotate(360deg); } }
 @media (prefers-reduced-motion: reduce) { .tx-yt-spin { animation-duration: 2.4s; } }
 .tx-yt-frame iframe { display: block; width: 100%; height: 100%; border: 0; }
+/* list rows: the whole text column opens the project (the title link is stretched over it) */
+.tx-row .tx-text { position: relative; align-self: stretch; align-content: start; }
+.tx-row .tx-name a::after { content: ""; position: absolute; inset: 0; }
+.tx-row .tx-text a:not(.tx-name a) { position: relative; z-index: 1; }
+.tx-row:has(.tx-name a) .tx-text:hover .tx-name a { color: var(--accent); }
 /* self-hosted preview video (`video` in config, for clips not on YouTube): same 16:9 panel, cover-cropped */
 .tx-video { position: relative; overflow: hidden; }
 .tx-main.tx-video { aspect-ratio: 16 / 9; }

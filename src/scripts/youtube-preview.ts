@@ -4,6 +4,10 @@
 // src/styles/editorial.css. Each clip shows a still straight away while YouTube loads: data-fallback
 // if given, else /yt-posters/<id>-<start>.webp (a frame grabbed ~3.5 s into the clip, where the video
 // fades in, so the swap is close to seamless). The still stays if the video can't play.
+// Clicking a clip pauses/plays it (except on the home grid tiles, where the video is the way into the
+// project). Paused, it holds the frame it stopped on
+// (YouTube draws its title bar and "More videos" over a paused embed; that can't be turned off) and
+// play carries on from there. A clip paused this way stays paused when it scrolls back in.
 
 /** The 11-character video id from a youtube.com/watch?v=… or youtu.be/… link. */
 export const youtubeId = (url?: string) => url?.match(/(?:[?&]v=|youtu\.be\/)([\w-]{11})/)?.[1];
@@ -43,6 +47,7 @@ export function initYoutubePreviews() {
     }));
   const players = new Map<HTMLElement, any>();
   const visible = new Set<HTMLElement>();
+  const userPaused = new Set<HTMLElement>();   // paused by a click
 
   // warm up the connections and fetch the player API now, so the first clip doesn't wait on them
   for (const href of ["https://www.youtube-nocookie.com", "https://www.youtube.com", "https://i.ytimg.com"]) {
@@ -66,7 +71,7 @@ export function initYoutubePreviews() {
       videoId: el.dataset.yt,
       playerVars: { start, end, autoplay: 1, mute: 1, controls: 0, disablekb: 1, fs: 0, iv_load_policy: 3, playsinline: 1, rel: 0, cc_load_policy: 0 },
       events: {
-        onReady: (e: any) => { e.target.mute(); if (visible.has(el)) e.target.playVideo(); else e.target.pauseVideo(); },
+        onReady: (e: any) => { e.target.mute(); if (visible.has(el) && !userPaused.has(el)) e.target.playVideo(); else e.target.pauseVideo(); },
         onStateChange: (e: any) => {
           clearTimeout(reveal);
           if (e.data === YT.PlayerState.PLAYING) {
@@ -74,7 +79,7 @@ export function initYoutubePreviews() {
             e.target.unloadModule?.("captions");          // no auto-captions over the preview
             reveal = setTimeout(() => el.classList.add("is-playing"), REVEAL_DELAY);
           } else if (e.data === YT.PlayerState.PAUSED) {
-            el.classList.remove("is-playing");
+            if (!userPaused.has(el)) el.classList.remove("is-playing");   // the visitor's pause keeps the frame up
           } else if (e.data === YT.PlayerState.ENDED) {
             e.target.seekTo(start, true);
             e.target.playVideo();
@@ -103,6 +108,20 @@ export function initYoutubePreviews() {
     spin.className = "tx-yt-spin";
     spin.setAttribute("aria-hidden", "true");
     el.append(spin);
+    const toggle = (e: Event) => {
+      e.preventDefault();      // clips sit inside links (project, YouTube)
+      e.stopPropagation();
+      const p = players.get(el);
+      if (userPaused.delete(el)) {
+        el.classList.remove("is-paused");
+        if (visible.has(el)) p?.playVideo?.();
+      } else {
+        userPaused.add(el);
+        el.classList.add("is-paused");
+        p?.pauseVideo?.();
+      }
+    };
+    if (!el.closest(".tx-tile")) el.addEventListener("click", toggle);
   }
 
   // stills load a little before the clip scrolls in, so it's never a black box
@@ -117,7 +136,7 @@ export function initYoutubePreviews() {
       if (e.isIntersecting) visible.add(el); else visible.delete(el);
       if (!players.has(el)) { if (e.isIntersecting) create(el); continue; }
       const p = players.get(el);
-      if (e.isIntersecting) p?.playVideo?.(); else p?.pauseVideo?.();
+      if (e.isIntersecting) { if (!userPaused.has(el)) p?.playVideo?.(); } else p?.pauseVideo?.();
     }
   }, { rootMargin: "200px 0px" });
   clips.forEach((el) => io.observe(el));
