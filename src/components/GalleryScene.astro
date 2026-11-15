@@ -1,7 +1,7 @@
 ---
 // The interactive 3D hallway + wall terminal (the gallery). Used two ways:
-//  - pages/gallery.astro: standalone, fixed full-screen; "Go to Website" opens the site.
-//  - pages/index.astro (embedded): the home page's first full-screen section; "Go to Website"
+//  - pages/gallery.astro: standalone, fixed full-screen; "Scroll down" opens the site.
+//  - pages/index.astro (embedded): the home page's first full-screen section; "Scroll down"
 //    scrolls down to the content, and the site header stays tucked away over it (Header.astro).
 import { siteConfig } from "../config";
 import { orderProjects } from "../scripts/techart-filter";
@@ -87,9 +87,6 @@ const terminalData = {
       <button class="gallery-nav-item" data-gallery-terminal type="button">
         <svg class="gallery-nav-icon" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 7l5 5l-5 5" /><path d="M12 19h7" /></svg>Go to Terminal
       </button>
-      <a class="gallery-nav-item" href={siteHref} data-gallery-site>
-        <svg class="gallery-nav-icon" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9" /><path d="M3.6 9h16.8" /><path d="M3.6 15h16.8" /><path d="M11.5 3a17 17 0 0 0 0 18" /><path d="M12.5 3a17 17 0 0 1 0 18" /></svg>Go to Website
-      </a>
       <a class="gallery-nav-item" href={s.resumeUrl} download data-gallery-cv-open>
         <svg class="gallery-nav-icon" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 17v2a2 2 0 0 0 2 2h12a2 2 0 0 0 2 -2v-2" /><path d="M7 11l5 5l5 -5" /><path d="M12 4l0 12" /></svg>Download CV
       </a>
@@ -220,7 +217,13 @@ const terminalData = {
       bar.style.width = v + "%";
     },
   });
+  // reveal: the loading text goes, the scene fades up from black (.gallery-loading transition), then
+  // the menus fade in once it's mostly there. Done with the Web Animations API so it sits on top of
+  // the elements' own state transitions and the hint's pulse, and leaves them as they were after.
   loading.classList.add("is-done");
+  for (const el of root.querySelectorAll<HTMLElement>(".gallery-side, .gallery-top, .gallery-updates, .gallery-hint, .gallery-credits")) {
+    el.animate([{ opacity: 0 }, { opacity: 1 }], { duration: 1000, delay: 2800, easing: "ease-out", fill: "backwards" });
+  }
 
   root.querySelector("[data-gallery-back]")!.addEventListener("click", () => gallery.flyOut());
   root.querySelector("[data-gallery-terminal]")!.addEventListener("click", () => gallery.flyIn());
@@ -248,7 +251,7 @@ const terminalData = {
   addEventListener("keydown", (e) => {
     if (e.key === "Escape" && gallery.state === "hero") help.hidden = true;
   });
-  // embedded on the home page: "Go to Website" glides down to the content below
+  // embedded on the home page: "Scroll down" glides down to the content below
   if (root.hasAttribute("data-embedded")) {
     for (const a of root.querySelectorAll<HTMLAnchorElement>("[data-gallery-site]")) {
       a.addEventListener("click", (e) => {
@@ -485,8 +488,9 @@ const terminalData = {
     font: 400 10.5px/1.4 "JetBrains Mono", monospace; letter-spacing: 0.06em; text-align: right;
     color: rgba(232,227,217,0.32); text-shadow: 0 1px 3px rgba(0,0,0,0.9); pointer-events: none; }
   .gallery-loading { position: absolute; inset: 0; display: grid; place-content: center; gap: 14px; background: #050505;
-    color: var(--accent); font-size: 13px; letter-spacing: 0.15em; transition: opacity .8s; }
-  .gallery-loading.is-done { opacity: 0; pointer-events: none; }
+    color: var(--accent); font-size: 13px; letter-spacing: 0.15em; transition: opacity 1.8s ease-in-out .3s; }
+  .gallery-loading > * { transition: opacity .3s; }
+  .gallery-loading.is-done, .gallery-loading.is-done > * { opacity: 0; pointer-events: none; }
   .gallery-bar { width: min(320px, 70vw); height: 2px; background: var(--accent-dim); }
   .gallery-bar div { width: 0; height: 100%; background: var(--accent); transition: width .2s; }
 
