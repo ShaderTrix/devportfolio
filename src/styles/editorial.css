@@ -14,14 +14,6 @@
   align-items: center;
   gap: 1.5rem 2.25rem;
 }
-.tx-kicker {
-  margin: 0 0 0.75rem;
-  font: 500 12px var(--font-mono);
-  letter-spacing: 0.2em;
-  text-transform: uppercase;
-  color: var(--text-secondary);
-}
-.tx-kicker span { color: var(--accent); margin-right: 0.4em; }
 .tx-title {
   margin: 0;
   font-family: var(--font-display);
