@@ -437,6 +437,9 @@ const terminalData = {
   /* shorter windows: scale the whole column down from its top-right corner so it clears the credits */
   @media (max-height: 770px) { .gallery-updates { transform-origin: top right; scale: 0.92; } }
   @media (max-height: 700px) { .gallery-updates { scale: 0.86; } }
+  /* and drop the faded last row(s) when they'd run into the credits */
+  @media (max-height: 830px) { .gallery-update-item.is-row:last-child { display: none; } }
+  @media (max-height: 660px) { .gallery-update-item.is-row:nth-last-child(2) { display: none; } }
   @media (max-height: 640px) { .gallery-updates { scale: 0.78; } }
   @media (max-width: 900px), (max-aspect-ratio: 1/1), (max-height: 560px) { .gallery-updates { display: none; } }
 

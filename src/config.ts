@@ -117,6 +117,7 @@ export const siteConfig = {
   // links to its page; one without an image shows a dim "In progress" in place of the thumbnail. The last
   // one fades out from below.
   latestUpdates: [
+    { title: "Dynamic SkillTree UI System", meta: "Unreal · Nov 2026", status: "wip", image: "" },
     { title: "Live Game Modding & Hotfixing with HybridCLR", meta: "Unity · Nov 2026", status: "wip", image: "" },
     { project: "water-ripples", meta: "Nov 2026", status: "done", image: "/gallery/updates/water-ripples.webp" },
     { project: "sand-trail-system", meta: "Oct 2026", status: "done", image: "/gallery/updates/sand-system.webp" },
