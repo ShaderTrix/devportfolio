@@ -151,7 +151,7 @@ const categoryBackLabel =
         <div class="dp-report">
           <div class="dp-report-head">
             <div>
-              <h2 class="dp-h">Full breakdown</h2>
+              <h2 class="dp-h">{project.report.title || "Full breakdown"}</h2>
               <div class="rule mt-3"></div>
             </div>
             <div class="dp-report-links">
@@ -161,7 +161,7 @@ const categoryBackLabel =
               )}
             </div>
           </div>
-          <iframe src={project.report.html} title={`${project.name}: full breakdown`} class="dp-report-frame" loading="lazy" data-report-frame></iframe>
+          <iframe src={project.report.html} title={`${project.name}: ${(project.report.title || "full breakdown").toLowerCase()}`} class="dp-report-frame" loading="lazy" data-report-frame></iframe>
         </div>
       )}
 

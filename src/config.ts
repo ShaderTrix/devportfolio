@@ -403,6 +403,8 @@ export const siteConfig = {
             "For hotfixes, seven decisions in a shipped reward modal were routed through an interface with a default that reproduces the old behaviour, and a host hook fires when any modal opens. A hot DLL registered new rules (progress text, badge, hint, reward count) and walked the opened modal to rewrite the header and swap the background sprite, with the prefab untouched. The limits matter as much: the free edition can't replace a method that's already native, so only features with a seam or hook can be fixed this way; Apple's guideline 2.5.2 makes it an Android-only answer; and since hot code can reach any type by reflection, the narrow host interface is hygiene, not a security boundary, so signed DLLs, reviewed releases and a remote kill switch are required before anything ships. The seams themselves are worth keeping either way: they're what a modular codebase needs, and HybridCLR is only a delivery mechanism on top.",
           ],
           galleryImages: ["/projects/hybridclr-architecture.webp", "/projects/hybridclr-ladder.webp"],
+          // the brief written for a product discussion, public edition (no project or company details)
+          report: { html: "/projects/hybridclr-hot-update/brief.html", title: "Product brief" },
           tables: [
             {
               title: "Proven on the phone",

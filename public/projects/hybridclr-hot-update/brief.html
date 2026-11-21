@@ -1,0 +1,508 @@
+<!doctype html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Live-ops Without Store Releases</title>
+<meta name="description" content="A product brief written from a HybridCLR R&amp;D spike: hot-updating live-ops features in a Unity mobile game, what was proven, advantages, limits and risks.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700&family=Inter:wght@400;600&family=JetBrains+Mono:wght@400;600&display=swap">
+<style>
+:root {
+  --bg: #f7f5f0; --surface: #ffffff; --fg: #1f2328; --muted: #5d6570; --line: #d9d4ca;
+  --accent: #b4521b; --accent-soft: #f6e4d8;
+  --cold: #2f5f8a; --cold-soft: #dde8f1;
+  --ok: #2d7a4f; --ok-soft: #dff0e6;
+  --warn: #9a6b00; --warn-soft: #f8edcc;
+  --bad: #a3322b; --bad-soft: #f5dcd9;
+  --display: "Barlow Condensed", "Arial Narrow", sans-serif;
+  --body: "Inter", "Helvetica Neue", Arial, sans-serif;
+  --mono: "JetBrains Mono", "SFMono-Regular", Menlo, Consolas, monospace;
+  color-scheme: light;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #16191d; --surface: #1f2429; --fg: #e8e4dc; --muted: #a39d93; --line: #353b43;
+    --accent: #e8824a; --accent-soft: #3a2a20; --cold: #7fb0dc; --cold-soft: #1f2e3c;
+    --ok: #6fc490; --ok-soft: #1d3327; --warn: #e0b24a; --warn-soft: #3a3018; --bad: #e07a72; --bad-soft: #3b2220;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #0b0b0a; --surface: #161512; --fg: #e8e3d9; --muted: #a8a192; --line: #2e2b25;
+  --accent: #d99a32; --accent-soft: #2a2114; --cold: #7fb0dc; --cold-soft: #18232e;
+  --ok: #6fc490; --ok-soft: #1d3327; --warn: #e0b24a; --warn-soft: #3a3018; --bad: #e07a72; --bad-soft: #3b2220;
+  color-scheme: dark;
+}
+* { box-sizing: border-box; }
+body {
+  margin: 0; font-size: 16px; background: var(--bg); color: var(--fg);
+  font-family: var(--body); font-size: 17px; line-height: 1.55;
+  padding-block: 0 4rem;
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+}
+.wrap { max-width: 70ch; margin: 0 auto; }
+.wide { max-width: 1000px; margin: 0 auto; }
+header.hero { padding-block: 3rem 2rem; border-bottom: 1px solid var(--line); }
+.eyebrow { font-family: var(--mono); font-size: .8rem; letter-spacing: .08em; text-transform: uppercase; color: var(--accent); }
+h1 { font-family: var(--display); font-weight: 700; font-size: clamp(2.2rem, 5.5vw, 3.4rem); line-height: 1; text-transform: uppercase; margin: .4rem 0 .8rem; text-wrap: balance; }
+h2 { font-family: var(--display); font-weight: 700; font-size: 2rem; text-transform: uppercase; letter-spacing: .01em; margin: 3rem 0 .75rem; text-wrap: balance; }
+h3 { font-family: var(--body); font-weight: 600; font-size: 1.1rem; margin: 1.6rem 0 .4rem; }
+p { margin: 0 0 1rem; }
+.lede { font-size: 1.15rem; color: var(--muted); max-width: 62ch; }
+.meta { display: flex; flex-wrap: wrap; gap: .5rem 1.5rem; font-family: var(--mono); font-size: .85rem; color: var(--muted); }
+nav.rail { display: flex; flex-wrap: wrap; gap: .4rem; padding-block: 1rem; border-bottom: 1px solid var(--line); }
+nav.rail a { font-family: var(--mono); font-size: .78rem; text-decoration: none; color: var(--fg); padding: .3rem .6rem; border: 1px solid var(--line); border-radius: 999px; }
+nav.rail a:hover, nav.rail a:focus-visible { border-color: var(--accent); color: var(--accent); outline: none; }
+a { color: var(--accent); }
+ul, ol { padding-left: 1.3rem; margin: 0 0 1rem; }
+li { margin-bottom: .45rem; }
+strong { font-weight: 600; }
+.note { border-left: 3px solid var(--accent); padding: .6rem 1rem; background: var(--accent-soft); border-radius: 0 6px 6px 0; margin: 1rem 0; }
+.note.cold { border-color: var(--cold); background: var(--cold-soft); }
+.note.ok { border-color: var(--ok); background: var(--ok-soft); }
+.note.warn { border-color: var(--warn); background: var(--warn-soft); }
+.note.bad { border-color: var(--bad); background: var(--bad-soft); }
+table { border-collapse: collapse; width: 100%; font-size: .95rem; margin: 0 0 1rem; }
+th, td { text-align: left; vertical-align: top; padding: .5rem .6rem; border-bottom: 1px solid var(--line); }
+th { font-family: var(--mono); font-size: .76rem; letter-spacing: .06em; text-transform: uppercase; color: var(--muted); font-weight: 600; }
+.scroll { overflow-x: auto; }
+.pill { display: inline-block; font-family: var(--mono); font-size: .72rem; letter-spacing: .04em; padding: .1rem .5rem; border-radius: 999px; border: 1px solid currentColor; }
+.pill.ok { color: var(--ok); } .pill.warn { color: var(--warn); } .pill.bad { color: var(--bad); } .pill.cold { color: var(--cold); }
+
+/* stat row */
+.stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: .8rem; margin: 1.25rem 0 1.5rem; }
+.stat { background: var(--surface); border: 1px solid var(--line); border-radius: 8px; padding: .9rem 1rem; }
+.stat b { display: block; font-family: var(--display); font-size: 1.9rem; font-weight: 600; line-height: 1.1; }
+.stat span { color: var(--muted); font-size: .9rem; }
+
+/* cards */
+.cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 1rem; margin: 1.25rem 0 1.5rem; }
+.card { background: var(--surface); border: 1px solid var(--line); border-radius: 8px; padding: 1rem 1.1rem; }
+.card h3 { margin-top: 0; }
+.card.hot { border-top: 4px solid var(--accent); }
+.card.cold { border-top: 4px solid var(--cold); }
+.card.ok { border-top: 4px solid var(--ok); }
+.card ul { margin-bottom: 0; }
+
+/* timeline comparison */
+.timeline { display: grid; gap: .75rem; margin: 1.25rem 0 1.5rem; }
+.track { display: grid; grid-template-columns: 150px 1fr; gap: .75rem; align-items: center; }
+.track .label { font-family: var(--mono); font-size: .8rem; color: var(--muted); }
+.bar { display: flex; gap: 4px; }
+.seg { flex: 1; padding: .45rem .5rem; border-radius: 6px; font-size: .82rem; text-align: center; border: 1px solid var(--line); background: var(--surface); min-width: 0; }
+.seg.cold { background: var(--cold-soft); border-color: var(--cold); }
+.seg.hot { background: var(--accent-soft); border-color: var(--accent); }
+.seg.ok { background: var(--ok-soft); border-color: var(--ok); }
+.seg.dim { opacity: .5; }
+@media (max-width: 560px) { .track { grid-template-columns: 1fr; } .bar { flex-wrap: wrap; } .seg { flex-basis: 45%; } }
+
+/* ladder */
+.ladder { display: grid; gap: .5rem; margin: 1.25rem 0 1.5rem; counter-reset: rung; }
+.rung { display: grid; grid-template-columns: 2.4rem 1fr; gap: .8rem; background: var(--surface); border: 1px solid var(--line); border-radius: 8px; padding: .75rem .9rem; }
+.rung .n { font-family: var(--display); font-size: 1.5rem; font-weight: 600; color: var(--accent); line-height: 1; }
+.rung .n.cold { color: var(--cold); }
+.rung p { margin: 0; }
+.rung small { color: var(--muted); }
+
+
+/* game gallery */
+.games { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: .9rem; margin: 1.25rem auto 1.5rem; }
+.game { display: grid; grid-template-columns: 1fr; gap: .9rem; margin: 0; background: var(--surface); border: 1px solid var(--line); border-radius: 8px; padding: .9rem; align-items: start; }
+.game img { width: 72px; height: 72px; border-radius: 16px; display: block; }
+.game figcaption { display: grid; gap: .2rem; font-size: .9rem; min-width: 0; }
+.game b { font-size: 1rem; line-height: 1.25; }
+.game .studio { color: var(--muted); }
+.game .blurb { margin-top: .2rem; }
+.game .links { font-size: .85rem; }
+
+.minis { display: grid; grid-template-columns: repeat(auto-fill, minmax(210px, 1fr)); gap: .6rem; margin: 1rem auto 1.5rem; }
+.mini { display: grid; grid-template-columns: 1fr; gap: .6rem; align-items: center; text-decoration: none; color: var(--fg); background: var(--surface); border: 1px solid var(--line); border-radius: 8px; padding: .5rem; min-width: 0; }
+.mini:hover { border-color: var(--accent); }
+.mini img { width: 56px; height: 56px; border-radius: 12px; display: block; }
+.mini span { display: grid; gap: .05rem; min-width: 0; }
+.mini b { font-size: .9rem; line-height: 1.2; }
+.mini em { font-style: normal; font-size: .8rem; color: var(--muted); }
+.mini small { font-size: .75rem; color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+details.more { margin: 1rem 0 1.25rem; }
+details.more summary { cursor: pointer; font-weight: 600; padding: .6rem .9rem; background: var(--surface); border: 1px solid var(--line); border-radius: 8px; }
+details.more[open] summary { border-radius: 8px 8px 0 0; }
+details.more p { margin: .75rem 0 .25rem; color: var(--muted); font-size: .95rem; }
+
+/* decisions */
+.x-decision { background: var(--surface); border: 1px solid var(--line); border-left: 4px solid var(--accent); border-radius: 0 8px 8px 0; padding: .8rem 1rem; margin: 0 0 .8rem; }
+.decision b { display: block; margin-bottom: .2rem; }
+footer { margin-top: 4rem; padding-top: 1rem; border-top: 1px solid var(--line); color: var(--muted); font-size: .9rem; }
+@media print { nav.rail { display: none; } body { font-size: 12.5px; } h2 { break-after: avoid; } .card, .rung, .decision, .stat { break-inside: avoid; } }
+</style>
+</head>
+<body>
+
+<header class="hero wrap">
+  <div class="eyebrow">HybridCLR · product brief from an R&amp;D spike</div>
+  <h1>Shipping live-ops without waiting for a store release</h1>
+  <p class="lede">An R&amp;D spike on a production-sized Unity mobile game proved that it can download and run new live-ops code on Android the same way it already downloads art. This brief, written for a product discussion, says what that is, how well it works, what it is good for and what it cannot do.</p>
+  <div class="meta"><span>Nov 2026</span><span>Status: proven on an Android device, research only</span></div>
+</header>
+
+<nav class="rail wrap" aria-label="Sections">
+  <a href="#what">What it is</a>
+  <a href="#proof">What was proven</a>
+  <a href="#success">Success rate</a>
+  <a href="#games">Games using it</a>
+  <a href="#product">Product wins</a>
+  <a href="#dev">Dev wins</a>
+  <a href="#player">Player wins</a>
+  <a href="#limits">Limits</a>
+  <a href="#ladder">How a fix ships</a>
+  <a href="#risks">Risks</a>
+  <a href="#ios">iOS</a>
+  <a href="#next">To production</a>
+</nav>
+
+<main>
+
+<section class="wrap" id="what">
+  <h2>1. What it is, in one picture</h2>
+  <p>A Unity mobile build is frozen the moment it goes to the stores. Art and config can change afterwards because they already go through a content pipeline (Addressables). <strong>Behaviour cannot.</strong> Any change to how a screen works, however small, waits for the next store build and then for players to update.</p>
+  <p>The spike adds one capability: the app can also download <strong>small pieces of game logic</strong> from the game's own CDN, written in the same C# the developers already use, and run them. The technology is an open-source Unity add-on called <strong>HybridCLR</strong>. Players never see it. To them it is the same as an event appearing in the lobby.</p>
+
+  <div class="timeline wide">
+    <div class="track">
+      <div class="label">Today: a live-ops change</div>
+      <div class="bar">
+        <div class="seg cold">Dev</div><div class="seg cold">QA</div><div class="seg cold">Store build</div><div class="seg cold">Store review</div><div class="seg cold dim">Players update (days to weeks)</div><div class="seg ok">Live</div>
+      </div>
+    </div>
+    <div class="track">
+      <div class="label">With hot updates</div>
+      <div class="bar">
+        <div class="seg hot">Dev</div><div class="seg hot">QA</div><div class="seg hot">Publish to CDN</div><div class="seg ok">Live on next app open</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="note cold"><strong>The rule set for it.</strong> Hot code never touches core game logic (matches, economy, purchases, login). It is for live-ops only: event screens, lobby widgets, promotional flows, and fixes to those. Each live-ops feature opts in explicitly; everything else stays exactly as it is in the store build.</div>
+</section>
+
+<section class="wrap" id="proof">
+  <h2>2. What the spike proved (2 to 6 Nov 2026)</h2>
+  <p>Everything below ran on a real Android phone, with content served from a real CDN by a real CI pipeline. Four experiments were planned. All four passed.</p>
+
+  <div class="stats">
+    <div class="stat"><b>4 / 4</b><span>experiments passed on device</span></div>
+    <div class="stat"><b>7</b><span>phone builds over the spike</span></div>
+    <div class="stat"><b>~10 KB</b><span>per downloaded feature's code</span></div>
+    <div class="stat"><b>0</b><span>changes to the production app or iOS</span></div>
+  </div>
+
+  <div class="scroll">
+  <table>
+    <tr><th>Experiment</th><th>What the player would see</th><th>Result</th></tr>
+    <tr><td>1. Hello world</td><td>Nothing visible. Downloaded code runs on the phone and can use the app's own systems.</td><td><span class="pill ok">Passed</span></td></tr>
+    <tr><td>2. A downloaded popup</td><td>A banner in the lobby that opens a popup through the game's normal popup system, with its art and text all downloaded.</td><td><span class="pill ok">Passed</span></td></tr>
+    <tr><td>3. Hotfix a shipped feature</td><td>An existing reward popup changed after install: new header, new background art, and five behaviour rules changed (what the hint says, what happens on buy, how the fill animates), with no app update.</td><td><span class="pill ok">Passed</span></td></tr>
+    <tr><td>4. A feature that was never in the build</td><td>A pick-a-door event: a new lobby widget, a four-door popup, a bomb that closes it or a reward that is shown and granted. None of it existed in the installed app.</td><td><span class="pill ok">Passed</span></td></tr>
+  </table>
+  </div>
+
+  <p>Two more things were shown along the way: features can be switched on and off independently (each lives in its own downloadable package), and removing a package from the CDN removes the feature on the next app open, which is the rollback story.</p>
+</section>
+
+<section class="wrap" id="success">
+  <h2>3. Success rate: how proven is this?</h2>
+  <h3>In the industry</h3>
+  <p>HybridCLR is free and open source (MIT licence) and has been public since 2022. Its maintainers state, on the project's own page, that <em>"thousands of commercial game projects have integrated HybridCLR, with over a thousand already launched on the App Store and Google Play"</em> and that <em>"nearly a hundred games in the top 500 free iOS chart use HybridCLR"</em>. These are the project's own claims, not independent figures, and the user base is heavily Chinese: most of the public write-ups, forums and case studies are from Chinese studios, and part of the documentation is Chinese first.</p>
+  <p>The honest reading: the runtime is mature and widely shipped, including on iOS by many studios. What is thin is Western public precedent and any statement from Apple or Google naming it. Section 4 shows the named titles; section 10 covers what that does and does not prove.</p>
+
+  <h3>In the spike</h3>
+  <ul>
+    <li>Every planned experiment worked on the first device run after the build was correct. The failures during the spike were all in tooling and pipeline setup (a wrong label, a stale package, a CI job that had not published yet), each costing one rebuild. None were runtime crashes in downloaded code.</li>
+    <li>The debug build with the hot runtime in it behaved like any other dev build in day-to-day use. Performance was not measured formally; the kind of code this is for (UI and event flow) is not performance sensitive.</li>
+    <li>Not done: a Google Play upload, a large-audience test, iOS, or a production-signed build. See section 12.</li>
+  </ul>
+</section>
+
+<section class="wrap" id="games">
+  <h2>4. Games that ship with it, and who made them</h2>
+  <p>Two kinds of evidence exist, and it is worth being clear about which is which. The first is the vendor's own market sample. The second is a list of named titles, also from the vendor, of which the ones below are released worldwide on both stores and were checked against a live App Store listing this week.</p>
+
+  <h3>Hot-updating is normal practice at the top of the charts</h3>
+  <p>On 2 Feb 2024 the maintainers sampled the China App Store charts and published the breakdown. It is dated and it is one region, but it is the only published sample of its kind and it answers the question "do serious games do this at all?"</p>
+  <div class="scroll">
+  <table>
+    <tr><th>Chart sample (China App Store, Feb 2024)</th><th class="num">Unity games</th><th class="num">Hot-update with Lua</th><th class="num">Hot-update with HybridCLR</th><th class="num">No hot update</th></tr>
+    <tr><td>Top-200 grossing (129 apps checked)</td><td class="num">65</td><td class="num">40</td><td class="num">6</td><td class="num">19</td></tr>
+    <tr><td>Top-500 free (326 apps checked)</td><td class="num">140</td><td class="num">27</td><td class="num">13</td><td class="num">100</td></tr>
+  </table>
+  </div>
+  <p>Read across the grossing row: of 65 Unity games in the top-200 grossing chart, 46 hot-update code of some kind. Lua is the older, more common tool; HybridCLR is the newer one and the vendor puts its share at 25 to 35 percent of top Unity hot-update games. Hot-updating itself is not the novelty. Doing it in C# is.</p>
+
+  <div class="stats">
+    <div class="stat"><b>1,000+</b><span>games launched on App Store and Google Play (vendor claim)</span></div>
+    <div class="stat"><b>~100</b><span>in the iOS top-500 free chart (vendor claim)</span></div>
+    <div class="stat"><b>46 / 65</b><span>top-grossing Unity games hot-update code (vendor sample)</span></div>
+    <div class="stat"><b>9</b><span>worldwide releases below, verified live this week</span></div>
+  </div>
+
+  <h3>Released worldwide, on both stores</h3>
+  <div class="games wide">
+    <figure class="game">
+      <figcaption><b>Bingo Aloha</b><span class="studio">Century Games (listed as FunPlus by the vendor)</span><span class="pills"><span class="pill cold">iOS</span> <span class="pill ok">Android</span></span><span class="blurb">Casual social bingo; live-ops heavy.</span><span class="links"><a href="https://apps.apple.com/us/app/bingo-aloha-vegas-bingo-games/id1562265193">App Store</a> · <a href="https://play.google.com/store/search?q=Bingo%20Aloha&c=apps">Google Play</a></span></figcaption>
+    </figure>
+    <figure class="game">
+      <figcaption><b>Girls&#x27; Frontline 2: Exilium</b><span class="studio">Sunborn Network</span><span class="pills"><span class="pill cold">iOS</span> <span class="pill ok">Android</span></span><span class="blurb">Tactical RPG, worldwide launch Dec 2024.</span><span class="links"><a href="https://apps.apple.com/us/app/girls-frontline-2-exilium/id6502505286">App Store</a> · <a href="https://play.google.com/store/search?q=Girls%27%20Frontline%202%20Exilium&c=apps">Google Play</a></span></figcaption>
+    </figure>
+    <figure class="game">
+      <figcaption><b>Path to Nowhere</b><span class="studio">AISNO Games</span><span class="pills"><span class="pill cold">iOS</span> <span class="pill ok">Android</span></span><span class="blurb">Tower-defence RPG.</span><span class="links"><a href="https://apps.apple.com/us/app/path-to-nowhere/id1606685106">App Store</a> · <a href="https://play.google.com/store/search?q=Path%20to%20Nowhere&c=apps">Google Play</a></span></figcaption>
+    </figure>
+    <figure class="game">
+      <figcaption><b>Soul Knight Prequel</b><span class="studio">ChillyRoom</span><span class="pills"><span class="pill cold">iOS</span> <span class="pill ok">Android</span></span><span class="blurb">Action RPG from the Soul Knight studio.</span><span class="links"><a href="https://apps.apple.com/us/app/soul-knight-prequel/id6469258709">App Store</a> · <a href="https://play.google.com/store/search?q=Soul%20Knight%20Prequel&c=apps">Google Play</a></span></figcaption>
+    </figure>
+    <figure class="game">
+      <figcaption><b>Night of the Full Moon</b><span class="studio">Giant Network</span><span class="pills"><span class="pill cold">iOS</span> <span class="pill ok">Android</span></span><span class="blurb">Card roguelike, premium.</span><span class="links"><a href="https://apps.apple.com/us/app/night-of-the-full-moon/id1278845241">App Store</a> · <a href="https://play.google.com/store/search?q=Night%20of%20the%20Full%20Moon&c=apps">Google Play</a></span></figcaption>
+    </figure>
+    <figure class="game">
+      <figcaption><b>Aether Gazer</b><span class="studio">Yongshi Network (published worldwide by Yostar)</span><span class="pills"><span class="pill cold">iOS</span> <span class="pill ok">Android</span></span><span class="blurb">Action RPG.</span><span class="links"><a href="https://apps.apple.com/us/app/aether-gazer/id6445892204">App Store</a> · <a href="https://play.google.com/store/search?q=Aether%20Gazer&c=apps">Google Play</a></span></figcaption>
+    </figure>
+    <figure class="game">
+      <figcaption><b>Punishing: Gray Raven</b><span class="studio">Kuro Games</span><span class="pills"><span class="pill cold">iOS</span> <span class="pill ok">Android</span></span><span class="blurb">Action RPG, worldwide since 2021. From the Wuthering Waves studio.</span><span class="links"><a href="https://apps.apple.com/us/app/punishing-gray-raven/id1571685286">App Store</a> · <a href="https://play.google.com/store/search?q=Punishing%20Gray%20Raven&c=apps">Google Play</a></span></figcaption>
+    </figure>
+    <figure class="game">
+      <figcaption><b>T3 Arena</b><span class="studio">X.D. Network (XD Inc.)</span><span class="pills"><span class="pill cold">iOS</span> <span class="pill ok">Android</span></span><span class="blurb">Hero shooter, worldwide release.</span><span class="links"><a href="https://apps.apple.com/us/app/t3-arena/id1602814337">App Store</a> · <a href="https://play.google.com/store/search?q=T3%20Arena&c=apps">Google Play</a></span></figcaption>
+    </figure>
+    <figure class="game">
+      <figcaption><b>Haikyu!! Fly High</b><span class="studio">Changyou</span><span class="pills"><span class="pill cold">iOS</span> <span class="pill ok">Android</span></span><span class="blurb">Licensed anime sports game, Japan.</span><span class="links"><a href="https://apps.apple.com/jp/app/id6446477311">App Store</a> · <a href="https://play.google.com/store/search?q=Haikyu%20Fly%20High&c=apps">Google Play</a></span></figcaption>
+    </figure>
+  </div>
+
+  <details class="more">
+    <summary>Plus 31 titles released in China only, from the same list</summary>
+    <p>Live on the China App Store; their Android builds go through domestic stores, since Google Play does not operate in China. Shown for scale, not as Western market precedent.</p>
+    <div class="minis wide">
+    <a class="mini" href="https://apps.apple.com/cn/app/%E7%90%83%E7%90%83%E5%A4%A7%E4%BD%9C%E6%88%98-%E6%97%A0%E6%9D%A1%E4%BB%B6%E9%80%81%E8%B6%85%E5%A4%A7/id996509117"><span><b>Battle of Balls</b><em>球球大作战</em><small>Giant Network</small></span></a>
+    <a class="mini" href="https://apps.apple.com/cn/app/%E4%B8%89%E5%9B%BD%E6%9D%80/id407413403"><span><b>Three Kingdoms Kill</b><em>三国杀</em><small>Yoka Games</small></span></a>
+    <a class="mini" href="https://apps.apple.com/cn/app/%E4%B8%89%E5%9B%BD%E6%9D%80ol%E4%BA%92%E9%80%9A%E7%89%88/id1037198513"><span><b>Three Kingdoms Kill OL</b><em>三国杀OL</em><small>Yoka Games</small></span></a>
+    <a class="mini" href="https://apps.apple.com/cn/app/%E6%91%A9%E5%B0%94%E5%BA%84%E5%9B%AD/id1523017982"><span><b>Mole&#x27;s World</b><em>摩尔庄园</em><small>Taomee</small></span></a>
+    <a class="mini" href="https://apps.apple.com/cn/app/%E8%A5%BF%E6%B8%B8-%E7%AC%94%E7%BB%98%E8%A5%BF%E8%A1%8C/id6469103697"><span><b>Journey to the West: Ink Painted</b><em>西游：笔绘西行</em><small>Changyou (Gamease)</small></span></a>
+    <a class="mini" href="https://apps.apple.com/cn/app/%E6%8C%87%E5%B0%96%E5%9B%9B%E5%B7%9D%E9%BA%BB%E5%B0%86/id891616303"><span><b>Fingertip Sichuan Mahjong</b><em>指尖四川麻将</em><small>Zen-Game</small></span></a>
+    <a class="mini" href="https://apps.apple.com/cn/app/%E6%96%97%E7%A0%B4%E8%8B%8D%E7%A9%B9-%E5%B7%85%E5%B3%B0%E5%AF%B9%E5%86%B3/id6451241596"><span><b>Battle Through the Heavens: Peak Showdown</b><em>斗破苍穹：巅峰对决</em><small>CMGE (China Mobile Games)</small></span></a>
+    <a class="mini" href="https://apps.apple.com/cn/app/%E6%89%8B%E6%9C%BA%E5%8F%8D%E6%81%90%E7%89%B9%E5%88%AB%E8%A1%8C%E5%8A%A8/id6448353442"><span><b>Counter-Terrorism Special Ops</b><em>手机反恐特别行动</em><small>TenBillion Games</small></span></a>
+    <a class="mini" href="https://apps.apple.com/cn/app/%E9%A3%9E%E5%90%A7%E9%BE%99%E9%AA%91%E5%A3%AB/id6446756603"><span><b>Fly, Dragon Knight</b><em>飞吧龙骑士</em><small>Leiting Games</small></span></a>
+    <a class="mini" href="https://apps.apple.com/cn/app/%E4%BC%A0%E4%B8%96%E9%9C%B8%E4%B8%9A-%E6%AD%A3%E7%89%88%E6%8E%88%E6%9D%83-%E5%A4%8D%E5%8F%A4%E9%AB%98%E7%88%86%E7%AB%AF%E6%B8%B8%E7%A7%BB%E6%A4%8D/id6476655022"><span><b>Chuanshi Baye (Legend of Mir licence)</b><em>传世霸业</em><small>Wuhan Mobile Games</small></span></a>
+    <a class="mini" href="https://apps.apple.com/cn/app/%E6%88%91%E7%9A%84%E4%BC%91%E9%97%B2%E6%97%B6%E5%85%89/id1669193324"><span><b>My Leisure Time</b><em>我的休闲时光</em><small>Skydreams</small></span></a>
+    <a class="mini" href="https://apps.apple.com/cn/app/%E4%B8%89%E5%9B%BD%E5%90%A7%E5%85%84%E5%BC%9F-%E4%BC%91%E9%97%B2%E5%89%B2%E8%8D%89%E8%A7%A3%E5%8E%8B%E6%89%8B%E6%B8%B8/id6451466022"><span><b>Three Kingdoms Bros</b><em>三国吧兄弟</em><small>Jiashengg Network</small></span></a>
+    <a class="mini" href="https://apps.apple.com/cn/app/%E7%81%AB%E5%8A%9B%E8%8B%8F%E6%89%93-t3/id1576661186"><span><b>T3 Arena</b><em>火力苏打（T3）</em><small>X.D. Network (XD Inc.)</small></span></a>
+    <a class="mini" href="https://apps.apple.com/cn/app/%E5%85%A8%E6%B0%91%E6%B1%9F%E6%B9%96-%E7%83%AD%E8%A1%80%E6%B1%9F%E6%B9%96%E6%AD%A3%E7%89%88%E6%89%8B%E6%B8%B8/id6450107254"><span><b>Quanmin Jianghu</b><em>全民江湖</em><small>Fun Network</small></span></a>
+    <a class="mini" href="https://apps.apple.com/cn/app/%E5%86%B3%E6%88%98%E7%BE%BD%E6%AF%9B%E7%90%83-%E8%81%94%E6%9C%BA%E5%AF%B9%E6%88%98/id1546338773"><span><b>Badminton Clash</b><em>决战羽毛球</em><small>707 Interactive</small></span></a>
+    <a class="mini" href="https://apps.apple.com/cn/app/%E5%A5%87%E8%91%A9%E6%88%98%E6%96%97%E5%AE%B6/id1434798394"><span><b>Weird Fighters</b><em>奇葩战斗家</em><small>Leiting Games</small></span></a>
+    <a class="mini" href="https://apps.apple.com/cn/app/%E6%96%97%E5%9C%B0%E4%B8%BB%E7%BB%8F%E5%85%B8%E7%89%88-%E5%8D%95%E6%9C%BA%E6%B8%B8%E6%88%8F%E6%AC%A2%E4%B9%90%E7%89%88%E6%A3%8B%E7%89%8C%E6%AE%8B%E5%B1%80%E9%97%AF%E5%85%B3/id1102002812"><span><b>Dou Dizhu Classic</b><em>斗地主经典版</em><small>Zongyi Technology</small></span></a>
+    <a class="mini" href="https://apps.apple.com/cn/app/%E5%8F%B0%E7%90%83%E7%8E%8B%E8%80%85-3d%E6%A1%8C%E7%90%83%E6%96%AF%E8%AF%BA%E5%85%8B%E7%AB%9E%E6%8A%80%E6%B8%B8%E6%88%8F/id1594550177"><span><b>Billiards King</b><em>台球王者</em><small>Mulin Information</small></span></a>
+    <a class="mini" href="https://apps.apple.com/cn/app/%E6%9C%95%E7%9A%84%E6%B1%9F%E5%B1%B12-%E4%B8%89%E5%9B%BD%E7%AD%96%E7%95%A5%E5%9B%BD%E6%88%98/id1583935305"><span><b>My Kingdom 2</b><em>朕的江山2</em><small>Yoda Technology</small></span></a>
+    <a class="mini" href="https://apps.apple.com/cn/app/%E5%83%B5%E5%B0%B8%E5%89%8D%E7%BA%BF3d-%E6%9C%AB%E6%97%A5%E7%8B%99%E5%87%BB%E6%88%98%E4%BA%89%E6%89%8B%E6%B8%B8/id1585105852"><span><b>Zombie Frontier 3D</b><em>僵尸前线3D</em><small>Feibixunchang</small></span></a>
+    <a class="mini" href="https://apps.apple.com/cn/app/%E9%A3%9E%E9%BE%99%E5%B2%9B%E5%8E%86%E9%99%A9%E8%AE%B0/id1634133454"><span><b>Dragon Island Adventure</b><em>飞龙岛历险记</em><small>DianDian Interactive</small></span></a>
+    <a class="mini" href="https://apps.apple.com/cn/app/%E6%88%91%E6%98%AF%E8%88%AA%E5%A4%A9%E5%91%98/id1641223717"><span><b>I Am an Astronaut</b><em>我是航天员</em><small>Saiyun Network</small></span></a>
+    <a class="mini" href="https://apps.apple.com/cn/app/%E6%9C%AB%E6%97%A5%E4%B9%8B%E5%9F%8E-%E7%AD%96%E7%95%A5%E5%A1%94%E9%98%B2-%E5%8D%A1%E7%89%8C%E6%94%BE%E7%BD%AE/id1562937112"><span><b>Doomsday City</b><em>末日之城</em><small>Changsheng Culture</small></span></a>
+    <a class="mini" href="https://apps.apple.com/cn/app/%E8%A1%97%E7%90%83%E8%89%BA%E6%9C%AF-%E9%87%8D%E6%96%B0%E5%AE%9A%E4%B9%89%E8%A1%97%E7%90%83%E6%89%8B%E6%B8%B8/id6443768967"><span><b>Streetball Art</b><em>街球艺术</em><small>Racoon Digital</small></span></a>
+    <a class="mini" href="https://apps.apple.com/cn/app/%E7%9A%AE%E5%8D%A1%E5%A0%82%E4%B9%8B%E6%A2%A6%E6%83%B3%E8%B5%B7%E6%BA%90/id1636463825"><span><b>Pikatown: Dream Origin</b><em>皮卡堂之梦想起源</em><small>Apowo Network</small></span></a>
+    <a class="mini" href="https://apps.apple.com/cn/app/%E5%B9%B8%E5%AD%98%E8%80%85%E5%8D%B1%E5%9F%8E-%E6%9C%AB%E6%97%A5%E7%94%9F%E5%AD%98%E5%83%B5%E5%B0%B8%E6%B8%B8%E6%88%8F/id1326740391"><span><b>Survivor City</b><em>幸存者危城</em><small>Yoda Technology</small></span></a>
+    <a class="mini" href="https://apps.apple.com/cn/app/%E7%B3%96%E6%9E%9C%E7%B2%BE%E7%81%B5%E4%BC%A0%E5%A5%87-%E7%88%B1%E4%B8%BD%E4%B8%9D%E5%90%88%E5%90%88%E4%BB%99%E5%A2%83/id6443928984"><span><b>Candy Spirit Legend</b><em>糖果精灵传奇</em><small>HiPlay Technology</small></span></a>
+    <a class="mini" href="https://apps.apple.com/cn/app/%E8%99%9A%E7%A9%BA%E6%88%98%E4%BA%89/id1673645173"><span><b>Void War</b><em>虚空战争</em><small>Lekang Network</small></span></a>
+    <a class="mini" href="https://apps.apple.com/cn/app/%E4%B8%8D%E4%B8%80%E6%A0%B7%E4%BC%A0%E8%AF%B42/id1667162072"><span><b>A Different Legend 2</b><em>不一样传说2</em><small>Wingjoy Games</small></span></a>
+    <a class="mini" href="https://apps.apple.com/cn/app/%E6%88%98%E7%81%AB%E4%B8%8E%E6%B0%B8%E6%81%92/id1641048780"><span><b>War and Eternity</b><em>战火与永恒</em><small>Youzu (Yoozoo)</small></span></a>
+    <a class="mini" href="https://apps.apple.com/cn/app/%E5%B8%8C%E5%A3%A4/id1578275525"><span><b>XiRang</b><em>希壤</em><small>Baidu</small></span></a>
+    </div>
+  </details>
+
+  <div class="note warn"><strong>The limits of this evidence, to say out loud.</strong> Every name here comes from the vendor; no Western studio has published a case study, and the vendor's chart sample stopped in Feb 2024 when Apple changed how apps can be downloaded for analysis. The list says Apple's review has not blocked the runtime in practice, at scale, for years. It does not say Apple approves of it, and it does not say which titles actually download code on iOS rather than only on Android. For firmer ground, the vendor's business contact can be asked for reference customers.</div>
+</section>
+
+<section class="wrap" id="product">
+  <h2>5. Product advantages</h2>
+  <div class="cards">
+    <div class="card hot">
+      <h3>Events on the live-ops calendar, not the release train</h3>
+      <ul>
+        <li>A new event popup or lobby activity can go live on a chosen date, independent of when the next client ships.</li>
+        <li>Seasonal or one-off events no longer need to be designed months ahead to make a build cut.</li>
+      </ul>
+    </div>
+    <div class="card hot">
+      <h3>Fix live-ops problems in hours</h3>
+      <ul>
+        <li>A wrong rule, a broken flow or an off-brand screen in an event can be patched the same day, or switched off with a kill switch.</li>
+        <li>Players on old client versions get the fix too, as long as that version is still supported. Today they only get it if they update.</li>
+      </ul>
+    </div>
+    <div class="card hot">
+      <h3>Experiment faster</h3>
+      <ul>
+        <li>Variants of an event's logic (not just its numbers) can be published and compared without a client release.</li>
+        <li>A feature that under-performs can be pulled instantly rather than living in the build until the next release.</li>
+      </ul>
+    </div>
+    <div class="card hot">
+      <h3>Less dependence on update adoption</h3>
+      <ul>
+        <li>Fewer "wait for 80% adoption before the event starts" conversations.</li>
+        <li>Fewer forced-update prompts for live-ops reasons.</li>
+      </ul>
+    </div>
+  </div>
+  <div class="note warn"><strong>Scope reminder.</strong> This is for live-ops content and flow. It does not make match rules, economy or store changes hot. Those keep the release train.</div>
+</section>
+
+<section class="wrap" id="dev">
+  <h2>6. Developer advantages (and costs)</h2>
+  <div class="cards">
+    <div class="card ok">
+      <h3>Wins</h3>
+      <ul>
+        <li><strong>Same language, same tools.</strong> Developers write ordinary C# and ordinary Unity prefabs. There is no second scripting language (Lua or JavaScript) to learn, debug or maintain.</li>
+        <li><strong>A cleaner codebase as a by-product.</strong> To make features downloadable they must talk to the core through a small, stable contract. That modularity is worth having even if a hot update never ships.</li>
+        <li><strong>Smaller QA surface per change.</strong> A patch is one feature's package, not a full client regression.</li>
+        <li><strong>Rollback is trivial.</strong> Republish the previous package, or remove it.</li>
+      </ul>
+    </div>
+    <div class="card cold">
+      <h3>Costs</h3>
+      <ul>
+        <li><strong>Seams must be planned.</strong> A shipped feature can only be hot-fixed where it was built with a hook. Unplanned code cannot be patched. This is design work before each release.</li>
+        <li><strong>New build steps</strong> in CI, and a per-client-version artefact to publish with every store build.</li>
+        <li><strong>Two release processes.</strong> A hot release needs its own review, QA and sign-off, treated as seriously as a client release.</li>
+        <li><strong>Some new host capability still needs a build.</strong> When a hot feature needs a door the core does not have yet (a new server endpoint, auto-popup scheduling), that door ships in a client release first. Features then flow through it without further builds.</li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<section class="wrap" id="player">
+  <h2>7. Player advantages</h2>
+  <ul>
+    <li><strong>No store update to get the event.</strong> It is just there next time they open the app.</li>
+    <li><strong>Fewer forced updates and fewer broken events.</strong> Fixes arrive silently.</li>
+    <li><strong>Smaller app.</strong> Over time live-ops features move out of the base install and download on demand, which also helps store listing size.</li>
+    <li><strong>Negligible extra download.</strong> The code for a feature is tens of kilobytes; the art is the same art that would have shipped anyway.</li>
+  </ul>
+  <p>Nothing changes for players who are offline: the app works as installed, and downloaded features appear once they are online, exactly as downloaded art does today.</p>
+</section>
+
+<section class="wrap" id="limits">
+  <h2>8. What it cannot do</h2>
+  <p>This section exists so nobody comes away thinking "any bug can be fixed without a release". It can't.</p>
+  <ul>
+    <li><strong>It cannot change code that is already in the shipped app.</strong> It can add new code, and it can steer shipped features through the hooks they were built with. A bug in code with no hook needs a store build, as today.</li>
+    <li><strong>Core game logic is out of scope by rule.</strong> Matchmaking, gameplay rules, currencies, purchases, login. Both because of policy risk and because it is the wrong tool.</li>
+    <li><strong>Startup crashes, native plugins and engine-level issues</strong> are untouched. If the app cannot reach the lobby, nothing downloads.</li>
+    <li><strong>Only features that opted in can be hot-fixed.</strong> Opting in is a release-time decision per feature.</li>
+    <li><strong>Server changes still need the server.</strong> Hot code can read and send the same things the client can today; new server messages still land in a client release first.</li>
+  </ul>
+  <h3>The paid editions change the first bullet</h3>
+  <p>Everything above describes the free community edition, which is what the spike used. The maintainers sell three paid editions, licensed per project as a one-off purchase with two years of support and updates. Prices are not published; they are quoted on request from a company email address.</p>
+  <div class="scroll">
+  <table>
+    <tr><th>Edition</th><th>What it adds</th><th>What it changes</th></tr>
+    <tr><td><strong>Community</strong><br><span class="pill ok">free, used in the spike</span></td><td>Downloaded code runs in an interpreter. Add new code, steer shipped features through planned hooks.</td><td>Everything in sections 2 and 9. Hotfixes only where a hook exists.</td></tr>
+    <tr><td><strong>Professional</strong></td><td>Faster interpreter (the vendor quotes 2.8 to 7.4 times on numeric code), lower memory, encrypted and hardened downloaded code, crash logs that include the downloaded code's stack.</td><td>Better protection of what is published, better crash reports from hot features, headroom if hot code ever does more than UI.</td></tr>
+    <tr><td><strong>Ultimate</strong><br><span class="pill warn">the "fix anything" one</span></td><td>Professional plus <strong>Differential Hybrid Execution</strong>: the live-ops code ships compiled into the app at full native speed, and after release only the changed functions are swapped for interpreted versions. The vendor describes unchanged code as running at 100% native speed.</td><td><strong>Patch a bug in shipped live-ops code without having planned a hook for it.</strong> No per-feature seam work before each release.</td></tr>
+    <tr><td><strong>Hot Reload</strong></td><td>Professional plus unloading and reloading a downloaded package while the app is running.</td><td>Swap or fix a live-ops feature while the player is in the lobby, with no restart. Useful for A/B switches and instant rollback.</td></tr>
+  </table>
+  </div>
+  <p><strong>Why the spike did not start there.</strong> Three reasons:</p>
+  <ul>
+    <li><strong>Policy exposure grows.</strong> Replacing functions inside the shipped app is the most literal reading of what Apple's 2.5.2 forbids, and the hardest to defend under Google's interpreter exemption. The community edition's "add code through planned hooks" is the more defensible shape.</li>
+    <li><strong>Cost and lock-in are unknown.</strong> Per-project licence, two-year term, one small vendor, price on request. The free edition can be removed from a project in an afternoon; a product built around Differential Hybrid Execution cannot.</li>
+    <li><strong>It still does not fix everything.</strong> Startup crashes, native plugins, engine behaviour and server contracts are untouched in every edition. Core game logic stays out of scope by rule either way.</li>
+  </ul>
+  <div class="note"><strong>Recommendation:</strong> prove the free edition in production first. If after a pilot the hooks prove too limiting, request a quote for Ultimate and evaluate it on a branch.</div>
+</section>
+
+<section class="wrap" id="ladder">
+  <h2>9. How a live-ops problem gets fixed: the ladder</h2>
+  <p>Each rung is cheaper and faster than the one below it. The spike proved rungs 2 and 3. Rungs 0 and 1 are standard practice already.</p>
+  <div class="ladder">
+    <div class="rung"><div class="n">0</div><div><p><strong>Server config.</strong> Numbers, dates, on/off flags, text. Minutes, no client involvement.</p><small>Standard practice.</small></div></div>
+    <div class="rung"><div class="n">1</div><div><p><strong>Content.</strong> Art, layouts, animations, localisation. Hours, via Addressables.</p><small>Standard practice.</small></div></div>
+    <div class="rung"><div class="n">2</div><div><p><strong>Behaviour patch through a planned hook.</strong> Change a rule the feature exposed on purpose: what a button does, how a reward is chosen, what a hint says. Same day.</p><small>New. Reward-popup demo.</small></div></div>
+    <div class="rung"><div class="n">3</div><div><p><strong>Screen patch and new features.</strong> Reach into a shipped screen and change what it shows, or deliver a whole new live-ops feature. Days.</p><small>New. Pick-a-door event demo.</small></div></div>
+    <div class="rung"><div class="n cold">4</div><div><p><strong>Store build.</strong> Everything else. Weeks, plus adoption.</p><small>As today.</small></div></div>
+  </div>
+</section>
+
+<section class="wrap" id="risks">
+  <h2>10. Risks, stated plainly</h2>
+  <div class="scroll">
+  <table>
+    <tr><th>Risk</th><th>What it is</th><th>Assessment</th></tr>
+    <tr><td><strong>Google Play policy</strong></td><td>Play forbids downloading executable code from outside Play, with an explicit exemption for code run by an interpreter inside the app. HybridCLR is that case. Play still forbids changing app behaviour to get past review.</td><td><span class="pill warn">Judgment call</span> Defensible if hot code keeps to live-ops, never alters review-time behaviour, sits behind a kill switch and every package is signed. Nobody at Google has said yes or no to the tool by name.</td></tr>
+    <tr><td><strong>Apple policy</strong></td><td>Guideline 2.5.2 forbids downloaded code that changes features. The only carve-out is scripts run by Apple's own web engine. Usual enforcement is a rejected build. The rare one is termination of the developer account, which takes every app on it, and a new account for the same company is normally refused.</td><td><span class="pill bad">Not recommended</span> For an iOS-heavy audience this is the deciding factor. The spike touched nothing on Apple's side. See section 11.</td></tr>
+    <tr><td><strong>Security</strong></td><td>Whatever can place a file on the CDN path could run code inside the app.</td><td><span class="pill warn">Must fix before shipping</span> The app must verify a signature on every package before running it. Non-negotiable.</td></tr>
+    <tr><td><strong>Process</strong></td><td>A hot release skips store review, so it also skips the discipline that comes with it.</td><td><span class="pill warn">Needs owners</span> Every hot release reviewed and QA'd like a client release, with a named approver.</td></tr>
+    <tr><td><strong>Bad patch in the wild</strong></td><td>A broken package reaches players.</td><td><span class="pill ok">Covered</span> Remote kill switch, republish of the previous version, and the app continues even if a package fails to load.</td></tr>
+    <tr><td><strong>Ecosystem</strong></td><td>Chinese-centric community, partial English docs, one small maintainer company.</td><td><span class="pill warn">Accepted</span> Free, open source, and the integration is small enough to drop if needed. The modular code it forced stays useful either way.</td></tr>
+  </table>
+  </div>
+</section>
+
+<section class="wrap" id="ios">
+  <h2>11. iOS: the strategic question</h2>
+  <p>Technically the same mechanism works on iPhone. Policy-wise it does not, and the downside is the account, not one build. So the proposal is:</p>
+  <div class="cards">
+    <div class="card hot">
+      <h3>Android: hot</h3>
+      <p>Live-ops features and fixes download on Android. One pilot feature first, with the safeguards in section 10.</p>
+    </div>
+    <div class="card cold">
+      <h3>iOS: same code, baked in</h3>
+      <p>The same feature code is compiled into the iOS build. iOS players get the feature with the next release; nothing is downloaded. One codebase, two delivery modes.</p>
+    </div>
+  </div>
+  <p>Two alternatives were checked and are not shortcuts:</p>
+  <ul>
+    <li><strong>"Use JavaScript instead, Apple allows that."</strong> Apple allows scripts run by its own engine only. The Unity JavaScript options bundle their own engine, which puts them in the same position as HybridCLR. A policy-clean JavaScript route would be a separate, unproven project.</li>
+    <li><strong>Data-driven event templates</strong> (generic event screens configured by server data) are the only route that is both industry-standard and policy-free, on both platforms. They cover events that fit a template, and nothing else. They are rungs 0 and 1 done thoroughly, and they are complementary to this work, not a replacement.</li>
+  </ul>
+  <div class="note bad"><strong>Whether to ever hot-update on iOS is a business decision</strong>, with the account risk stated above. The engineering recommendation is no.</div>
+</section>
+
+<section class="wrap" id="next">
+  <h2>12. From proof to production (Android)</h2>
+  <p>Rough buckets, not a committed plan. Estimates are the R&amp;D view; a team would size them for itself.</p>
+  <div class="scroll">
+  <table>
+    <tr><th>Step</th><th>Why</th><th>Rough effort</th></tr>
+    <tr><td>Pipeline integration</td><td>CI builds the Android client with the hot runtime and publishes the per-version companion file automatically.</td><td>1 to 2 weeks</td></tr>
+    <tr><td>Safeguards</td><td>Signed packages, remote kill switch, client-version addressing so old clients only get patches meant for them.</td><td>1 to 2 weeks</td></tr>
+    <tr><td>Google Play proof</td><td>A production-signed build through Play internal testing, then a staged rollout of a harmless hot feature. The only way to see Play's reaction.</td><td>1 week plus Play lead time</td></tr>
+    <tr><td>Pilot feature</td><td>One real live-ops feature built hot from day one, with its iOS baked twin.</td><td>Feature's normal cost plus a few days</td></tr>
+    <tr><td>Process</td><td>Hot release checklist, approver, QA pass, comms with the live-ops team.</td><td>Days, mostly agreement</td></tr>
+  </table>
+  </div>
+  <p>Hotfixing <em>existing</em> features has an extra prerequisite: each feature needs its hooks added in a store build before it can be patched. That is per-feature work and should be prioritised by how often each feature needs live-ops changes.</p>
+</section>
+
+
+<section class="wrap" id="faq">
+  <h2>Quick answers</h2>
+  <h3>Will players notice anything?</h3>
+  <p>No. A feature appears, or a fix lands, on the next app open. Same as downloaded art.</p>
+  <h3>Does the app get bigger?</h3>
+  <p>The runtime adds a small amount to the install. Over time the app gets smaller as live-ops features move out of the base build.</p>
+  <h3>What if a package is broken?</h3>
+  <p>The app skips it and runs without it. The package is pulled or replaced on the CDN. Players are never stuck.</p>
+  <h3>Does this replace server-driven config?</h3>
+  <p>No. Config stays the first tool for every change that is a value. This is for changes that are logic or screens.</p>
+  <h3>Did any of this ship?</h3>
+  <p>No. It was research: dev-signed test builds only. Nothing was submitted to either store.</p>
+</section>
+
+</main>
+
+<footer class="wrap">
+  <p>Written from an R&amp;D spike in Nov 2026, the companion to the HybridCLR project page on this site. Industry adoption figures and the game list come from the HybridCLR project's own README and business-case page and are the maintainers' claims; game names link to their public store listings. Store-policy statements are not legal advice.</p>
+</footer>
+
+</body>
+</html>
