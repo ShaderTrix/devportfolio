@@ -4,8 +4,8 @@
 // row order under each filter (slugs); unlisted projects follow in their usual order.
 // "all" is also the page order (orderProjects), so the home grid and the gallery terminal match.
 export const FILTER_ORDER: Record<string, string[]> = {
-  all: ["scene-optimization", "pcg-forest", "water-ripples", "sand-trail-system", "mecha-scorpion", "niagara-powers", "rendering-optimization", "tmp-instancing", "ui-tiled-image"],
-  unity: ["flow-field-agents", "gpu-pixelizer", "mass-spring-cloth", "rendering-optimization", "jump-flood-sdf"],
+  all: ["scene-optimization", "pcg-forest", "water-ripples", "sand-trail-system", "mecha-scorpion", "niagara-powers", "hybridclr-hot-update", "rendering-optimization", "tmp-instancing", "ui-tiled-image"],
+  unity: ["hybridclr-hot-update", "flow-field-agents", "gpu-pixelizer", "mass-spring-cloth", "rendering-optimization", "jump-flood-sdf"],
   unreal: ["scene-optimization", "pcg-forest", "water-ripples", "sand-trail-system", "mecha-scorpion", "niagara-powers", "material-instance-editor", "level-mesh-instancer", "flashbang-post-process", "gpu-rain-system"],
 };
 

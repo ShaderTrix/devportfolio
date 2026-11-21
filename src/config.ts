@@ -118,11 +118,11 @@ export const siteConfig = {
   // one fades out from below.
   latestUpdates: [
     { title: "Dynamic SkillTree UI System", meta: "Unreal · Nov 2026", status: "wip", image: "" },
-    { title: "Live Game Modding & Hotfixing with HybridCLR", meta: "Unity · Nov 2026", status: "wip", image: "" },
+    { title: "GPU Dynamic Fur Physics", meta: "Unreal · Up next", status: "wip", image: "" },
+    { project: "hybridclr-hot-update", meta: "Nov 2026", status: "done", image: "/gallery/updates/hybridclr.webp" },
     { project: "water-ripples", meta: "Nov 2026", status: "done", image: "/gallery/updates/water-ripples.webp" },
     { project: "sand-trail-system", meta: "Oct 2026", status: "done", image: "/gallery/updates/sand-system.webp" },
     { project: "scene-optimization", meta: "Oct 2026", status: "done", image: "/gallery/updates/scene-optimization.webp" },
-    { project: "pcg-forest", meta: "Oct 2026", status: "done", image: "/gallery/updates/pcg-forest.webp" },
   ],
   experience: [
     {
@@ -383,6 +383,82 @@ export const siteConfig = {
             "Seeds pack UV + colour into an RGBA-float ping-pong buffer",
             "Outputs a reusable signed distance field from any input texture",
             "Drives glow, outline, and Voronoi effects with a tunable falloff + colour",
+          ],
+        },
+        {
+          slug: "hybridclr-hot-update",
+          name: "Live Game Modding & Hotfixing with HybridCLR",
+          tagline: "New C# features and hotfixes delivered to an installed Android build through Addressables, with no store update.",
+          image: "/projects/hybridclr-architecture.webp",
+          detailImage: "",
+          hideDetailBanner: true,   // the diagrams are shown in full below the overview instead
+          description:
+            "An R&D spike on a production-sized mobile Unity project: HybridCLR adds an IL interpreter to IL2CPP, so C# DLLs downloaded through Addressables run next to the frozen native code. Proven step by step on an Android phone: a code change with no reinstall, the AOT-generics failure and its content-only fix, a whole live-ops feature shipped as content, and runtime hotfixes of a screen that had already shipped.",
+          link: "",
+          skills: ["Unity", "HybridCLR", "IL2CPP", "Addressables", "C#", "Android"],
+          longDescription: [
+            "On a Unity mobile build, C# is compiled to IL and then by IL2CPP to native ARM code. Nothing in the installed app can change after that, so every live-ops feature waits for a store release, and so does every fix to one. HybridCLR puts an IL interpreter into the player, which makes Assembly.Load work again on IL2CPP. The spike asked two questions: can a self-contained feature (code and prefabs) reach an installed build through Addressables alone, and can a feature that already shipped be hotfixed at runtime until the next store build? Two rules were set up front: hot code only ever touches live-ops logic, never core gameplay, and a feature has to opt in explicitly.",
+            "The architecture was forced by one fact: the whole client lives in one assembly, and a separate assembly can't reference it. So hot code talks to the game only through a small contract assembly that both sides reference (IHotHost, IHotFeature and rule interfaces), and the host in the build implements it. Each hot asmdef has Auto Referenced off and is registered as a hot-update assembly, so it's stripped from the player and shipped as .dll.bytes in its own Addressables group. At boot the host checks the catalog, respects a kill switch, loads AOT metadata, loads every DLL with the hotfeature_dll label and starts each IHotFeature. The label is the manifest: adding or retiring a hotfix is adding or removing a catalog entry, and the host has no per-feature code. In the Editor the assemblies come from the domain instead, because loading the bytes again would create a second copy of every type.",
+            "Each stage had a gate: something seen on a real phone that couldn't be faked. A banner went from v1 to v2 after a content push with no reinstall. Hot code using List<T> over its own struct failed silently at first, because the fire-and-forget task's exception only reached the crash reporter; with a visible guard the phone named the exact missing method, and shipping the stripped mscorlib from the same build as supplementary metadata fixed it on the same install. Hot code can't subclass the build's base modal, so a host adapter forwards to a hot IHotModalView. A whole feature was then born hot: a home-screen widget, a modal and rewards flying into the HUD, all from a DLL and prefabs on the CDN.",
+            "For hotfixes, seven decisions in a shipped reward modal were routed through an interface with a default that reproduces the old behaviour, and a host hook fires when any modal opens. A hot DLL registered new rules (progress text, badge, hint, reward count) and walked the opened modal to rewrite the header and swap the background sprite, with the prefab untouched. The limits matter as much: the free edition can't replace a method that's already native, so only features with a seam or hook can be fixed this way; Apple's guideline 2.5.2 makes it an Android-only answer; and since hot code can reach any type by reflection, the narrow host interface is hygiene, not a security boundary, so signed DLLs, reviewed releases and a remote kill switch are required before anything ships. The seams themselves are worth keeping either way: they're what a modular codebase needs, and HybridCLR is only a delivery mechanism on top.",
+          ],
+          galleryImages: ["/projects/hybridclr-architecture.webp", "/projects/hybridclr-ladder.webp"],
+          tables: [
+            {
+              title: "Proven on the phone",
+              caption: "Android, Unity 6, HybridCLR 9.0.3 community edition, .NET Standard 2.1. Each stage on a dev build, content pushed through the project's Addressables CI job.",
+              text: true,
+              head: ["Stage", "What it proved", "What the phone showed"],
+              rows: [
+                ["1 · Toolchain", "The patched IL2CPP builds and boots a large project", "The dev build played normally"],
+                ["2 · Hello world", "Code changes on an installed build", "Banner v1 → v2 after a content push, no reinstall"],
+                ["3 · AOT generics", "The known failure, then a content-only fix", "The missing List<T> method named on device, then fixed by shipping metadata"],
+                ["4 · Hot modal", "Hot code opens UI through a host adapter", "A modal opened and closed repeatedly from the hot DLL"],
+                ["5 · Hotfix a shipped screen", "Seam plus hierarchy patch on a feature already in the build", "New header, background, labels and reward count; prefab untouched"],
+                ["6 · One assembly per feature", "Independent features loaded by label", "Two DLLs from two bundles, both started"],
+                ["7 · Feature born hot", "A whole live-ops feature as content", "Home-screen widget, modal and rewards into the HUD"],
+              ],
+            },
+            {
+              title: "What a hot DLL can and can't do",
+              text: true,
+              head: ["Can", "Can't"],
+              rows: [
+                ["Run new code: new features, new screens, new rules", "Replace a method body that's already compiled to native code (the paid diff mode can; not evaluated)"],
+                ["Implement interfaces the build defines and register them", "Subclass a build type the contract doesn't expose; it needs an adapter in the build"],
+                ["Touch any live object the build creates, private fields by reflection", "Fix startup, native plugins, the engine, or new network data shapes"],
+                ["Use generics the build never instantiated, with the shipped metadata", "Be a security boundary: reflection reaches everything, so DLLs must be signed and reviewed"],
+              ],
+            },
+            {
+              title: "Problems and fixes",
+              text: true,
+              head: ["Problem", "Cause", "Fix"],
+              rows: [
+                ["The hot feature vanished with no error", "The loader is a fire-and-forget task, so the exception only reached the crash reporter", "Feature start and hooks wrapped in try/catch with a visible error log"],
+                ["MissingMethodException on List`1[HotStruct]::Add", "IL2CPP only compiles the generic instantiations the build itself used", "Ship the stripped mscorlib from the same build as supplementary metadata, loaded before any hot DLL; refresh it after every build"],
+                ["The app said \"no updates\" but ran newer code", "Remote bundles had unhashed names and CRC off, so a CDN bundle could run ahead of the catalog", "Hashed bundle names or CRC on for hot groups, so a mismatch fails loudly"],
+                ["Editor scripts stopped compiling after a build", "HybridCLR sets UNITY_IL2CPP_PATH and never clears it; Unity 6 then looks for a dev il2cpp checkout", "A post-build hook clears the variable"],
+                ["Generate All failed its settings check", "It must run with the same Development Build setting as the player build", "Generate and build with matching settings"],
+                ["Loading DLL bytes in the Editor broke type checks", "The Editor domain already has the assembly, so a second load duplicates every type", "In the Editor, take the assembly from the domain by name"],
+                ["A hot prefab could drag its code into the build", "A hot prefab saved in a scene references the hot assembly", "Hot prefabs only ever live in their Addressables group"],
+              ],
+            },
+          ],
+          codeTitle: "The code",
+          codeBlocks: [
+            {
+              label: "A seam with a default (rung 2)",
+              code: "public interface IRewardModalRules\n{\n    string ProgressText(Snapshot s);\n    string BadgeLabel(Snapshot s);      // null hides the badge\n    int ItemsToSpawn(Snapshot s, int max);\n    // ...four more decisions\n}\n\n// in the shipped modal, resolved on every open\nrules = HotOverrides.Get<IRewardModalRules>() ?? DefaultRules;",
+            },
+            {
+              label: "Boot: metadata first, then every labelled DLL",
+              code: "foreach (var meta in aotMetadata)   // stripped mscorlib from the same build\n    RuntimeApi.LoadMetadataForAOTAssembly(meta.bytes, HomologousImageMode.SuperSet);\n\nforeach (var dll in await LoadAllWithLabel<TextAsset>(\"hotfeature_dll\"))\n{\n    var asm = Assembly.Load(dll.bytes);\n    foreach (var type in asm.GetTypes().Where(typeof(IHotFeature).IsAssignableFrom))\n        try { ((IHotFeature)Activator.CreateInstance(type)).Start(host); }\n        catch (Exception e) { Debug.LogError(e); }   // never fail silently\n}",
+            },
+            {
+              label: "A hierarchy patch on a host hook (rung 3)",
+              code: "host.OnModalOpened += (name, root) =>\n{\n    if (name != \"RewardModal\") return;\n    root.transform.Find(\"main/header\").GetComponent<TMP_Text>().text = \"…\";\n    root.transform.Find(\"main/background\").GetComponent<Image>().sprite = hotSprite;\n};",
+            },
           ],
         },
         {

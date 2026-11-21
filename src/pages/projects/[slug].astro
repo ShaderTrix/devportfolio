@@ -115,7 +115,9 @@ const categoryBackLabel =
         <div class="dp-body">
           {project.longDescription?.map((paragraph) => <p>{paragraph}</p>)}
           {project.inlineImage && <img src={project.inlineImage} alt={project.name} class="dp-img" />}
-          {project.galleryImages?.map((img) => <img src={img} alt={project.name} class="dp-img" />)}
+          {project.galleryImages?.map((img) => (
+            <a href={img} target="_blank" rel="noopener" class="dp-zoom" title="Open full size"><img src={img} alt={project.name} class="dp-img" /></a>
+          ))}
           {project.galleryVideos?.map((v) => (
             <figure class="dp-fig">
               <video src={v.src} poster={v.poster} class="dp-img" autoplay muted loop playsinline preload="metadata" aria-label={v.caption || project.name}></video>
@@ -329,6 +331,7 @@ const categoryBackLabel =
   .dp-body a { color: var(--accent); text-decoration: underline; text-underline-offset: 3px; }
   .dp-img { width: 100%; height: auto; margin-top: 0.5rem; border: 1px solid var(--border); }
   .dp-fig { margin: 0; }
+  .dp-zoom { display: block; cursor: zoom-in; }   /* gallery images open full size (diagrams have small text) */
   video.dp-img { display: block; background: #000; }
 
   .dp-steps { display: grid; gap: 1.1rem; max-width: 78ch; }
